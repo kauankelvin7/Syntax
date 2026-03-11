@@ -1,5 +1,5 @@
 /**
- * 🚀 CINESIA APP - Performance Optimized + PWA
+ * 🚀 SYNTAX APP - Performance Optimized + PWA
  * 
  * Otimizações aplicadas:
  * - Route-based Code Splitting (React.lazy)
@@ -199,11 +199,11 @@ function App() {
             toastOptions={{
               duration: 5000,
               classNames: {
-                toast:   'cinesia-toast',
-                success: 'cinesia-toast--success',
-                error:   'cinesia-toast--error',
-                warning: 'cinesia-toast--warning',
-                info:    'cinesia-toast--info',
+                toast:   'syntax-toast',
+                success: 'syntax-toast--success',
+                error:   'syntax-toast--error',
+                warning: 'syntax-toast--warning',
+                info:    'syntax-toast--info',
               },
             }}
           />

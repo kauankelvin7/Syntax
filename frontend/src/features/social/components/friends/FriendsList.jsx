@@ -50,7 +50,7 @@ const FriendsList = memo(({
           Sua rede está vazia
         </h3>
         <p className="text-[13px] text-slate-500 dark:text-slate-400 max-w-[240px] leading-relaxed mb-6 font-medium">
-          A jornada é melhor quando compartilhada. Busque colegas de fisioterapia e comecem a evoluir juntos!
+          A jornada é melhor quando compartilhada. Busque colegas de Engenharia de Software e comecem a evoluir juntos!
         </p>
         
         {onNavigateSearch && (

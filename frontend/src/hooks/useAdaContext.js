@@ -1,7 +1,7 @@
 /**
- * @file useKakabotContext.js
+ * @file useAdaContext.js
  * @description Hook que carrega estatísticas do sistema em tempo real para injetar
- * no system prompt do Gemini (KakaBot). Garante que o agente tenha consciência do
+ * no system prompt do Gemini (AdaBot). Garante que o agente tenha consciência do
  * estado atual do usuário: matérias, flashcards, revisoes pendentes, streak etc.
  *
  * @dependencies
@@ -14,7 +14,7 @@
  *  - Re-executa quando eventos 'cinesia:*' são disparados (via CustomEvent)
  *
  * @notes
- *  - Os custom events permitem que o KakaBot tenha dados atualizados após executar ações
+ *  - Os custom events permitem que o AdaBot tenha dados atualizados após executar ações
  *  - Não usa onSnapshot (tempo real do Firestore) para economizar leituras — usa polling por evento
  *  - PERF: limit(500) em cada query — usuários com muito conteúdo podem ter dados truncados
  */
@@ -35,7 +35,7 @@ import { getStreakStats } from '../services/streakService';
  * @param {string|null} uid - UID do usuário logado
  * @returns {{ dadosSistema: object, materiasLista: Array, isLoadingContext: boolean }}
  */
-const useKakabotContext = (uid) => {
+const useAdaContext = (uid) => {
   const [dadosSistema, setDadosSistema] = useState({
     materias: [],
     totalFlashcards: 0,
@@ -114,4 +114,4 @@ const useKakabotContext = (uid) => {
   return { dadosSistema, materiasLista, isLoadingContext };
 };
 
-export default useKakabotContext;
+export default useAdaContext;

@@ -3,7 +3,7 @@
 @config "../tailwind.config.js";
 
 /* ==============================================
-   DESIGN SYSTEM 5.0 — CINESIA PREMIUM
+  DESIGN SYSTEM 5.0 — SYNTAX PREMIUM
    Medical Precision meets Modern Study App
    Inspired by: Linear.app, Vercel Dashboard, Raycast
    ============================================== */
@@ -521,13 +521,12 @@
   button:not(.touch-exempt), [role="button"]:not(.touch-exempt), a:not(.touch-exempt) { min-height: 44px; min-width: 44px; }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   CINESIA TOASTS — Sonner custom design
+/* ═══════════════════════════════════════════
+   SYNTAX TOASTS — Sonner custom design
    Layout: bottom-right, 360px, left accent border, pastel bg
    Types: success, error, warning, info
    Dark mode: deep tinted backgrounds
-   ═══════════════════════════════════════════════════════════════ */
-
+   ═══════════════════════════════════════════ */
 /* ── Container ── */
 [data-sonner-toaster] {
   --width: 360px;
@@ -535,7 +534,7 @@
 }
 
 /* ── Base toast ── */
-.cinesia-toast {
+.syntax-toast {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
   width: 360px !important;
   max-width: calc(100vw - 32px) !important;
@@ -549,7 +548,7 @@
 }
 
 /* ── Title ── */
-.cinesia-toast [data-title] {
+.syntax-toast [data-title] {
   font-size: 14px !important;
   font-weight: 600 !important;
   letter-spacing: -0.01em !important;
@@ -557,7 +556,7 @@
 }
 
 /* ── Description ── */
-.cinesia-toast [data-description] {
+.syntax-toast [data-description] {
   font-size: 12px !important;
   font-weight: 400 !important;
   line-height: 1.5 !important;
@@ -565,7 +564,7 @@
 }
 
 /* ── Close button ── */
-.cinesia-toast [data-close-button] {
+.syntax-toast [data-close-button] {
   background: transparent !important;
   border: none !important;
   top: 8px !important;
@@ -573,80 +572,80 @@
   opacity: 0.5;
   transition: opacity 150ms ease;
 }
-.cinesia-toast [data-close-button]:hover { opacity: 1; }
+.syntax-toast [data-close-button]:hover { opacity: 1; }
 
 /* ── SUCCESS ✅ ── */
-.cinesia-toast--success {
+.syntax-toast--success {
   background: #F0FDF4 !important;
   border-left-color: #22C55E !important;
 }
-.cinesia-toast--success [data-icon] svg,
-.cinesia-toast--success [data-icon] { color: #22C55E !important; }
-.cinesia-toast--success [data-title]       { color: #15803D !important; }
-.cinesia-toast--success [data-description] { color: #166534 !important; }
-.cinesia-toast--success [data-close-button] { color: #4ADE80 !important; }
+.syntax-toast--success [data-icon] svg,
+.syntax-toast--success [data-icon] { color: #22C55E !important; }
+.syntax-toast--success [data-title]       { color: #15803D !important; }
+.syntax-toast--success [data-description] { color: #166534 !important; }
+.syntax-toast--success [data-close-button] { color: #4ADE80 !important; }
 
 /* ── ERROR ❌ ── */
-.cinesia-toast--error {
+.syntax-toast--error {
   background: #FFF1F2 !important;
   border-left-color: #EF4444 !important;
 }
-.cinesia-toast--error [data-icon] svg,
-.cinesia-toast--error [data-icon]   { color: #EF4444 !important; }
-.cinesia-toast--error [data-title]       { color: #B91C1C !important; }
-.cinesia-toast--error [data-description] { color: #991B1B !important; }
-.cinesia-toast--error [data-close-button] { color: #F87171 !important; }
+.syntax-toast--error [data-icon] svg,
+.syntax-toast--error [data-icon]   { color: #EF4444 !important; }
+.syntax-toast--error [data-title]       { color: #B91C1C !important; }
+.syntax-toast--error [data-description] { color: #991B1B !important; }
+.syntax-toast--error [data-close-button] { color: #F87171 !important; }
 
 /* ── WARNING ⚠️ ── */
-.cinesia-toast--warning {
+.syntax-toast--warning {
   background: #FFFBEB !important;
   border-left-color: #F59E0B !important;
 }
-.cinesia-toast--warning [data-icon] svg,
-.cinesia-toast--warning [data-icon] { color: #F59E0B !important; }
-.cinesia-toast--warning [data-title]       { color: #92400E !important; }
-.cinesia-toast--warning [data-description] { color: #78350F !important; }
-.cinesia-toast--warning [data-close-button] { color: #FCD34D !important; }
+.syntax-toast--warning [data-icon] svg,
+.syntax-toast--warning [data-icon] { color: #F59E0B !important; }
+.syntax-toast--warning [data-title]       { color: #92400E !important; }
+.syntax-toast--warning [data-description] { color: #78350F !important; }
+.syntax-toast--warning [data-close-button] { color: #FCD34D !important; }
 
 /* ── INFO ℹ️ ── */
-.cinesia-toast--info {
+.syntax-toast--info {
   background: #EFF6FF !important;
   border-left-color: #3B82F6 !important;
 }
-.cinesia-toast--info [data-icon] svg,
-.cinesia-toast--info [data-icon] { color: #3B82F6 !important; }
-.cinesia-toast--info [data-title]       { color: #1D40AE !important; }
-.cinesia-toast--info [data-description] { color: #1E3A8A !important; }
-.cinesia-toast--info [data-close-button] { color: #60A5FA !important; }
+.syntax-toast--info [data-icon] svg,
+.syntax-toast--info [data-icon] { color: #3B82F6 !important; }
+.syntax-toast--info [data-title]       { color: #1D40AE !important; }
+.syntax-toast--info [data-description] { color: #1E3A8A !important; }
+.syntax-toast--info [data-close-button] { color: #60A5FA !important; }
 
 /* ── DARK MODE ── */
-.dark .cinesia-toast--success {
+.dark .syntax-toast--success {
   background: #052e16 !important;
   border-left-color: #22C55E !important;
 }
-.dark .cinesia-toast--success [data-title]       { color: #86EFAC !important; }
-.dark .cinesia-toast--success [data-description] { color: #4ADE80 !important; }
+.dark .syntax-toast--success [data-title]       { color: #86EFAC !important; }
+.dark .syntax-toast--success [data-description] { color: #4ADE80 !important; }
 
-.dark .cinesia-toast--error {
+.dark .syntax-toast--error {
   background: #450a0a !important;
   border-left-color: #EF4444 !important;
 }
-.dark .cinesia-toast--error [data-title]       { color: #FCA5A5 !important; }
-.dark .cinesia-toast--error [data-description] { color: #F87171 !important; }
+.dark .syntax-toast--error [data-title]       { color: #FCA5A5 !important; }
+.dark .syntax-toast--error [data-description] { color: #F87171 !important; }
 
-.dark .cinesia-toast--warning {
+.dark .syntax-toast--warning {
   background: #362100 !important;
   border-left-color: #F59E0B !important;
 }
-.dark .cinesia-toast--warning [data-title]       { color: #FDE68A !important; }
-.dark .cinesia-toast--warning [data-description] { color: #FCD34D !important; }
+.dark .syntax-toast--warning [data-title]       { color: #FDE68A !important; }
+.dark .syntax-toast--warning [data-description] { color: #FCD34D !important; }
 
-.dark .cinesia-toast--info {
+.dark .syntax-toast--info {
   background: #0a1628 !important;
   border-left-color: #3B82F6 !important;
 }
-.dark .cinesia-toast--info [data-title]       { color: #93C5FD !important; }
-.dark .cinesia-toast--info [data-description] { color: #60A5FA !important; }
+.dark .syntax-toast--info [data-title]       { color: #93C5FD !important; }
+.dark .syntax-toast--info [data-description] { color: #60A5FA !important; }
 
 /* ── Mobile: full-width toasts ── */
 @media (max-width: 600px) {
@@ -656,7 +655,7 @@
     bottom: 16px !important;
     width: calc(100vw - 32px) !important;
   }
-  .cinesia-toast {
+  .syntax-toast {
     width: 100% !important;
     max-width: 100% !important;
   }
@@ -825,14 +824,14 @@ svg.lucide { display: block; flex-shrink: 0; }
 }
 
 /* ═══════════════════════════════════════════
-   KAKABOT ANIMATIONS
+   ADABOT ANIMATIONS
    ═══════════════════════════════════════════ */
-@keyframes kakaWave {
+@keyframes adaWave {
   0%, 100% { transform: scaleY(0.35); }
   50%      { transform: scaleY(1); }
 }
 
-@keyframes kakafadeUp {
+@keyframes adafadeUp {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }

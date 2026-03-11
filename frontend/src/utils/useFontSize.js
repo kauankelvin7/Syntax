@@ -21,7 +21,7 @@ const FONT_SIZES = {
   extraGrande: 20,
 };
 
-const STORAGE_KEY = 'cinesia-font-size';
+const STORAGE_KEY = 'syntax-font-size';
 
 export const useFontSize = () => {
   const [fontSize, setFontSize] = useState(() => {

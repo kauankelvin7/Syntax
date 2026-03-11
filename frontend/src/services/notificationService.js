@@ -1,6 +1,6 @@
 /**
  * @file notificationService.js
- * @description Sistema de notificações automáticas do Cinesia.
+ * @description Sistema de notificações automáticas do Syntax.
  * Cria notificações no Firestore e verifica marcos de streak, metas e conteúdo.
  *
  * @dependencies
@@ -110,9 +110,9 @@ export const checkStreakMilestones = async (userId, currentStreak, isFirstLogin 
     if (!(await hasSent(userId, key))) {
       await createNotification(userId, {
         type: 'info',
-        title: '🎉 Bem-vindo ao Cinesia!',
+        title: '🎉 Bem-vindo ao Syntax!',
         message:
-          'Sua plataforma de estudos de fisioterapia está pronta. Explore os flashcards, resumos, Atlas 3D, simulados e muito mais!',
+          'Sua plataforma de estudos de programação está pronta. Explore os flashcards, resumos, Atlas 3D, simulados e muito mais!',
       });
       await markSent(userId, key);
     }

@@ -153,7 +153,7 @@ const LoadingScreen = () => {
           {/* ── Nome e Status ── */}
           <div className="mt-8 flex flex-col items-center gap-4">
             <h1 className="shimmer-text text-[15px] font-black tracking-[0.4em] uppercase select-none ml-2">
-              Cinesia
+              Syntax
             </h1>
 
             <div className="flex items-center gap-3 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md px-5 py-2.5 rounded-full border border-slate-200/50 dark:border-slate-800/50 shadow-sm">

@@ -5,13 +5,13 @@
  * Baseado no algoritmo original de Piotr Woźniak (SuperMemo 2, 1987).
  * Referência: https://www.supermemo.com/en/blog/application-of-a-computer-to-improve-the-results-obtained-in-working-with-the-supermemo-method
  *
- * Escala de qualidade (quality) usada no Cinesia:
+ * Escala de qualidade (quality) usada no Syntax:
  *   0-2 → resposta incorreta → reinicia intervalo (interval=1, repetitions=0)
  *   3   → correto com dificuldade alta (‼ Difícil)
  *   4   → correto com dificuldade moderada
  *   5   → correto sem dificuldade (😄 Fácil)
  *
- * Mapeamento dos botões do Cinesia:
+ * Mapeamento dos botões do Syntax:
  *   😰 Difícil → quality = 1 (reset)
  *   😐 Médio  → quality = 3 (correto, difícil)
  *   😄 Fácil  → quality = 5 (perfeito)

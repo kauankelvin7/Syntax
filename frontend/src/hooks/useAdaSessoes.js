@@ -1,7 +1,7 @@
 /**
- * @file useKakabotSessoes.js
- * @description Gerencia criação, carregamento e persistência de sessões do KakaBot.
- * Cada sessão é um documento em users/{uid}/kakabot_sessoes/{sessaoId}.
+ * @file useAdaSessoes.js
+ * @description Gerencia criação, carregamento e persistência de sessões do AdaBot.
+ * Cada sessão é um documento em users/{uid}/ada_sessoes/{sessaoId}.
  * Suporta carregamento paginado (MENSAGENS_INICIAIS + "carregar mais") para não
  * sobrecarregar o chat com histórico extenso.
  *
@@ -10,7 +10,7 @@
  *  - firebase-config.js — instância db
  *
  * @sideEffects
- *  - Lê e escreve em users/{uid}/kakabot_sessoes/{sessaoId}
+ *  - Lê e escreve em users/{uid}/ada_sessoes/{sessaoId}
  *  - Nenhum efeito externo além do Firestore
  *
  * @notes

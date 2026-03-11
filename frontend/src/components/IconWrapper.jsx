@@ -1,14 +1,17 @@
+/**
+ * 🔍 IconWrapper Premium - Componente seguro e animado para ícones
+ * Theme: Syntax (Software Engineering)
+ * * Previne erros de renderização e padroniza o visual do sistema.
+ * * Fallback atualizado para o tema Dev (Terminal).
+ */
+
 import React from 'react';
-import { BookOpen } from 'lucide-react';
+import { Terminal } from 'lucide-react'; // Trocado de BookOpen para Terminal
 import { motion } from 'framer-motion';
 
-/**
- * IconWrapper Premium - Componente seguro e animado para ícones
- * Previne erros de renderização e padroniza o visual do sistema.
- */
 const IconWrapper = ({ 
   icon: Icon, 
-  fallbackIcon: FallbackIcon = BookOpen, 
+  fallbackIcon: FallbackIcon = Terminal, // Fallback tech
   className = '', 
   size = 20, 
   strokeWidth = 2,
@@ -16,7 +19,7 @@ const IconWrapper = ({
   ...props 
 }) => {
   
-  // Lógica de renderização segura
+  // Lógica de renderização segura (Graceful Degradation)
   const renderIcon = (Component) => {
     try {
       return (
@@ -51,9 +54,10 @@ const IconWrapper = ({
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        whileHover={{ scale: 1.1 }}
+        whileHover={{ scale: 1.15 }}
         whileTap={{ scale: 0.9 }}
-        className="inline-flex items-center justify-center"
+        transition={{ type: "spring", stiffness: 400, damping: 17 }} // Animação elástica Premium
+        className="inline-flex items-center justify-center cursor-pointer"
       >
         {renderIcon(Icon)}
       </motion.div>

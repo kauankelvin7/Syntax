@@ -1,6 +1,6 @@
 /**
- * @file kakabotActions.js
- * @description Parser e executor de ações do agente KakaBot. Extrai blocos ```action```
+ * @file adaActions.js
+ * @description Parser e executor de ações do agente AdaBot. Extrai blocos ```action```
  * das respostas do Gemini e executa operações reais no Firestore.
  *
  * @dependencies
@@ -9,14 +9,14 @@
  * @sideEffects
  *  - Escreve em `materias/{docId}`, `flashcards/{docId}`, `resumos/{docId}`, `eventos/{docId}`
  *  - Dispara CustomEvents (window) para notificar outros componentes:
- *    'cinesia:materia:alterada', 'cinesia:flashcard:alterado',
- *    'cinesia:resumo:alterado', 'cinesia:evento:alterado'
+ *    'syntax:materia:alterada', 'syntax:flashcard:alterado',
+ *    'syntax:resumo:alterado', 'syntax:evento:alterado'
  *
  * @notes
  *  - Ações suportadas: CRIAR_MATERIA, CRIAR_FLASHCARD, CRIAR_MULTIPLOS_FLASHCARDS,
  *    CRIAR_RESUMO, AGENDAR_REVISAO, ATUALIZAR_PREFERENCIAS
  *  - WARN: ATUALIZAR_PREFERENCIAS não escreve no Firestore — retorna dados para
- *          o KakaBot.jsx atualizar a memória (trata separado)
+ *          o AdaBot.jsx atualizar a memória (trata separado)
  *  - NOTE: o bloco JSON esperado é delimitado por ```action ... ``` na resposta do Gemini
  */
 
@@ -52,7 +52,7 @@ export const extrairAcoes = (texto) => {
       acoes.push(acao);
     } catch {
       // WARN: bloco action malformado — ignorar silenciosamente
-      console.warn('[KakaBot] Bloco action inválido ignorado:', match[1]);
+      console.warn('[AdaBot] Bloco action inválido ignorado:', match[1]);
     }
   }
 
@@ -96,13 +96,13 @@ export const executarAcao = async (acao, uid, materias = []) => {
             nome,
             cor: cor || '#2563EB',
             descricao: descricao || '',
-            criadoPorKaka: true,
+            criadoPorAda: true,
           },
           uid
         );
 
         // Disparar evento para atualizar dashboard
-        window.dispatchEvent(new CustomEvent('cinesia:materia:alterada'));
+        window.dispatchEvent(new CustomEvent('syntax:materia:alterada'));
 
         return {
           sucesso: true,
@@ -136,13 +136,13 @@ export const executarAcao = async (acao, uid, materias = []) => {
             materiaId: materiaId || null,
             materiaNome,
             materiaCor,
-            criadoPorKaka: true,
+            criadoPorAda: true,
           },
           null, // sem imagem
           uid
         );
 
-        window.dispatchEvent(new CustomEvent('cinesia:flashcard:alterado'));
+        window.dispatchEvent(new CustomEvent('syntax:flashcard:alterado'));
 
         return {
           sucesso: true,
@@ -176,7 +176,7 @@ export const executarAcao = async (acao, uid, materias = []) => {
               materiaId: materiaId || null,
               materiaNome,
               materiaCor,
-              criadoPorKaka: true,
+              criadoPorAda: true,
             },
             null,
             uid
@@ -184,7 +184,7 @@ export const executarAcao = async (acao, uid, materias = []) => {
         );
 
         await Promise.all(promises);
-        window.dispatchEvent(new CustomEvent('cinesia:flashcard:alterado'));
+        window.dispatchEvent(new CustomEvent('syntax:flashcard:alterado'));
 
         return {
           sucesso: true,
@@ -205,12 +205,12 @@ export const executarAcao = async (acao, uid, materias = []) => {
             conteudo,
             materiaId: materiaId || null,
             tags: tags || [],
-            criadoPorKaka: true,
+            criadoPorAda: true,
           },
           uid
         );
 
-        // cinesia:resumo:alterado já é disparado dentro de criarResumo
+        // syntax:resumo:alterado já é disparado dentro de criarResumo
 
         return {
           sucesso: true,
@@ -226,7 +226,7 @@ export const executarAcao = async (acao, uid, materias = []) => {
           return { sucesso: false, mensagem: '❌ Data da revisão é obrigatória.' };
         }
 
-        let titulo = descricao || 'Revisão agendada pelo Kaka';
+        let titulo = descricao || 'Revisão agendada pelo Ada';
         if (materiaId) {
           const mat = materias.find((m) => m.id === materiaId);
           if (mat) titulo = `📖 Revisão: ${mat.nome}`;
@@ -241,7 +241,7 @@ export const executarAcao = async (acao, uid, materias = []) => {
           uid
         );
 
-        window.dispatchEvent(new CustomEvent('cinesia:evento:alterado'));
+        window.dispatchEvent(new CustomEvent('syntax:evento:alterado'));
 
         return {
           sucesso: true,
@@ -263,7 +263,7 @@ export const executarAcao = async (acao, uid, materias = []) => {
         return { sucesso: false, mensagem: `❌ Ação desconhecida: **${acao.acao}**` };
     }
   } catch (error) {
-    console.error('[KakaBot Action Error]', error);
+    console.error('[AdaBot Action Error]', error);
     return {
       sucesso: false,
       mensagem: `❌ Erro ao executar ação: ${error.message || String(error)}`,

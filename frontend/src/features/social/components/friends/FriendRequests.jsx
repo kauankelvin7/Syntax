@@ -164,7 +164,7 @@ const FriendRequests = memo(({ pendingRequests, sentRequests, onAccept, onDeclin
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-bold text-slate-600 dark:text-slate-300 truncate">
-                      {targetData?.displayName || 'Usuário Cinesia'}
+                      {targetData?.displayName || 'Usuário Syntax'}
                     </p>
                   </div>
 

@@ -1,20 +1,21 @@
+/**
+ * 🛡️ SafeIcon Premium (Syntax Theme)
+ * Resolve dinamicamente ícones salvos como string no banco de dados.
+ * Otimizado para performance com React.memo.
+ * Fallback atualizado para o universo Dev (Terminal).
+ */
 import React, { memo } from 'react';
 import * as FaIcons from 'react-icons/fa';
 import * as FiIcons from 'react-icons/fi';
 import * as MdIcons from 'react-icons/md';
 import * as BiIcons from 'react-icons/bi';
 
-/**
- * 🛡️ SafeIcon Premium
- * Resolve dinamicamente ícones salvos como string no banco de dados.
- * Otimizado para performance com React.memo.
- */
 const SafeIcon = memo(({ 
   name, 
   size = 20, 
   className = '', 
   color, 
-  fallback: FallbackIcon = FaIcons.FaBook,
+  fallback: FallbackIcon = FiIcons.FiTerminal, // Fallback tech (Terminal) em vez do Book
   style,
   ...props 
 }) => {

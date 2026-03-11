@@ -1,9 +1,9 @@
-# 🎨 Cinesia Design System
+# 🎨 Syntax Design System
 
 ## Sistema de Temas (Dark/Light Mode)
 
 ### Configuração
-O Cinesia usa o sistema **class-based** do Tailwind CSS para gerenciar temas. A classe `dark` é aplicada dinamicamente no elemento `<html>` pelo `ThemeContext.jsx`.
+O Syntax usa o sistema **class-based** do Tailwind CSS para gerenciar temas. A classe `dark` é aplicada dinamicamente no elemento `<html>` pelo `ThemeContext.jsx`.
 
 ### Prioridade de Inicialização
 1. **localStorage** (escolha explícita do usuário)
@@ -277,5 +277,5 @@ Para testar se seu componente funciona corretamente:
 
 ---
 
-**Mantido por**: Equipe Cinesia  
+**Mantido por**: Equipe Syntax  
 **Última atualização**: Fevereiro 2026

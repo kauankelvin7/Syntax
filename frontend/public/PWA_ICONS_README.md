@@ -1,4 +1,4 @@
-# 📱 Cinesia PWA - Guia de Ícones e Assets
+# 📱 Syntax PWA - Guia de Ícones e Assets
 
 ## Estrutura de Arquivos Necessária
 
@@ -66,7 +66,7 @@ public/splash/
 ### Opção 1: Ferramenta Online (Recomendada)
 
 1. Acesse [Real Favicon Generator](https://realfavicongenerator.net/)
-2. Faça upload do logo do Cinesia (512x512px mínimo)
+2. Faça upload do logo do Syntax (512x512px mínimo)
 3. Configure as cores (Theme: #0d9488)
 4. Baixe e extraia na pasta `public/`
 

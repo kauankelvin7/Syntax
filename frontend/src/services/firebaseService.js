@@ -403,7 +403,7 @@ export const criarResumo = async (resumo, userId) => {
     };
     
     const docRef = await addDoc(collection(db, 'resumos'), resumoData);
-    window.dispatchEvent(new CustomEvent('cinesia:resumo:alterado'));
+    window.dispatchEvent(new CustomEvent('syntax:resumo:alterado'));
     return {
       id: docRef.id,
       ...resumoData
@@ -464,7 +464,7 @@ export const atualizarResumo = async (resumoId, updates) => {
       ...updates,
       updatedAt: serverTimestamp()
     });
-    window.dispatchEvent(new CustomEvent('cinesia:resumo:alterado'));
+    window.dispatchEvent(new CustomEvent('syntax:resumo:alterado'));
   } catch (error) {
     console.error('Erro ao atualizar resumo:', error);
     throw new Error('Não foi possível atualizar o resumo.');
@@ -480,7 +480,7 @@ export const deletarResumo = async (resumoId) => {
   try {
     const docRef = doc(db, 'resumos', resumoId);
     await deleteDoc(docRef);
-    window.dispatchEvent(new CustomEvent('cinesia:resumo:alterado'));
+    window.dispatchEvent(new CustomEvent('syntax:resumo:alterado'));
   } catch (error) {
     console.error('Erro ao deletar resumo:', error);
     throw new Error('Não foi possível deletar o resumo.');

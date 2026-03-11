@@ -7,15 +7,18 @@ export default defineConfig({
     'import.meta.env.VITE_BUILD_TIME': JSON.stringify(Date.now())
   },
   base: '/',
+  optimizeDeps: {
+    exclude: ['pdfjs-dist', 'framer-motion', 'firebase', 'lucide-react', 'hls.js', 'html2canvas', '@tldraw/tlschema']
+  },
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Cinesia Fisio',
-        short_name: 'Cinesia',
-        description: 'Sistema de estudos com resumos, flashcards e simulados para Fisioterapia',
+        name: 'Syntax Programação',
+        short_name: 'Syntax',
+        description: 'Sistema de estudos com resumos, flashcards e simulados para Programação',
         theme_color: '#0d9488',
         background_color: '#ffffff',
         display: 'standalone',
@@ -185,18 +188,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 500
   },
 
-  optimizeDeps: {
-    include: [
-      'firebase/app',
-      'firebase/auth',
-      'firebase/firestore',
-      'firebase/storage',
-      'react',
-      'react-dom',
-      'react-router-dom',
-      'framer-motion'
-    ]
-  },
 
   test: {
     globals: true,

@@ -101,7 +101,7 @@ const GroupCreate = memo(({ isOpen, onClose, friends = [], onCreateGroup }) => {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Ex: Fisioterapia Esportiva 2024"
+                    placeholder="Ex: Engenharia de Software 2026"
                     maxLength={50}
                     className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                   />

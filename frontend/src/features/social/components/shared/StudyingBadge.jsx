@@ -2,6 +2,11 @@
  * @file StudyingBadge.jsx
  * @description Badge que mostra "Estudando agora 📚" quando o usuário está ativo.
  */
+// Nenhuma alteração necessária.
+/**
+ * @file StudyingBadge.jsx
+ * @description Badge que mostra "Estudando agora 📚" quando o usuário está ativo.
+ */
 
 import React, { memo } from 'react';
 

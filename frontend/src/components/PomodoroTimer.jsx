@@ -1,7 +1,8 @@
 /**
- * ⏱️ POMODORO TIMER - Timer de Estudos Flutuante Premium
- * * Timer Pomodoro integrado: 25min Foco / 5min Pausa
- * Incrementa horas estudadas no dashboard
+ * ⏱️ POMODORO TIMER - Timer de Deep Work Flutuante Premium
+ * Theme: Syntax (Software Engineering)
+ * * Timer Pomodoro integrado: 25min Deep Work / 5min Coffee Break
+ * Incrementa horas de código no dashboard
  * Design minimalista e não-intrusivo
  * * OTIMIZAÇÕES v2.0:
  * - React.memo para evitar re-renders
@@ -18,8 +19,9 @@ import {
   Pause, 
   RotateCcw, 
   Coffee, 
-  Brain,
-  ChevronDown
+  Code2,
+  ChevronDown,
+  Flame
 } from 'lucide-react';
 import { doc, increment, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase-config';
@@ -98,8 +100,8 @@ const PomodoroTimer = memo(() => {
       
       // Mostrar notificação
       if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('🎉 Pomodoro Completo!', {
-          body: `Você completou ${newCycles} ciclo(s) hoje! Hora de uma pausa de 5 minutos.`,
+        new Notification('🎉 Sprint Concluída!', {
+          body: `Você completou ${newCycles} ciclo(s) hoje! Hora de um Coffee Break de 5 min.`,
           icon: '/vite.svg'
         });
       }
@@ -109,8 +111,8 @@ const PomodoroTimer = memo(() => {
       setTimeLeft(FOCUS_TIME);
       
       if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('⏰ Pausa Finalizada!', {
-          body: 'Hora de voltar aos estudos! 📚',
+        new Notification('⏰ Break Finalizado!', {
+          body: 'Bora voltar pro código! 💻',
           icon: '/vite.svg'
         });
       }
@@ -234,18 +236,18 @@ const PomodoroTimer = memo(() => {
       >
         <AnimatePresence mode="wait">
           {!isExpanded ? (
-            // Botão Minimizado (FAB Premium)
+            // Botão Minimizado (FAB Premium Tech Style)
             <motion.button
               key="minimized"
               onClick={() => setIsExpanded(true)}
               aria-label="Abrir temporizador Pomodoro"
               aria-pressed={false}
-              className={`relative w-14 h-14 max-[374px]:w-12 max-[374px]:h-12 rounded-full flex items-center justify-center transition-colors shadow-lg ${
+              className={`relative w-14 h-14 max-[374px]:w-12 max-[374px]:h-12 rounded-[18px] flex items-center justify-center transition-colors shadow-lg ${
                 isRunning
                   ? mode === 'focus'
-                    ? 'bg-gradient-to-br from-indigo-500 to-teal-500 shadow-indigo-500/40'
-                    : 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-orange-500/40'
-                  : 'bg-slate-700 dark:bg-slate-800 shadow-slate-900/20'
+                    ? 'bg-gradient-to-br from-indigo-600 to-cyan-500 shadow-[0_8px_20px_rgba(6,182,212,0.3)]'
+                    : 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_8px_20px_rgba(245,158,11,0.3)]'
+                  : 'bg-slate-800 dark:bg-slate-800 border border-slate-700 shadow-xl'
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -255,17 +257,17 @@ const PomodoroTimer = memo(() => {
             >
               {isRunning ? (
                 <motion.div
-                  className="absolute inset-0 rounded-full border-2 border-white/20"
+                  className="absolute inset-0 rounded-[18px] border-[2.5px] border-white/20"
                   style={{
                     background: `conic-gradient(transparent ${100 - progress}%, rgba(255,255,255,0.25) ${100 - progress}%)`
                   }}
                 />
               ) : null}
-              <Timer className="text-white relative z-10" size={24} strokeWidth={2} />
+              <Timer className="text-white relative z-10" size={24} strokeWidth={2.5} />
               
               {isRunning && (
                 <motion.div
-                  className="absolute -top-1 -right-1 w-[22px] h-[22px] bg-white rounded-full flex items-center justify-center text-[10px] font-bold text-slate-800 shadow-md border border-slate-100"
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-slate-900 rounded-[8px] flex items-center justify-center text-[10px] font-black text-white shadow-lg border border-slate-700"
                   animate={{ scale: [1, 1.15, 1] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 >
@@ -277,73 +279,74 @@ const PomodoroTimer = memo(() => {
             // Painel Expandido (Glassmorphism Style)
             <motion.div
               key="expanded"
-              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-[28px] shadow-2xl overflow-hidden w-[300px] border border-slate-200/60 dark:border-slate-700/60 flex flex-col"
+              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.3)] overflow-hidden w-[300px] border border-slate-200/80 dark:border-slate-700/80 flex flex-col"
               initial={{ opacity: 0, y: 15, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 15, scale: 0.95 }}
               transition={{ duration: 0.25, ease: [0.34, 1.56, 0.64, 1] }}
             >
-              {/* Header */}
-              <div className={`px-5 py-4 flex items-center justify-between ${
+              {/* Header Dinâmico */}
+              <div className={`px-6 py-5 flex items-center justify-between ${
                 mode === 'focus'
-                  ? 'bg-gradient-to-r from-indigo-600 to-teal-500'
+                  ? 'bg-gradient-to-r from-indigo-600 to-cyan-500'
                   : 'bg-gradient-to-r from-amber-500 to-orange-500'
               }`}>
-                <div className="flex items-center gap-2.5 text-white">
+                <div className="flex items-center gap-3 text-white">
                   {mode === 'focus' ? (
-                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm">
-                      <Brain size={18} strokeWidth={2.5} />
+                    <div className="bg-white/20 p-2 rounded-[12px] backdrop-blur-sm border border-white/20">
+                      <Code2 size={20} strokeWidth={2.5} />
                     </div>
                   ) : (
-                    <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm">
-                      <Coffee size={18} strokeWidth={2.5} />
+                    <div className="bg-white/20 p-2 rounded-[12px] backdrop-blur-sm border border-white/20">
+                      <Coffee size={20} strokeWidth={2.5} />
                     </div>
                   )}
-                  <span className="font-bold text-[15px] tracking-wide">
-                    {mode === 'focus' ? 'Modo Foco' : 'Pausa Curta'}
+                  <span className="font-extrabold text-[15px] tracking-wide uppercase">
+                    {mode === 'focus' ? 'Deep Work' : 'Coffee Break'}
                   </span>
                 </div>
                 <button
                   onClick={() => setIsExpanded(false)}
-                  className="p-1.5 hover:bg-white/20 rounded-full transition-colors backdrop-blur-sm"
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors backdrop-blur-sm"
+                  title="Minimizar"
                 >
-                  <ChevronDown className="text-white" size={20} strokeWidth={2.5} />
+                  <ChevronDown className="text-white" size={22} strokeWidth={3} />
                 </button>
               </div>
 
               {/* Timer Display */}
               <div className="p-6 text-center">
                 {/* Círculo de Progresso */}
-                <div className="relative w-40 h-40 mx-auto mb-6">
+                <div className="relative w-44 h-44 mx-auto mb-8">
                   <svg className="w-full h-full transform -rotate-90">
                     <circle
-                      cx="80"
-                      cy="80"
-                      r="70"
+                      cx="88"
+                      cy="88"
+                      r="80"
                       fill="none"
                       className="stroke-slate-100 dark:stroke-slate-800"
-                      strokeWidth="8"
+                      strokeWidth="10"
                     />
                     <motion.circle
-                      cx="80"
-                      cy="80"
-                      r="70"
+                      cx="88"
+                      cy="88"
+                      r="80"
                       fill="none"
-                      stroke={mode === 'focus' ? '#6366f1' : '#f59e0b'} // Indigo vs Amber
-                      strokeWidth="8"
+                      stroke={mode === 'focus' ? '#4f46e5' : '#f59e0b'} // Indigo vs Amber
+                      strokeWidth="10"
                       strokeLinecap="round"
-                      strokeDasharray={440}
-                      strokeDashoffset={440 - (440 * progress) / 100}
+                      strokeDasharray={502} // 2 * PI * 80
+                      strokeDashoffset={502 - (502 * progress) / 100}
                       transition={{ duration: 0.5, ease: "linear" }}
-                      style={{ filter: `drop-shadow(0 0 6px ${mode === 'focus' ? 'rgba(99,102,241,0.4)' : 'rgba(245,158,11,0.4)'})` }}
+                      style={{ filter: `drop-shadow(0 0 8px ${mode === 'focus' ? 'rgba(79,70,229,0.5)' : 'rgba(245,158,11,0.5)'})` }}
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-[40px] font-extrabold text-slate-800 dark:text-white font-mono tracking-tighter leading-none mt-2">
+                    <span className="text-[44px] font-black text-slate-900 dark:text-white font-mono tracking-tighter leading-none mt-2">
                       {formatTime(timeLeft)}
                     </span>
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                      {mode === 'focus' ? 'Focado' : 'Relaxando'}
+                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-2">
+                      {mode === 'focus' ? 'Codando' : 'Relaxando'}
                     </span>
                   </div>
                 </div>
@@ -352,7 +355,7 @@ const PomodoroTimer = memo(() => {
                 <div className="flex items-center justify-center gap-4 mb-6">
                   <motion.button
                     onClick={resetTimer}
-                    className="w-12 h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-2xl transition-colors text-slate-500 dark:text-slate-400"
+                    className="w-12 h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-[14px] transition-colors text-slate-500 dark:text-slate-400 shadow-sm"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     title="Reiniciar Timer"
@@ -362,10 +365,10 @@ const PomodoroTimer = memo(() => {
                   
                   <motion.button
                     onClick={toggleTimer}
-                    className={`w-16 h-16 flex items-center justify-center rounded-[20px] text-white shadow-lg transition-all ${
+                    className={`w-16 h-16 flex items-center justify-center rounded-[20px] text-white shadow-xl transition-all border border-white/20 ${
                       mode === 'focus'
-                        ? 'bg-gradient-to-br from-indigo-500 to-teal-500 shadow-indigo-500/25 hover:shadow-indigo-500/40'
-                        : 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-orange-500/25 hover:shadow-orange-500/40'
+                        ? 'bg-gradient-to-br from-indigo-600 to-cyan-500 shadow-[0_8px_20px_rgba(6,182,212,0.3)]'
+                        : 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_8px_20px_rgba(245,158,11,0.3)]'
                     }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -375,7 +378,7 @@ const PomodoroTimer = memo(() => {
 
                   <motion.button
                     onClick={() => switchMode(mode === 'focus' ? 'break' : 'focus')}
-                    className="w-12 h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-2xl transition-colors text-slate-500 dark:text-slate-400"
+                    className="w-12 h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-[14px] transition-colors text-slate-500 dark:text-slate-400 shadow-sm"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     title={mode === 'focus' ? 'Pular para Pausa' : 'Pular para Foco'}
@@ -383,23 +386,23 @@ const PomodoroTimer = memo(() => {
                     {mode === 'focus' ? (
                       <Coffee size={20} strokeWidth={2.5} />
                     ) : (
-                      <Brain size={20} strokeWidth={2.5} />
+                      <Code2 size={20} strokeWidth={2.5} />
                     )}
                   </motion.button>
                 </div>
 
-                {/* Estatísticas do Dia (Box style) */}
-                <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-2xl p-4 text-[13px] font-medium border border-slate-100 dark:border-slate-700/50 shadow-sm">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-slate-500 dark:text-slate-400">Ciclos hoje:</span>
-                    <span className="font-bold text-slate-800 dark:text-white bg-white dark:bg-slate-700 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-600">
-                      {cyclesCompleted} <span className="text-[10px] text-amber-500 ml-0.5">🔥</span>
+                {/* Estatísticas do Dia (Box style Tech) */}
+                <div className="bg-slate-50 dark:bg-slate-800/80 rounded-[20px] p-4 text-[13px] font-medium border border-slate-200 dark:border-slate-700/80 shadow-inner">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="text-[12px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Sprints hoje</span>
+                    <span className="font-black text-slate-800 dark:text-white bg-white dark:bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-1">
+                      {cyclesCompleted} <Flame size={12} className="text-orange-500" strokeWidth={3} />
                     </span>
                   </div>
-                  <div className="w-full h-px bg-slate-200 dark:bg-slate-700/50 my-2" />
+                  <div className="w-full h-px bg-slate-200 dark:bg-slate-700/80 my-3" />
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500 dark:text-slate-400">Tempo total:</span>
-                    <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                    <span className="text-[12px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Tempo total</span>
+                    <span className="font-black text-indigo-600 dark:text-cyan-400 text-[14px]">
                       {formatHours(totalMinutesToday)}
                     </span>
                   </div>

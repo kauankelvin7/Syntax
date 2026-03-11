@@ -7,7 +7,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 
 const ThemeContext = createContext(undefined);
 
-const STORAGE_KEY = 'cinesia-theme';
+const STORAGE_KEY = 'syntax-theme';
 const VALID_MODES = ['light', 'dark', 'system'];
 
 const getSystemPreference = () =>

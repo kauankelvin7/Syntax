@@ -20,7 +20,7 @@ const GroupList = memo(({ groups, onSelectGroup, onCreateGroup }) => {
           Nenhum grupo ainda
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-4">
-          Crie um grupo para estudar com seus amigos!
+          Crie um grupo para Engenharia de Software com seus amigos!
         </p>
         <button
           onClick={onCreateGroup}

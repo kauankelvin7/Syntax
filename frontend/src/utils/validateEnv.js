@@ -29,7 +29,7 @@ export const validateEnv = () => {
 
   if (missing.length > 0) {
     const msg = [
-      '[Cinesia] Variáveis de ambiente faltando:',
+      '[Syntax] Variáveis de ambiente faltando:',
       ...missing.map((k) => `  • ${k}`),
       '',
       'Copie .env.example para .env e preencha os valores.',

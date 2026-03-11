@@ -1,11 +1,12 @@
 /**
- * STREAK INDICATOR - Componente Visual de Dias de Ofensiva
+ * 🔥 STREAK INDICATOR - Componente Visual de Dias de Ofensiva
+ * Theme: Syntax (Software Engineering)
  *
  * Features:
- * - Animação de fogo 🔥
+ * - Animação de fogo baseada no streak
  * - Celebração quando atinge milestones
- * - Tooltip com estatísticas
- * - Aviso se em risco de perder streak
+ * - Tooltip com estatísticas (Portal safe)
+ * - Cores e textos adaptados para o universo Dev
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -54,8 +55,6 @@ const StreakIndicator = ({
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
       
-
-      
       // Sempre posiciona o tooltip à esquerda do card, para evitar corte
       const tooltipWidth = 256;
       const spacing = 24;
@@ -84,32 +83,32 @@ const StreakIndicator = ({
     gray: {
       gradient: 'from-slate-400 to-slate-500',
       shadow: 'shadow-slate-500/25',
-      text: 'text-slate-500',
-      bg: 'bg-slate-100'
+      text: 'text-slate-500 dark:text-slate-400',
+      bg: 'bg-slate-100 dark:bg-slate-800'
     },
     orange: {
       gradient: 'from-orange-400 to-amber-500',
       shadow: 'shadow-orange-500/25',
-      text: 'text-orange-500',
-      bg: 'bg-orange-50'
+      text: 'text-orange-500 dark:text-orange-400',
+      bg: 'bg-orange-50 dark:bg-orange-950/30'
     },
     red: {
-      gradient: 'from-red-400 to-orange-500',
-      shadow: 'shadow-red-500/25',
-      text: 'text-red-500',
-      bg: 'bg-red-50'
+      gradient: 'from-rose-400 to-orange-500',
+      shadow: 'shadow-rose-500/25',
+      text: 'text-rose-500 dark:text-rose-400',
+      bg: 'bg-rose-50 dark:bg-rose-950/30'
     },
     purple: {
-      gradient: 'from-purple-400 to-pink-500',
-      shadow: 'shadow-purple-500/25',
-      text: 'text-purple-500',
-      bg: 'bg-purple-50'
+      gradient: 'from-violet-400 to-fuchsia-500',
+      shadow: 'shadow-violet-500/25',
+      text: 'text-violet-500 dark:text-violet-400',
+      bg: 'bg-violet-50 dark:bg-violet-950/30'
     },
     blue: {
-      gradient: 'from-blue-400 to-cyan-500',
-      shadow: 'shadow-blue-500/25',
-      text: 'text-blue-500',
-      bg: 'bg-blue-50'
+      gradient: 'from-indigo-500 to-cyan-500', // Cores Syntax Theme
+      shadow: 'shadow-cyan-500/30',
+      text: 'text-cyan-500',
+      bg: 'bg-cyan-50 dark:bg-cyan-950/30'
     }
   };
 
@@ -117,16 +116,14 @@ const StreakIndicator = ({
 
   // Milestone messages
   const getMilestoneMessage = () => {
-    if (currentStreak === 0) return 'Comece sua jornada!';
+    if (currentStreak === 0) return 'Inicie seu primeiro deploy!';
     if (currentStreak === 1) return 'Primeiro dia! 🎉';
-    if (currentStreak === 7) return 'Uma semana! 🌟';
-    if (currentStreak === 30) return 'Um mês! 🏆';
-    if (currentStreak === 100) return 'LENDÁRIO! 👑';
-    if (currentStreak === 365) return 'UM ANO! 🎊';
+    if (currentStreak === 7) return 'Uma semana invicto! 🌟';
+    if (currentStreak === 30) return 'Um mês focado! 🏆';
+    if (currentStreak === 100) return 'SENIORITY! 👑';
+    if (currentStreak === 365) return 'ONE YEAR STREAK! 🎊';
     return `${currentStreak} dias seguidos!`;
   };
-
-
 
   useEffect(() => {
     if (showDetails) {
@@ -181,7 +178,7 @@ const StreakIndicator = ({
       >
         {/* Ícone Principal */}
         <motion.div 
-          className={`w-14 h-14 rounded-2xl ${classes.bg} flex items-center justify-center ${classes.text} flex-shrink-0 relative overflow-hidden`}
+          className={`w-14 h-14 rounded-2xl ${classes.bg} flex items-center justify-center flex-shrink-0 relative overflow-hidden border border-slate-200/50 dark:border-slate-700/50`}
           animate={currentStreak > 0 ? {
             boxShadow: [
               `0 10px 30px -10px rgba(251, 146, 60, 0.3)`,
@@ -195,21 +192,6 @@ const StreakIndicator = ({
             ease: "easeInOut"
           }}
         >
-          {/* Efeito de brilho */}
-          {false && currentStreak > 0 && (
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
-              animate={{
-                x: ['-100%', '200%']
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
-          )}
-
           <motion.div
             animate={currentStreak > 0 ? {
               rotate: [-5, 5, -5],
@@ -221,13 +203,13 @@ const StreakIndicator = ({
               ease: "easeInOut"
             }}
           >
-            <Flame size={28} strokeWidth={2} />
+            <Flame size={28} strokeWidth={2} className={classes.text} />
           </motion.div>
 
           {/* Badge de milestone */}
           {currentStreak >= 100 && (
             <motion.div
-              className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center"
+              className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 rounded-md flex items-center justify-center shadow-sm"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
@@ -237,14 +219,14 @@ const StreakIndicator = ({
           )}
         </motion.div>
 
-        {/* Aviso de risco */}
+        {/* Aviso de risco (Risco de perder a ofensiva) */}
         {isAtRisk && (
           <motion.div
-            className="absolute -top-1 -left-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg"
+            className="absolute -top-1 -left-1 w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-800"
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 1, repeat: Infinity }}
           >
-            <Zap size={12} className="text-white" fill="white" />
+            <Zap size={10} className="text-white" fill="white" />
           </motion.div>
         )}
       </motion.div>
@@ -264,27 +246,22 @@ const StreakIndicator = ({
               transform: 'none',
               zIndex: 9999,
               maxWidth: 'calc(100vw - 3rem)',
-              // fontSize removido do tooltip
             }}
           >
-            <div className={`bg-white rounded-2xl shadow-2xl border-2 ${classes.text} border-current/20 p-4`}>
+            <div className={`bg-white dark:bg-slate-800 rounded-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.3)] border border-slate-200 dark:border-slate-700 p-4`}>
               {/* Header */}
-              <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
+              <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-slate-700">
                 <div className="flex items-center gap-2">
                   <Flame className={classes.text} size={20} />
-                  <h3 className="font-bold text-slate-900">Dias de Ofensiva</h3>
+                  <h3 className="font-extrabold text-slate-900 dark:text-white">Streak Diário</h3>
                 </div>
                 <div className="flex items-center gap-1">
-                  {/* Nenhum controle de zoom aqui, apenas botão de fechar em mobile */}
                   {isMobile && (
                     <button
                       onClick={() => setShowDetails(false)}
-                      className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                      className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-slate-500"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
+                      <X size={16} strokeWidth={2.5} />
                     </button>
                   )}
                 </div>
@@ -293,40 +270,40 @@ const StreakIndicator = ({
               {/* Stats */}
               <div className="space-y-3">
                 {/* Streak Atual */}
-                <div className={`${classes.bg} rounded-xl p-3`}>
+                <div className={`${classes.bg} rounded-[14px] p-3 border border-slate-200/50 dark:border-slate-700/50 shadow-inner`}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-slate-600 font-medium">Sequência Atual</span>
+                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Sequência Atual</span>
                     <Flame className={classes.text} size={16} />
                   </div>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {currentStreak} {currentStreak === 1 ? 'dia' : 'dias'}
+                  <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                    {currentStreak} <span className="text-[14px] text-slate-500 font-bold">{currentStreak === 1 ? 'dia' : 'dias'}</span>
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 mt-1">
                     {getMilestoneMessage()}
                   </p>
                 </div>
 
                 {/* Recorde */}
                 {longestStreak > 0 && (
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-sm px-1 pt-1">
                     <div className="flex items-center gap-2">
-                      <TrendingUp size={16} className="text-primary-500 dark:text-primary-400" />
-                      <span className="text-slate-600">Recorde</span>
+                      <TrendingUp size={16} className="text-indigo-500 dark:text-indigo-400" />
+                      <span className="text-[13px] font-bold text-slate-600 dark:text-slate-300">Max Streak</span>
                     </div>
-                    <span className="font-bold text-slate-900">
-                      {longestStreak} {longestStreak === 1 ? 'dia' : 'dias'}
+                    <span className="font-black text-slate-900 dark:text-white">
+                      {longestStreak} <span className="font-medium text-slate-500">{longestStreak === 1 ? 'dia' : 'dias'}</span>
                     </span>
                   </div>
                 )}
 
                 {/* Total de logins */}
                 {totalLoginDays > 0 && (
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-sm px-1 pb-1">
                     <div className="flex items-center gap-2">
-                      <Award size={16} className="text-purple-500" />
-                      <span className="text-slate-600">Total de dias</span>
+                      <Award size={16} className="text-cyan-500 dark:text-cyan-400" />
+                      <span className="text-[13px] font-bold text-slate-600 dark:text-slate-300">Total de Commits</span>
                     </div>
-                    <span className="font-bold text-slate-900">{totalLoginDays}</span>
+                    <span className="font-black text-slate-900 dark:text-white">{totalLoginDays}</span>
                   </div>
                 )}
 
@@ -335,32 +312,31 @@ const StreakIndicator = ({
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="bg-red-50 border border-red-200 rounded-lg p-2 mt-2"
+                    className="bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 rounded-[12px] p-2.5 mt-2"
                   >
                     <div className="flex items-start gap-2">
-                      <Zap size={14} className="text-red-500 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-red-700 font-medium">
+                      <Zap size={14} className="text-rose-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-[12px] text-rose-700 dark:text-rose-300 font-bold leading-tight">
                         Faça login amanhã para não perder sua sequência!
                       </p>
                     </div>
                   </motion.div>
                 )}
 
-                {/* Dica */}
+                {/* Dica Start */}
                 {currentStreak === 0 && (
-                  <div className="bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 rounded-lg p-2">
+                  <div className="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 rounded-[12px] p-2.5">
                     <div className="flex items-start gap-2">
-
-                      <p className="text-xs text-primary-700 dark:text-primary-300">
-                        Faça login todos os dias para construir sua sequência!
+                      <p className="text-[12px] text-indigo-700 dark:text-indigo-300 font-medium leading-tight">
+                        Faça login todos os dias para construir sua sequência de estudos!
                       </p>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Seta apontando para cima */}
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l-2 border-t-2 border-current/20 rotate-45" />
+              {/* Seta apontando para o ícone principal */}
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white dark:bg-slate-800 border-l border-t border-slate-200 dark:border-slate-700 rotate-45 pointer-events-none" />
             </div>
           </motion.div>
         </AnimatePresence>,

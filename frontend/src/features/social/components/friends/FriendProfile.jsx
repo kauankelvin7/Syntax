@@ -141,7 +141,7 @@ const FriendProfile = memo(({ friend, friendStatus, isOpen, onClose, onMessage, 
                   <div className="flex flex-col items-center justify-center py-3 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
                     <div className="flex items-center gap-1 text-indigo-500 mb-1">
                       <BookOpen size={14} strokeWidth={2.5} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Estudo</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Engenharia de Software</span>
                     </div>
                     <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400 leading-none">
                       {displayData.totalStudyMinutes ? Math.round(displayData.totalStudyMinutes / 60) : 0}<span className="text-sm font-bold">h</span>

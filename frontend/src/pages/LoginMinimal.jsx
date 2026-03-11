@@ -143,7 +143,7 @@ const LoginMinimal = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            {['Atlas 3D', 'Simulados IA', 'Flashcards', 'Kaka Agent'].map((f) => (
+            {['Atlas 3D', 'Simulados IA', 'Flashcards', 'AdaBot Agent'].map((f) => (
               <span key={f} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-white/70 text-xs font-bold uppercase tracking-widest">
                 {f}
               </span>

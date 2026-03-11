@@ -138,7 +138,7 @@ const FriendSearch = memo(({ onSearch, onSendRequest, sentRequests = [], friends
                         <BookOpen size={12} /> {user.institution}
                       </p>
                     ) : (
-                      <p className="text-[12px] text-slate-400 truncate mt-0.5">Estudante Cinesia</p>
+                      <p className="text-[12px] text-slate-400 truncate mt-0.5">Estudante Syntax</p>
                     )}
                   </div>
 

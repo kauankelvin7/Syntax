@@ -38,8 +38,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import * as pdfjsLib from 'pdfjs-dist';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import * as pdfjsLib from 'pdfjs-dist/build/pdf';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import { salvarSimulado } from '../services/firebaseService';
 import { useAuth } from '../contexts/AuthContext-firebase';
 import Button from '../components/ui/Button';

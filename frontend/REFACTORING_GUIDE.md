@@ -146,10 +146,10 @@ function Home() {
     <div className="min-h-screen bg-background pb-32 pt-8 px-4">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-6xl font-bold text-text-primary mb-4">
-          Bem-vindo ao <span className="text-brand-primary">Cinesia</span>
+          Bem-vindo ao <span className="text-brand-primary">Syntax</span>
         </h1>
         <p className="text-xl text-text-secondary">
-          Seu sistema de estudos para Fisioterapia
+          Seu sistema de estudos para Programação
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-16">
