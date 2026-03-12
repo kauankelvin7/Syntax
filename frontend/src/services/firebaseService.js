@@ -259,24 +259,32 @@ export const deletarMateria = async (materiaId) => {
  */
 export const criarFlashcard = async (flashcard, imageFile, userId) => {
   try {
+    // Monta objeto flashcard com valores padrão
     const flashcardData = {
-      pergunta: flashcard.pergunta,
-      resposta: flashcard.resposta,
-      materiaId: flashcard.materiaId,
-      materiaNome: flashcard.materiaNome || null,
-      materiaCor: flashcard.materiaCor || null,
-      tags: flashcard.tags || [],
+      pergunta: flashcard.pergunta ?? '',
+      resposta: flashcard.resposta ?? '',
+      materiaId: flashcard.materiaId ?? '',
+      materiaNome: flashcard.materiaNome ?? null,
+      materiaCor: flashcard.materiaCor ?? null,
+      tags: flashcard.tags ?? [],
       imagemUrl: null,  // Será preenchido com URL do Cloudinary se houver imagem
-      // SM-2 fields (BUG-008)
-      nextReviewDate: serverTimestamp(), // revisar imediatamente
-      interval: 0,       // dias até próxima revisão
-      easeFactor: 2.5,   // fator de facilidade (SM-2 default)
-      repetitions: 0,    // número de repetições bem-sucedidas
+      nextReviewDate: serverTimestamp(),
+      interval: 0,
+      easeFactor: 2.5,
+      repetitions: 0,
       uid: userId,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
-    
+
+    // Validação dos campos obrigatórios
+    if (!flashcardData.pergunta.trim()) {
+      throw new Error("Campo 'pergunta' obrigatório.");
+    }
+    if (!flashcardData.resposta.trim()) {
+      throw new Error("Campo 'resposta' obrigatório.");
+    }
+
     // Se houver imagem, fazer upload para Cloudinary
     if (imageFile) {
       try {
@@ -287,16 +295,17 @@ export const criarFlashcard = async (flashcard, imageFile, userId) => {
         throw new Error(`Erro ao processar imagem: ${imageError.message}`);
       }
     }
-    
+
     const docRef = await addDoc(collection(db, 'flashcards'), flashcardData);
-    
+
     return {
       id: docRef.id,
       ...flashcardData
     };
   } catch (error) {
     console.error('Erro ao criar flashcard:', error);
-    throw new Error(`Não foi possível criar o flashcard: ${error.message}`);
+    // Feedback mais claro para o usuário
+    throw new Error(error.message || 'Erro inesperado ao criar flashcard.');
   }
 };
 

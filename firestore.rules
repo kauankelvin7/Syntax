@@ -115,23 +115,23 @@ service cloud.firestore {
         allow update: if isOwner(userId);
       }
 
-      // -- KakaBot Memória (preferências e estatísticas) --
-      match /kakabot_memoria/{docId} {
+      // -- AdaBot Memória (preferências e estatísticas) --
+      match /adabot_memoria/{docId} {
         allow read:   if isOwner(userId);
         allow create: if isOwner(userId);
         allow update: if isOwner(userId);
       }
 
-      // -- KakaBot Sessões (histórico paginado de conversas) --
-      match /kakabot_sessoes/{sessaoId} {
+      // -- AdaBot Sessões (histórico paginado de conversas) --
+      match /adabot_sessoes/{sessaoId} {
         allow read:   if isOwner(userId);
         allow create: if isOwner(userId);
         allow update: if isOwner(userId);
         allow delete: if isOwner(userId);
       }
 
-      // -- KakaBot Mensagens Salvas (favoritas/bookmarked) --
-      match /kakabot_salvos/{salvoId} {
+      // -- AdaBot Mensagens Salvas (favoritas/bookmarked) --
+      match /adabot_salvos/{salvoId} {
         allow read:   if isOwner(userId);
         allow create: if isOwner(userId);
         allow delete: if isOwner(userId);
