@@ -1,7 +1,8 @@
 /**
- * @file useAdaSessoes.js
- * @description Gerencia criação, carregamento e persistência de sessões do AdaBot.
- * Cada sessão é um documento em users/{uid}/ada_sessoes/{sessaoId}.
+ * @file useSyntaxSessoes.js
+ * @description Gerencia criação, carregamento e persistência de sessões do Syntax,
+ * assistente de engenharia de software e programação.
+ * Cada sessão é um documento em users/{uid}/syntax_sessoes/{sessaoId}.
  * Suporta carregamento paginado (MENSAGENS_INICIAIS + "carregar mais") para não
  * sobrecarregar o chat com histórico extenso.
  *
@@ -10,7 +11,7 @@
  *  - firebase-config.js — instância db
  *
  * @sideEffects
- *  - Lê e escreve em users/{uid}/ada_sessoes/{sessaoId}
+ *  - Lê e escreve em users/{uid}/syntax_sessoes/{sessaoId}
  *  - Nenhum efeito externo além do Firestore
  *
  * @notes
@@ -43,18 +44,18 @@ const MENSAGENS_POR_PAGINA = 10;
 const MENSAGEM_BOAS_VINDAS_PADRAO = {
   role: 'assistant',
   content:
-    '\ud83d\udc4b Olá! Sou o **Kaka**, seu parceiro de estudos em Fisioterapia!\n\nPosso te ajudar com dúvidas clínicas, criar flashcards, resumos, organizar matérias e agendar revisões. Por onde quer começar?',
+    '👋 Olá! Sou o **Syntax**, seu assistente de engenharia de software.\n\nPosso te ajudar com revisão de código, debugging, arquitetura de sistemas, boas práticas, documentação e muito mais. Por onde quer começar?',
 };
 
 /**
- * Hook para gerenciar sessões de conversa do KakaBot.
+ * Hook para gerenciar sessões de conversa do Syntax.
  *
  * @param {string|null} uid - UID do usuário autenticado
  * @returns {{ sessaoAtual, mensagensVisiveis, totalMensagens, temMais, carregando,
  *             novaSessao, carregarSessao, carregarMais, adicionarMensagem,
- *             listarSessoes, setMensagensVisiveis }}
+ *             adicionarMensagemSemUI, listarSessoes, setMensagensVisiveis }}
  */
-const useKakabotSessoes = (uid) => {
+const useSyntaxSessoes = (uid) => {
   const [sessaoAtual, setSessaoAtual] = useState(null);
   const [mensagensVisiveis, setMensagensVisiveis] = useState([]);
   const [totalMensagens, setTotalMensagens] = useState(0);
@@ -79,8 +80,8 @@ const useKakabotSessoes = (uid) => {
    * Aceita opcionalmente memória e dados do sistema para gerar mensagem contextual.
    * NOTE: não apaga sessões anteriores — ficam disponíveis no painel de histórico.
    *
-   * @param {object} [memoria]    - Estado memoriaUsuario (para mensagem contextual)
-   * @param {object} [dadosSistema] - Dados do useKakabotContext (para mensagem contextual)
+   * @param {object} [memoria]      - Estado memoriausuario (para mensagem contextual)
+   * @param {object} [dadosSistema] - Dados do useSyntaxContext (para mensagem contextual)
    * @returns {Promise<object|null>} Dados da sessão criada
    */
   const novaSessao = useCallback(async (memoria, dadosSistema) => {
@@ -89,8 +90,8 @@ const useKakabotSessoes = (uid) => {
     const sessaoId = `sessao_${Date.now()}`;
     const agora = new Date();
 
-    // Gerar mensagem de abertura contextual se dados disponíveis
     let conteudoBoasVindas = MENSAGEM_BOAS_VINDAS_PADRAO.content;
+
     if (memoria && dadosSistema) {
       try {
         const hora = agora.getHours();
@@ -99,27 +100,25 @@ const useKakabotSessoes = (uid) => {
         const stats = memoria?.estatisticasUso || {};
         const nome = pref.nomePreferido ? `, ${pref.nomePreferido}` : '';
         const totalMsgs = stats.totalMensagens || 0;
-        const streakAtual = dadosSistema?.streakAtual || 0;
-        const cardsHoje = dadosSistema?.cardsParaRevisarHoje || 0;
+        const linguagemFavorita = pref.linguagemFavorita || null;
+        const ultimoProjeto = dadosSistema?.ultimoProjeto || null;
 
         if (totalMsgs === 0) {
-          conteudoBoasVindas = `${saudacao}! Sou o Kaka, seu parceiro de estudos aqui no Cinesia. Pode me perguntar qualquer coisa sobre fisioterapia, pedir pra criar flashcards, resumos — o que precisar. Por onde quer começar?`;
-        } else if (cardsHoje > 5) {
-          conteudoBoasVindas = `${saudacao}${nome}. Você tem ${cardsHoje} cards esperando revisão hoje — quer resolver isso primeiro ou tinha algo em mente?`;
-        } else if (streakAtual >= 7 && streakAtual % 7 === 0) {
-          conteudoBoasVindas = `${saudacao}${nome}! ${streakAtual} dias seguidos — isso é consistência de verdade. O que vamos estudar hoje?`;
-        } else if (streakAtual === 0 && totalMsgs > 0) {
-          conteudoBoasVindas = `${saudacao}${nome}. Que bom que voltou! Às vezes a gente precisa de uma pausa mesmo. Quer retomar de onde parou?`;
+          conteudoBoasVindas = `${saudacao}! Sou o Syntax, seu assistente de engenharia de software. Pode me mandar código pra revisar, tirar dúvidas sobre arquitetura, pedir ajuda com debugging — o que precisar. Por onde quer começar?`;
+        } else if (ultimoProjeto) {
+          conteudoBoasVindas = `${saudacao}${nome}. Continuando com **${ultimoProjeto}**? É só mandar o código ou me contar onde travou.`;
+        } else if (linguagemFavorita) {
+          conteudoBoasVindas = `${saudacao}${nome}. Mais um dia de código. Trabalhando com ${linguagemFavorita} hoje?`;
         } else {
           const aberturasGenericas = [
-            `${saudacao}${nome}. O que tá rolando hoje?`,
-            `${saudacao}${nome}. Pronto pra estudar?`,
-            `${saudacao}${nome}. Tem ${cardsHoje} cards pra revisar. Quer começar por eles?`,
+            `${saudacao}${nome}. Qual o problema de hoje?`,
+            `${saudacao}${nome}. Pronto pra codar?`,
+            `${saudacao}${nome}. Me manda o código ou descreve o que precisa.`,
           ];
           conteudoBoasVindas = aberturasGenericas[Math.floor(Math.random() * aberturasGenericas.length)];
         }
       } catch (err) {
-        console.warn('[useKakabotSessoes] Erro ao gerar mensagem contextual:', err?.message);
+        console.warn('[useSyntaxSessoes] Erro ao gerar mensagem contextual:', err?.message);
       }
     }
 
@@ -140,9 +139,9 @@ const useKakabotSessoes = (uid) => {
     };
 
     try {
-      await setDoc(doc(db, 'users', uid, 'kakabot_sessoes', sessaoId), novaSessaoData);
+      await setDoc(doc(db, 'users', uid, 'syntax_sessoes', sessaoId), novaSessaoData);
     } catch (err) {
-      console.warn('[useKakabotSessoes] Erro ao criar sessão:', err?.message);
+      console.warn('[useSyntaxSessoes] Erro ao criar sessão:', err?.message);
     }
 
     setSessaoAtual(novaSessaoData);
@@ -164,7 +163,7 @@ const useKakabotSessoes = (uid) => {
     if (!uid) return;
     setCarregando(true);
     try {
-      const docRef = doc(db, 'users', uid, 'kakabot_sessoes', sessaoId);
+      const docRef = doc(db, 'users', uid, 'syntax_sessoes', sessaoId);
       const snap = await getDoc(docRef);
       if (!snap.exists()) return;
 
@@ -179,7 +178,7 @@ const useKakabotSessoes = (uid) => {
       setOffset(novoOffset);
       setTemMais(novoOffset > 0);
     } catch (err) {
-      console.warn('[useKakabotSessoes] Erro ao carregar sessão:', err?.message);
+      console.warn('[useSyntaxSessoes] Erro ao carregar sessão:', err?.message);
     } finally {
       setCarregando(false);
     }
@@ -188,7 +187,7 @@ const useKakabotSessoes = (uid) => {
   /**
    * Carrega o bloco anterior de mensagens ao clicar em "Carregar mensagens anteriores".
    * Insere no início do array visível sem perder a posição do scroll (responsabilidade
-   * do componente — ver carregarMaisComScroll em KakaBot.jsx).
+   * do componente — ver carregarMaisComScroll em Syntax.jsx).
    */
   const carregarMais = useCallback(() => {
     if (!sessaoAtual || !temMais) return;
@@ -222,7 +221,7 @@ const useKakabotSessoes = (uid) => {
 
     // GUARD: sessão deve existir antes de adicionar mensagens
     if (!uid || !sessaoAtual?.id) {
-      console.error('[KakaBot] Tentativa de salvar mensagem sem sessão ativa');
+      console.error('[Syntax] Tentativa de salvar mensagem sem sessão ativa');
       return;
     }
 
@@ -244,14 +243,12 @@ const useKakabotSessoes = (uid) => {
 
     try {
       await setDoc(
-        doc(db, 'users', uid, 'kakabot_sessoes', sessaoAtual.id),
+        doc(db, 'users', uid, 'syntax_sessoes', sessaoAtual.id),
         sessaoAtualizada,
         { merge: true }
       );
-      // TODO: remover log após confirmar que está salvando corretamente
-      console.warn('[KakaBot] Sessão salva:', sessaoAtual.id, '| Total:', sessaoAtualizada.totalMensagens);
     } catch (err) {
-      console.error('[KakaBot] Erro ao salvar sessão:', err);
+      console.error('[Syntax] Erro ao salvar sessão:', err);
     }
 
     setSessaoAtual(sessaoAtualizada);
@@ -285,13 +282,12 @@ const useKakabotSessoes = (uid) => {
 
     try {
       await setDoc(
-        doc(db, 'users', uid, 'kakabot_sessoes', sessaoAtual.id),
+        doc(db, 'users', uid, 'syntax_sessoes', sessaoAtual.id),
         sessaoAtualizada,
         { merge: true }
       );
-      console.warn('[KakaBot] Sessão salva (sem UI):', sessaoAtual.id, '| Total:', sessaoAtualizada.totalMensagens);
     } catch (err) {
-      console.error('[KakaBot] Erro ao salvar sessão:', err);
+      console.error('[Syntax] Erro ao salvar sessão:', err);
     }
 
     setSessaoAtual(sessaoAtualizada);
@@ -307,12 +303,12 @@ const useKakabotSessoes = (uid) => {
   const listarSessoes = useCallback(async () => {
     if (!uid) return [];
     try {
-      const ref = collection(db, 'users', uid, 'kakabot_sessoes');
+      const ref = collection(db, 'users', uid, 'syntax_sessoes');
       const q = query(ref, orderBy('ultimaAtualizacao', 'desc'), limit(15));
       const snap = await getDocs(q);
       return snap.docs.map((d) => d.data());
     } catch (err) {
-      console.warn('[useKakabotSessoes] Erro ao listar sessões:', err?.message);
+      console.warn('[useSyntaxSessoes] Erro ao listar sessões:', err?.message);
       return [];
     }
   }, [uid]);
@@ -329,9 +325,8 @@ const useKakabotSessoes = (uid) => {
     adicionarMensagem,
     adicionarMensagemSemUI,
     listarSessoes,
-    // Exposto para addSystemMessage poder adicionar msgs transientes sem Firestore
     setMensagensVisiveis,
   };
 };
 
-export default useKakabotSessoes;
+export default useSyntaxSessoes;
