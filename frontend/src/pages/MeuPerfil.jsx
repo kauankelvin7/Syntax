@@ -1,13 +1,8 @@
 /**
- * 👤 MEU PERFIL — Página de Perfil do Usuário com Upload de Foto
- *
- * Features:
- * - Upload de foto de perfil para Firebase Storage
- * - Preview da imagem com crop circular
- * - Salva downloadURL no Firestore + Auth updateProfile
- * - Remoção de foto
- * - Limites: 2MB, .jpg/.png/.webp
- * - photoURL propagada via AuthContext
+ * 👤 NODE_IDENTITY (Meu Perfil) — Syntax Theme Premium
+ * * Central de gerenciamento de credenciais e ativos visuais do Node.
+ * - Features: Upload tático (Firebase Storage), Identidade Visual, Telemetria de Registro.
+ * - Design: High-Fidelity Infrastructure Style (Bordas 24px, Glassmorphism).
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -26,6 +21,9 @@ import {
   Calendar,
   Mail,
   Shield,
+  Terminal,
+  Cpu,
+  Activity
 } from 'lucide-react';
 import { updateProfile } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -57,34 +55,29 @@ export default function MeuPerfil() {
     setDisplayName(user.displayName || user.nome || '');
     setPhotoURL(user.photoURL || null);
 
-    // Member since
     const creationTime = auth.currentUser?.metadata?.creationTime;
     if (creationTime) setMemberSince(new Date(creationTime));
   }, [user]);
 
-  // File validation
   const validateFile = (file) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error('Formato inválido. Use JPG, PNG ou WebP.');
+      toast.error('Handshake_Error: Formato inválido. Use JPG, PNG ou WebP.');
       return false;
     }
     if (file.size > MAX_FILE_SIZE) {
-      toast.error('Imagem muito grande. Limite: 2MB.');
+      toast.error('Payload_Overflow: Limite de 2MB excedido.');
       return false;
     }
     return true;
   };
 
-  // Handle file selection
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    if (!validateFile(file)) return;
+    if (!file || !validateFile(file)) return;
     setSelectedFile(file);
     setPreviewURL(URL.createObjectURL(file));
   };
 
-  // Drag & Drop
   const handleDrag = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -97,13 +90,11 @@ export default function MeuPerfil() {
     e.stopPropagation();
     setDragActive(false);
     const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-    if (!validateFile(file)) return;
+    if (!file || !validateFile(file)) return;
     setSelectedFile(file);
     setPreviewURL(URL.createObjectURL(file));
   }, []);
 
-  // Upload photo
   const handleUploadPhoto = async () => {
     if (!selectedFile || !user?.uid) return;
     setUploading(true);
@@ -112,13 +103,9 @@ export default function MeuPerfil() {
       await uploadBytes(storageRef, selectedFile);
       const downloadURL = await getDownloadURL(storageRef);
 
-      // Update Auth profile
       await updateProfile(auth.currentUser, { photoURL: downloadURL });
-
-      // Update Firestore
       await setDoc(doc(db, 'users', user.uid), { photoURL: downloadURL }, { merge: true });
 
-      // Update local state
       setPhotoURL(downloadURL);
       setPreviewURL(null);
       setSelectedFile(null);
@@ -129,57 +116,43 @@ export default function MeuPerfil() {
         localStorage.setItem('user', JSON.stringify(updated));
       }
 
-      toast.success('Foto de perfil atualizada!');
+      toast.success('Identity_Updated: Foto de perfil sincronizada.');
     } catch (err) {
-      console.error('Erro ao fazer upload:', err);
-      toast.error('Erro ao fazer upload da foto.');
+      toast.error('Sync_Fault: Erro ao enviar foto.');
     } finally {
       setUploading(false);
     }
   };
 
-  // Remove photo
   const handleRemovePhoto = async () => {
     if (!user?.uid) return;
     setRemovingPhoto(true);
     try {
-      // Delete from Storage (try common extensions)
       for (const ext of ['jpeg', 'png', 'webp', 'jpg']) {
         try {
           const storageRef = ref(storage, `profile-pictures/${user.uid}/avatar.${ext}`);
           await deleteObject(storageRef);
-        } catch (e) { /* File may not exist */ }
+        } catch (e) { /* skip */ }
       }
-
-      // Update Auth profile
       await updateProfile(auth.currentUser, { photoURL: '' });
-
-      // Update Firestore
       await setDoc(doc(db, 'users', user.uid), { photoURL: null }, { merge: true });
 
-      // Update local state
       setPhotoURL(null);
-      setPreviewURL(null);
-      setSelectedFile(null);
-
       if (setUser) {
         const updated = { ...user, photoURL: null };
         setUser(updated);
         localStorage.setItem('user', JSON.stringify(updated));
       }
-
-      toast.success('Foto de perfil removida.');
+      toast.success('Identity_Cleared: Foto de perfil removida.');
     } catch (err) {
-      console.error('Erro ao remover foto:', err);
-      toast.error('Erro ao remover foto.');
+      toast.error('De-sync_Error: Erro ao remover foto.');
     } finally {
       setRemovingPhoto(false);
     }
   };
 
-  // Save display name
   const handleSaveName = async () => {
-    if (!displayName.trim()) { toast.error('Digite um nome válido.'); return; }
+    if (!displayName.trim()) return;
     setSavingName(true);
     try {
       await updateProfile(auth.currentUser, { displayName: displayName.trim() });
@@ -190,16 +163,14 @@ export default function MeuPerfil() {
         setUser(updated);
         localStorage.setItem('user', JSON.stringify(updated));
       }
-      toast.success('Nome atualizado!');
+      toast.success('Handshake_Success: Nome atualizado.');
     } catch (err) {
-      console.error('Erro ao atualizar nome:', err);
-      toast.error('Erro ao atualizar nome.');
+      toast.error('Protocol_Error: Falha na atualização.');
     } finally {
       setSavingName(false);
     }
   };
 
-  const currentPhoto = previewURL || photoURL;
   const initials = (user?.displayName || user?.nome || user?.email || '?')
     .split(' ')
     .map((n) => n[0])
@@ -208,146 +179,84 @@ export default function MeuPerfil() {
     .toUpperCase();
 
   return (
-    <div className="min-h-screen pb-32 pt-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <motion.div
-          className="mb-8"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-primary-50 dark:bg-primary-950 flex items-center justify-center">
-              <UserCircle2 size={28} className="text-primary-600 dark:text-primary-400" />
+    <div className="min-h-screen pb-32 pt-10 px-4 bg-slate-50/30 dark:bg-slate-950">
+      <div className="max-w-3xl mx-auto">
+        
+        {/* ─── HEADER ─── */}
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-12">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-slate-900 dark:bg-white rounded-[22px] flex items-center justify-center shadow-2xl border-2 border-white/10 shrink-0">
+              <Cpu size={32} className="text-white dark:text-slate-900" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
-                Meu Perfil
-              </h1>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">
-                Gerencie sua foto e informações pessoais
+              <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase mb-1">Node_Identity</h1>
+              <p className="text-[12px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Activity size={14} className="text-indigo-500" /> Managing credential assets
               </p>
             </div>
           </div>
         </motion.div>
 
-        {/* ── Photo Section ── */}
-        <motion.div
-          className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden mb-6"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
+        {/* ─── PHOTO SECTION ─── */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="bg-white dark:bg-slate-900 rounded-[32px] border-2 border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mb-8"
         >
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700/60">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-950 flex items-center justify-center">
-                <Camera size={18} className="text-primary-600 dark:text-primary-400" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Foto de Perfil</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">JPG, PNG ou WebP — máximo 2MB</p>
-              </div>
+          <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/20">
+            <div className="flex items-center gap-4">
+              <Terminal size={18} className="text-indigo-500" />
+              <span className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Visual_Asset_Upload</span>
             </div>
           </div>
 
-          <div className="px-6 py-6 flex flex-col sm:flex-row items-center gap-6">
-            {/* Avatar Preview */}
-            <div className="relative group">
-              <div className="w-28 h-28 rounded-full overflow-hidden ring-4 ring-primary-100 dark:ring-primary-900/40 shadow-lg flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-950 dark:to-primary-900">
-                {currentPhoto ? (
-                  <img
-                    src={currentPhoto}
-                    alt="Foto de perfil"
-                    className="w-full h-full object-cover"
-                  />
+          <div className="p-8 flex flex-col md:flex-row items-center gap-10">
+            {/* Avatar Stack */}
+            <div className="relative group shrink-0">
+              <div className="w-32 h-32 rounded-[32px] overflow-hidden border-4 border-slate-100 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
+                {previewURL || photoURL ? (
+                  <img src={previewURL || photoURL} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl font-bold text-primary-600 dark:text-primary-300">
-                    {initials}
-                  </span>
+                  <span className="text-4xl font-black text-indigo-500 font-mono tracking-tighter">{initials}</span>
                 )}
               </div>
-              {/* Overlay on hover */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-              >
-                <Camera size={24} className="text-white" />
+              <button onClick={() => fileInputRef.current?.click()} className="absolute inset-0 rounded-[32px] bg-indigo-600/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
+                <Camera size={32} className="text-white" />
               </button>
             </div>
 
-            <div className="flex-1 w-full">
-              {/* Dropzone */}
+            <div className="flex-1 w-full space-y-6">
+              {/* Dropzone Tática */}
               <div
-                className={`border-2 border-dashed rounded-xl p-6 text-center transition-all duration-200 ${
-                  dragActive
-                    ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/30'
-                    : 'border-slate-200 dark:border-slate-600 hover:border-primary-300 dark:hover:border-primary-700 bg-slate-50 dark:bg-slate-700/30'
+                className={`border-2 border-dashed rounded-[24px] p-8 text-center transition-all cursor-pointer ${
+                  dragActive ? 'border-cyan-500 bg-cyan-500/5' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/50 bg-slate-50 dark:bg-slate-950/50'
                 }`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
+                onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
               >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.webp"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-
+                <input ref={fileInputRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handleFileSelect} className="hidden" />
                 {selectedFile ? (
                   <div className="flex items-center justify-center gap-3">
-                    <CheckCircle2 size={20} className="text-green-500" />
-                    <span className="text-sm text-slate-700 dark:text-slate-300 font-medium truncate max-w-[180px]">
-                      {selectedFile.name}
-                    </span>
-                    <button
-                      onClick={() => { setSelectedFile(null); setPreviewURL(null); }}
-                      className="flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"
-                    >
-                      <X size={16} />
-                    </button>
+                    <CheckCircle2 size={20} className="text-emerald-500" />
+                    <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300 truncate max-w-[200px] uppercase font-mono">{selectedFile.name}</span>
+                    <button onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setPreviewURL(null); }} className="p-1 hover:bg-rose-500/10 rounded-lg text-slate-400 hover:text-rose-500 transition-colors"><X size={16} /></button>
                   </div>
                 ) : (
-                  <>
-                    <ImageIcon size={24} className="mx-auto text-slate-400 dark:text-slate-500 mb-2" />
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Arraste ou{' '}
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="text-primary-600 dark:text-primary-400 font-medium hover:underline"
-                      >
-                        clique aqui
-                      </button>
-                    </p>
-                  </>
+                  <div className="space-y-2">
+                    <Upload size={24} className="mx-auto text-slate-300 dark:text-slate-600" />
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Arraste ou <span className="text-indigo-500 underline">clique para importar</span></p>
+                  </div>
                 )}
               </div>
 
-              {/* Action buttons */}
-              <div className="flex flex-wrap gap-2 mt-3">
+              {/* Botões de Ação Syntax */}
+              <div className="flex flex-wrap gap-4 pt-2">
                 {selectedFile && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={handleUploadPhoto}
-                    loading={uploading}
-                    leftIcon={<Upload size={14} />}
-                  >
-                    Enviar Foto
+                  <Button onClick={handleUploadPhoto} loading={uploading} className="bg-indigo-600 h-12 px-8 font-black uppercase tracking-widest text-[11px] !rounded-[14px] shadow-lg shadow-indigo-600/20">
+                    Sincronizar Foto
                   </Button>
                 )}
                 {photoURL && !selectedFile && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemovePhoto}
-                    loading={removingPhoto}
-                    leftIcon={<Trash2 size={14} />}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
-                  >
-                    Remover Foto
+                  <Button onClick={handleRemovePhoto} loading={removingPhoto} variant="ghost" className="text-rose-500 hover:bg-rose-500/10 h-12 px-6 font-black uppercase tracking-widest text-[11px] !rounded-[14px]">
+                    <Trash2 size={16} className="mr-2" /> Remover Asset
                   </Button>
                 )}
               </div>
@@ -355,82 +264,74 @@ export default function MeuPerfil() {
           </div>
         </motion.div>
 
-        {/* ── Info Section ── */}
-        <motion.div
-          className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden mb-6"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        {/* ─── INFO SECTION ─── */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="bg-white dark:bg-slate-900 rounded-[32px] border-2 border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden"
         >
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700/60">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-950 flex items-center justify-center">
-                <Shield size={18} className="text-primary-600 dark:text-primary-400" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Informações Pessoais</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Seus dados de perfil</p>
-              </div>
-            </div>
+          <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex items-center gap-4">
+            <Shield size={18} className="text-indigo-500" />
+            <span className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Security_&_Profile_Data</span>
           </div>
 
-          <div className="px-6 py-5 space-y-4">
-            {/* Display Name */}
-            <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Nome de exibição</label>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Seu nome..."
-                  disabled={savingName}
-                  className="flex-1"
-                />
-                <Button variant="primary" size="md" onClick={handleSaveName} loading={savingName} leftIcon={<Save size={16} />}>
-                  Salvar
+          <div className="p-8 space-y-8">
+            {/* Display Name Input */}
+            <div className="space-y-3">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Identity_Alias</label>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Node Name..." disabled={savingName} className="flex-1 !h-14 !rounded-[16px] bg-slate-50 dark:bg-slate-950 border-2 font-bold" />
+                <Button onClick={handleSaveName} loading={savingName} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-14 px-10 font-black uppercase tracking-widest text-[11px] !rounded-[16px]">
+                  Update_Alias
                 </Button>
               </div>
             </div>
 
-            {/* Email (read-only) */}
-            <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Email</label>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                <Mail size={16} className="text-slate-400" />
-                <span className="text-sm text-slate-700 dark:text-slate-300">{user?.email}</span>
+            {/* Read-only Data Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-5 rounded-[22px] bg-slate-50 dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center border border-slate-100 dark:border-slate-800"><Mail size={18} className="text-indigo-500" /></div>
+                <div>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Network_Address</p>
+                  <p className="text-[13px] font-bold text-slate-700 dark:text-slate-200">{user?.email}</p>
+                </div>
               </div>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                Para alterar o email, acesse as Configurações.
-              </p>
-            </div>
 
-            {/* Provider */}
-            <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Provedor de login</label>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                <Shield size={16} className="text-slate-400" />
-                <span className="text-sm text-slate-700 dark:text-slate-300 capitalize">
-                  {auth.currentUser?.providerData?.[0]?.providerId === 'google.com' ? 'Google' : 'Email e Senha'}
-                </span>
+              <div className="p-5 rounded-[22px] bg-slate-50 dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center border border-slate-100 dark:border-slate-800"><Shield size={18} className="text-cyan-500" /></div>
+                <div>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Auth_Protocol</p>
+                  <p className="text-[13px] font-bold text-slate-700 dark:text-slate-200 capitalize">
+                    {auth.currentUser?.providerData?.[0]?.providerId === 'google.com' ? 'Google SSO' : 'Hash Password'}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Member Since */}
+            {/* Member Since Telemetry */}
             {memberSince && (
-              <div>
-                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Membro desde</label>
-                <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                  <Calendar size={16} className="text-slate-400" />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">
-                    {memberSince.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </span>
+              <div className="p-6 rounded-[24px] bg-indigo-600/[0.03] border border-indigo-500/10 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                   <div className="w-10 h-10 rounded-xl bg-indigo-600/10 flex items-center justify-center"><Calendar size={18} className="text-indigo-500" /></div>
+                   <div>
+                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Deployment_Date</p>
+                     <p className="text-[14px] font-bold text-slate-900 dark:text-white">
+                       {memberSince.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                     </p>
+                   </div>
+                </div>
+                <div className="hidden sm:block text-right">
+                   <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Handshake_Verified</p>
+                   <p className="text-[11px] font-mono text-slate-400">#SYN-ACK-{user?.uid?.slice(0, 8)}</p>
                 </div>
               </div>
             )}
           </div>
         </motion.div>
       </div>
+
+      <style>{`
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 10s linear infinite; }
+      `}</style>
     </div>
   );
 }

@@ -37,7 +37,7 @@ const Flashcards = lazy(() => import('./pages/Flashcards'));
 const Simulado = lazy(() => import('./pages/Simulado'));
 const ConsultaRapida = lazy(() => import('./pages/ConsultaRapida'));
 const QuadroBranco = lazy(() => import('./pages/QuadroBranco'));
-const Atlas3D = lazy(() => import('./pages/Atlas3D'));
+const SystemArchitect = lazy(() => import('./pages/SystemArchitect3D'));
 const Notificacoes = lazy(() => import('./pages/Notificacoes'));
 const Configuracoes = lazy(() => import('./pages/Configuracoes'));
 const MeuPerfil = lazy(() => import('./pages/MeuPerfil'));
@@ -55,7 +55,7 @@ const PAGE_IMPORTS = [
   () => import('./pages/Simulado'),
   () => import('./pages/ConsultaRapida'),
   () => import('./pages/QuadroBranco'),
-  () => import('./pages/Atlas3D'),
+  () => import('./pages/SystemArchitect3D'),
   () => import('./pages/Notificacoes'),
   () => import('./pages/Configuracoes'),
   () => import('./pages/MeuPerfil'),
@@ -153,7 +153,7 @@ function AppContent() {
                     <Route path="/simulado" element={<Simulado />} />
                     <Route path="/consulta-rapida" element={<ConsultaRapida />} />
                     <Route path="/quadro-branco" element={<QuadroBranco />} />
-                    <Route path="/atlas-3d" element={<Atlas3D />} />
+                    <Route path="/atlas-3d" element={<SystemArchitect />} />
                     <Route path="/notificacoes" element={<Notificacoes />} />
                     <Route path="/configuracoes" element={<Configuracoes />} />
                     <Route path="/meu-perfil" element={<MeuPerfil />} />

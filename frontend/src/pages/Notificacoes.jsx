@@ -1,8 +1,8 @@
 /**
- * 🔔 NOTIFICAÇÕES — Página de Notificações Premium
- * - Listagem de notificações do Firestore (users/{uid}/notifications)
- * - Badge de não lidas, marcar como lida, marcar todas como lidas
- * - Ordenadas da mais recente para a mais antiga
+ * 🔔 SYSTEM_EVENT_LOG (Notificações) — Syntax Theme Premium
+ * * Central de telemetria e avisos do ecossistema Syntax.
+ * - Features: Real-time sync, Batch processing, Type-coded alerts.
+ * - Design: Terminal Log Style (Bordas de 20px, indicadores neon).
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -17,10 +17,12 @@ import {
   BookOpen,
   Loader2,
   Trash2,
-  Circle,
   Trophy,
-  CheckCircle2,
-  Inbox
+  Inbox,
+  Terminal,
+  Activity,
+  Zap,
+  Cpu
 } from 'lucide-react';
 import {
   collection,
@@ -40,31 +42,31 @@ import Button from '../components/ui/Button';
 const TYPE_CONFIG = {
   info: {
     icon: Info,
-    bg: 'bg-blue-50 dark:bg-blue-900/20',
-    text: 'text-blue-600 dark:text-blue-400',
-    border: 'border-blue-200 dark:border-blue-800/50',
-    accent: 'border-l-blue-500'
+    bg: 'bg-blue-500/10',
+    text: 'text-blue-500',
+    border: 'border-blue-500/20',
+    accent: 'bg-blue-500'
   },
   alerta: {
     icon: AlertTriangle,
-    bg: 'bg-amber-50 dark:bg-amber-900/20',
-    text: 'text-amber-600 dark:text-amber-400',
-    border: 'border-amber-200 dark:border-amber-800/50',
-    accent: 'border-l-amber-500'
+    bg: 'bg-rose-500/10',
+    text: 'text-rose-500',
+    border: 'border-rose-500/20',
+    accent: 'bg-rose-500'
   },
   estudo: {
     icon: BookOpen,
-    bg: 'bg-indigo-50 dark:bg-indigo-900/20',
-    text: 'text-indigo-600 dark:text-indigo-400',
-    border: 'border-indigo-200 dark:border-indigo-800/50',
-    accent: 'border-l-indigo-500'
+    bg: 'bg-indigo-500/10',
+    text: 'text-indigo-500',
+    border: 'border-indigo-500/20',
+    accent: 'bg-indigo-500'
   },
   conquista: {
     icon: Trophy,
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-    text: 'text-emerald-600 dark:text-emerald-400',
-    border: 'border-emerald-200 dark:border-emerald-800/50',
-    accent: 'border-l-emerald-500'
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-500',
+    border: 'border-amber-500/20',
+    accent: 'bg-amber-500'
   },
 };
 
@@ -80,7 +82,7 @@ function NotificationItem({ notification, userId, onMarkRead }) {
         await updateDoc(notifRef, { read: true });
         onMarkRead?.();
       } catch (err) {
-        console.error('Erro ao marcar notificação como lida:', err);
+        console.error('Telemetria_Error:', err);
       }
     }
   };
@@ -90,10 +92,9 @@ function NotificationItem({ notification, userId, onMarkRead }) {
     try {
       const notifRef = doc(db, 'users', userId, 'notifications', notification.id);
       await deleteDoc(notifRef);
-      toast.success('Notificação removida');
+      toast.success('Log_Purged: Entrada removida.');
     } catch (err) {
-      console.error('Erro ao excluir notificação:', err);
-      toast.error('Erro ao remover notificação');
+      toast.error('Erro ao purgar log.');
     }
   };
 
@@ -102,51 +103,58 @@ function NotificationItem({ notification, userId, onMarkRead }) {
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     const now = new Date();
     const diff = Math.floor((now - date) / 1000);
-    if (diff < 60) return 'Agora';
-    if (diff < 3600) return `${Math.floor(diff / 60)}min atrás`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)}d atrás`;
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
     return date.toLocaleDateString('pt-BR');
   };
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, scale: 0.98 }}
       onClick={handleClick}
-      className={`group relative flex items-start gap-4 p-5 rounded-[20px] border transition-all cursor-pointer ${
+      className={`group relative flex items-start gap-5 p-5 rounded-[22px] border-2 transition-all cursor-pointer ${
         isRead
-          ? 'opacity-70 bg-white/50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800'
-          : `bg-white dark:bg-slate-800 border-l-[6px] ${config.accent} border-t border-r border-b border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md`
+          ? 'opacity-50 bg-slate-50 dark:bg-slate-900/40 border-transparent grayscale'
+          : `bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-lg hover:border-indigo-500/30`
       }`}
     >
-      {/* Icon */}
-      <div className={`w-12 h-12 rounded-[16px] ${config.bg} flex items-center justify-center shrink-0`}>
-        <Icon size={20} className={config.text} strokeWidth={2.5} />
+      {/* Dynamic Status Indicator */}
+      {!isRead && (
+        <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 rounded-r-full ${config.accent} shadow-[0_0_10px_rgba(0,0,0,0.1)]`} />
+      )}
+
+      {/* Icon Node */}
+      <div className={`w-12 h-12 rounded-[14px] ${config.bg} flex items-center justify-center shrink-0 border border-white/5`}>
+        <Icon size={22} className={config.text} strokeWidth={2.5} />
       </div>
 
-      {/* Content */}
+      {/* Message Content */}
       <div className="flex-1 min-w-0">
-        <h4 className={`text-[14px] font-bold ${isRead ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+        <h4 className={`text-[15px] font-black tracking-tight uppercase ${isRead ? 'text-slate-500' : 'text-slate-900 dark:text-white'}`}>
           {notification.title}
         </h4>
-        <p className={`text-[13px] mt-1 leading-relaxed ${isRead ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}>
+        <p className={`text-[13px] mt-1 font-medium leading-relaxed ${isRead ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}>
           {notification.message}
         </p>
-        <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-2.5 uppercase tracking-wide">
-          {timeAgo(notification.createdAt)}
-        </p>
+        <div className="flex items-center gap-3 mt-3">
+          <span className="text-[10px] font-black font-mono text-indigo-500/60 uppercase tracking-widest bg-indigo-500/5 px-2 py-0.5 rounded">
+            {timeAgo(notification.createdAt)}
+          </span>
+          {!isRead && <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />}
+        </div>
       </div>
 
-      {/* Delete button */}
+      {/* Purge Action */}
       <button
         onClick={handleDelete}
-        className="opacity-0 group-hover:opacity-100 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-all absolute right-4 top-4"
-        title="Remover notificação"
+        className="opacity-0 group-hover:opacity-100 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-rose-500 transition-all absolute right-4 top-1/2 -translate-y-1/2 border border-transparent hover:border-rose-500/20 shadow-xl"
+        title="Purgar Log"
       >
-        <Trash2 size={16} />
+        <Trash2 size={18} strokeWidth={2.5} />
       </button>
     </motion.div>
   );
@@ -173,10 +181,7 @@ export default function Notificacoes() {
       }));
       setNotifications(notifs);
       setLoading(false);
-    }, (err) => {
-      console.error('Erro ao carregar notificações:', err);
-      setLoading(false);
-    });
+    }, () => setLoading(false));
 
     return () => unsubscribe();
   }, [user?.uid]);
@@ -197,33 +202,34 @@ export default function Notificacoes() {
       });
 
       await batch.commit();
-      toast.success('Tudo lido!');
+      toast.success('Logs_Synced: Todas as entradas lidas.');
     } catch (err) {
-      console.error('Erro ao marcar todas como lidas:', err);
-      toast.error('Erro ao processar ação');
+      toast.error('Erro na sincronização de logs.');
     } finally {
       setMarkingAll(false);
     }
   }, [user?.uid, unreadCount]);
 
   return (
-    <div className="min-h-screen pb-32 pt-8 px-4 bg-slate-50/50 dark:bg-slate-950">
+    <div className="min-h-screen pb-32 pt-10 px-4 bg-slate-50/30 dark:bg-slate-950">
       <div className="max-w-2xl mx-auto">
-        {/* Header Premium */}
+        
+        {/* Header (Terminal Style) */}
         <motion.div
-          className="mb-8"
+          className="mb-12"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <Bell size={24} className="text-white" strokeWidth={2} />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-[22px] bg-slate-900 dark:bg-white flex items-center justify-center shadow-2xl border-2 border-white/10 shrink-0">
+                <Bell size={32} className="text-white dark:text-slate-900" strokeWidth={2.5} />
               </div>
               <div>
-                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Notificações</h1>
-                <p className="text-[14px] font-medium text-slate-500 dark:text-slate-400 mt-1">
-                  {unreadCount > 0 ? `${unreadCount} não lida${unreadCount > 1 ? 's' : ''}` : 'Tudo em dia!'}
+                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none mb-1">Event_Logs</h1>
+                <p className="text-[12px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                  <Activity size={14} className="text-indigo-500" /> 
+                  {unreadCount > 0 ? `${unreadCount} pending_alerts` : 'System status: optimal'}
                 </p>
               </div>
             </div>
@@ -231,41 +237,39 @@ export default function Notificacoes() {
             {unreadCount > 0 && (
               <Button
                 variant="secondary"
-                size="sm"
                 onClick={markAllAsRead}
                 loading={markingAll}
-                leftIcon={<CheckCheck size={16} />}
-                className="bg-white dark:bg-slate-800 shadow-sm border-slate-200 dark:border-slate-700"
+                className="h-12 px-6 !rounded-[14px] bg-white dark:bg-slate-900 border-2 font-black uppercase tracking-widest text-[10px]"
               >
-                Marcar todas
+                <CheckCheck size={16} className="mr-2" /> Sync_All
               </Button>
             )}
           </div>
         </motion.div>
 
-        {/* Content */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 size={32} className="text-indigo-500 animate-spin mb-4" />
-            <p className="text-[14px] font-medium text-slate-500">Sincronizando avisos...</p>
-          </div>
-        ) : notifications.length === 0 ? (
-          <motion.div
-            className="flex flex-col items-center justify-center py-20 bg-white/50 dark:bg-slate-800/20 rounded-[32px] border border-dashed border-slate-200 dark:border-slate-700"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-          >
-            <div className="w-20 h-20 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-6">
-              <Inbox size={40} className="text-slate-300 dark:text-slate-600" />
+        {/* Content Viewport */}
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-24 animate-pulse">
+              <Loader2 size={40} className="text-indigo-500 animate-spin mb-6" />
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Accessing_Data_Stream...</p>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Tudo em dia!</h3>
-            <p className="text-[14px] text-slate-500 dark:text-slate-400 max-w-[240px]">
-              Nenhuma notificação nova no momento.
-            </p>
-          </motion.div>
-        ) : (
-          <div className="space-y-3">
-            <AnimatePresence>
+          ) : notifications.length === 0 ? (
+            <motion.div
+              className="flex flex-col items-center justify-center py-24 bg-white dark:bg-slate-900 rounded-[32px] border-2 border-dashed border-slate-100 dark:border-slate-800"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <div className="w-24 h-24 rounded-[28px] bg-slate-50 dark:bg-slate-950 flex items-center justify-center mb-8 border border-slate-100 dark:border-slate-800">
+                <Inbox size={48} className="text-slate-200 dark:text-slate-800" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Logs_Empty</h3>
+              <p className="text-[13px] text-slate-400 mt-2 font-medium uppercase tracking-widest">
+                No system events detected.
+              </p>
+            </motion.div>
+          ) : (
+            <div className="space-y-4">
               {notifications.map(notif => (
                 <NotificationItem
                   key={notif.id}
@@ -273,10 +277,15 @@ export default function Notificacoes() {
                   userId={user.uid}
                 />
               ))}
-            </AnimatePresence>
-          </div>
-        )}
+            </div>
+          )}
+        </AnimatePresence>
       </div>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.2); border-radius: 10px; }
+      `}</style>
     </div>
   );
 }

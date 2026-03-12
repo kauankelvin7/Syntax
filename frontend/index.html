@@ -3,110 +3,62 @@
   <head>
     <meta charset="UTF-8" />
     
-    <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="description" content="Syntax - Sistema de estudos com resumos, flashcards e simulados para Programação" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="Syntax - Advanced Engineering Study System | Resumos, Flashcards e Simulados IA" />
+    <meta name="theme-color" content="#020617" />
     <meta name="author" content="Kauan Kelvin" />
-    
-    <!-- Security Headers (fallback - prefer server-side headers) -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     
-    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    
-    <!-- PWA Capability -->
     <meta name="mobile-web-app-capable" content="yes" />
-    
-    <!-- PWA iOS/iPadOS -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Syntax" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     
-      <!-- Build version for auto-update -->
-      <meta name="build-version" content="%VITE_BUILD_TIME%" />
+    <meta name="build-version" content="%VITE_BUILD_TIME%" />
     
-    <!-- Splash Screens iOS (iPhone & iPad) -->
-    <!-- iPhone SE, 5s -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" />
-    <!-- iPhone 6, 7, 8 -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
-    <!-- iPhone 6+, 7+, 8+ -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" />
-    <!-- iPhone X, Xs, 11 Pro -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" />
-    <!-- iPhone Xr, 11 -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" />
-    <!-- iPhone Xs Max, 11 Pro Max -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" />
-    <!-- iPhone 12/13 mini -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1080x2340.png" media="(device-width: 360px) and (device-height: 780px) and (-webkit-device-pixel-ratio: 3)" />
-    <!-- iPhone 12/13, 14 -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" />
-    <!-- iPhone 12/13 Pro Max, 14 Plus -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" />
-    <!-- iPhone 14 Pro -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" />
-    <!-- iPhone 14 Pro Max -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" />
-    <!-- iPad Mini, Air -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" />
-    <!-- iPad Pro 10.5" -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1668x2224.png" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" />
-    <!-- iPad Pro 11" -->
-    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1668x2388.png" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)" />
-    <!-- iPad Pro 12.9" -->
     <link rel="apple-touch-startup-image" href="/splash/apple-splash-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/splash/apple-splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" />
     
-    <!-- Prevenir zoom em inputs no iOS -->
-    <meta name="format-detection" content="telephone=no" />
-    
-    <!-- Preconnect para performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://res.cloudinary.com" />
     
-    <title>Syntax Programação</title>
+    <title>Syntax | Software Engineering Hub</title>
     
-    <!-- Tema: Detecta preferência salva ou do sistema -->
     <script>
       (function() {
         var theme = localStorage.getItem('syntax-theme');
-        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-          document.documentElement.classList.add('dark');
-          document.documentElement.style.colorScheme = 'dark';
-        } else {
-          document.documentElement.classList.add('light');
-          document.documentElement.style.colorScheme = 'light';
-        }
+        var isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.add(isDark ? 'dark' : 'light');
+        document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
       })();
     </script>
     
-    <!-- CSS para safe areas no iPad -->
     <style>
       :root {
         --sat: env(safe-area-inset-top);
-        --sar: env(safe-area-inset-right);
         --sab: env(safe-area-inset-bottom);
-        --sal: env(safe-area-inset-left);
       }
       body {
+        margin: 0;
+        -webkit-tap-highlight-color: transparent;
         -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
+        user-select: none;
+        background-color: #020617; /* Slate-950 */
       }
-      /* Área de toque mínima para tablet */
+      /* Tablet-ready touch targets */
       button, a, [role="button"] {
         min-height: 44px;
         min-width: 44px;
       }
     </style>
-    <!-- Splash Screen Premium -->
+
     <style>
       #pwa-splash {
         position: fixed;
@@ -116,73 +68,88 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: radial-gradient(circle at center, #115e59 0%, #0f172a 60%);
-        font-family: 'Sora', sans-serif;
-        transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s;
+        background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
+        font-family: 'Inter', system-ui, sans-serif;
+        transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1), visibility 0.6s;
       }
       .splash-content {
         display: flex;
         flex-direction: column;
         align-items: center;
-        animation: fadeUp 0.8s ease-out;
+        animation: bootFadeUp 1s ease-out forwards;
       }
-      .splash-logo-container {
+      .logo-node {
         position: relative;
-        margin-bottom: 1.5rem;
+        width: 96px;
+        height: 96px;
+        margin-bottom: 2rem;
       }
-      .splash-logo {
-        width: 88px;
-        height: 88px;
+      .logo-img {
+        width: 100%;
+        height: 100%;
         position: relative;
-        z-index: 2;
-        animation: float 3s ease-in-out infinite;
+        z-index: 10;
+        animation: nodeFloat 4s ease-in-out infinite;
       }
-      .splash-glow {
+      .logo-glow {
         position: absolute;
-        inset: 0;
-        background: #14b8a6;
-        filter: blur(20px);
-        opacity: 0.4;
+        inset: -10px;
+        background: #6366f1;
+        filter: blur(25px);
+        opacity: 0.3;
         border-radius: 50%;
-        animation: pulseGlow 2.5s ease-in-out infinite;
+        animation: nodePulse 3s ease-in-out infinite;
       }
       .splash-title {
         color: #ffffff;
         font-size: 2.5rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
+        font-weight: 900;
+        letter-spacing: -0.05em;
         margin: 0;
-        text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        text-transform: uppercase;
+        font-style: italic;
       }
-      .splash-subtitle {
-        color: #94a3b8;
-        font-size: 1rem;
-        font-weight: 400;
-        margin-top: 0.5rem;
-        margin-bottom: 2.5rem;
-        letter-spacing: 0.02em;
+      .splash-status {
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 800;
+        margin-top: 0.75rem;
+        margin-bottom: 3rem;
+        letter-spacing: 0.4em;
+        text-transform: uppercase;
       }
-      .splash-loader {
-        width: 42px;
-        height: 42px;
-        border: 3px solid rgba(20, 184, 166, 0.15);
-        border-radius: 50%;
-        border-top-color: #14b8a6;
-        animation: spin 0.8s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
+      .boot-loader {
+        width: 48px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
       }
-      @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
+      .boot-progress {
+        position: absolute;
+        height: 100%;
+        width: 40%;
+        background: #06b6d4;
+        box-shadow: 0 0 15px #06b6d4;
+        border-radius: 10px;
+        animation: bootProgress 1.5s infinite ease-in-out;
       }
-      @keyframes pulseGlow {
-        0%, 100% { transform: scale(1); opacity: 0.3; }
-        50% { transform: scale(1.4); opacity: 0.6; }
+
+      @keyframes nodeFloat {
+        0%, 100% { transform: translateY(0) rotate(-2deg); }
+        50% { transform: translateY(-12px) rotate(2deg); }
       }
-      @keyframes spin {
-        to { transform: rotate(360deg); }
+      @keyframes nodePulse {
+        0%, 100% { transform: scale(1); opacity: 0.2; }
+        50% { transform: scale(1.3); opacity: 0.5; }
       }
-      @keyframes fadeUp {
-        from { opacity: 0; transform: translateY(20px); }
+      @keyframes bootProgress {
+        0% { left: -40%; }
+        100% { left: 110%; }
+      }
+      @keyframes bootFadeUp {
+        from { opacity: 0; transform: translateY(30px); }
         to { opacity: 1; transform: translateY(0); }
       }
     </style>
@@ -190,16 +157,20 @@
   <body>
     <div id="pwa-splash">
       <div class="splash-content">
-        <div class="splash-logo-container">
-          <div class="splash-glow"></div>
-          <img src="/pwa-192x192.png" class="splash-logo" alt="Logo Syntax" />
+        <div class="logo-node">
+          <div class="logo-glow"></div>
+          <img src="/apple-touch-icon.png" class="logo-img" alt="Syntax Engine" />
         </div>
         <h1 class="splash-title">Syntax</h1>
-        <p class="splash-subtitle">Seu parceiro de estudos</p>
-        <div class="splash-loader"></div>
+        <p class="splash-status">Initializing_System_Core</p>
+        <div class="boot-loader">
+          <div class="boot-progress"></div>
+        </div>
       </div>
     </div>
+
     <div id="root"></div>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

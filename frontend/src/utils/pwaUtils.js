@@ -1,87 +1,97 @@
 /**
- * 📱 PWA Utilities
- * 
- * Utilitários para Progressive Web App:
- * - Registro do Service Worker
- * - Detecção de atualizações
- * - Prompt de instalação
- * - Status online/offline
+ * 🛰️ PWA_PROTOCOL_UTILITIES — Syntax Theme
+ * * Gerenciamento de ciclo de vida do Progressive Web App.
+ * - Features: Service Worker Sync, Install_Prompt Capture, Network_Telemetry.
+ * - Design: High-Fidelity Logic (Silent background operations).
  */
 
-// Detectar se está rodando como PWA instalado
+/**
+ * 🛠️ DETECT_INSTALLED_NODE
+ * Verifica se o sistema está rodando como um Node dedicado (PWA Instalado).
+ */
 export const isInstalledPWA = () => {
-  // iOS
+  // Protocolo iOS
   if (window.navigator.standalone === true) return true;
   
-  // Android & Desktop
+  // Protocolo Android & Desktop (Standard API)
   if (window.matchMedia('(display-mode: standalone)').matches) return true;
   
-  // Fallback para verificação via referrer
+  // Handshake via Referrer
   if (document.referrer.includes('android-app://')) return true;
   
   return false;
 };
 
-// Detectar se está offline
+/**
+ * 📡 NETWORK_TELEMETRY
+ * Detecta se o canal de dados está offline.
+ */
 export const isOffline = () => !navigator.onLine;
 
-// Evento de mudança de status online/offline
+/**
+ * 🔄 ON_NETWORK_STATE_CHANGE
+ * Monitora transições de estado da rede em tempo real.
+ */
 export const onNetworkChange = (callback) => {
-  window.addEventListener('online', () => callback(true));
-  window.addEventListener('offline', () => callback(false));
+  const handleOnline = () => callback(true);
+  const handleOffline = () => callback(false);
+
+  window.addEventListener('online', handleOnline);
+  window.addEventListener('offline', handleOffline);
   
-  // Retorna função de cleanup
+  // Cleanup: Termina o listener para evitar memory leaks
   return () => {
-    window.removeEventListener('online', () => callback(true));
-    window.removeEventListener('offline', () => callback(false));
+    window.removeEventListener('online', handleOnline);
+    window.removeEventListener('offline', handleOffline);
   };
 };
 
-// Variável para guardar o evento de instalação
+// Global Buffer para evento de instalação
 let deferredPrompt = null;
 
-// Capturar evento de instalação do PWA
+/**
+ * 📥 CAPTURE_INSTALL_TRIGGER
+ * Intercepta o evento de instalação para controle manual pela UI.
+ */
 export const initInstallPrompt = () => {
   window.addEventListener('beforeinstallprompt', (e) => {
-    // Previne o prompt automático
+    // Previne o popup padrão do browser (Interrupt_Flag)
     e.preventDefault();
-    // Guarda o evento para usar depois
     deferredPrompt = e;
     
-    // Dispara evento customizado para a UI
+    // Broadcast customizado para a UI (Syntax_Dispatch)
     window.dispatchEvent(new CustomEvent('pwa-install-available'));
   });
   
-  // Detectar quando o app foi instalado
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     window.dispatchEvent(new CustomEvent('pwa-installed'));
   });
 };
 
-// Mostrar prompt de instalação
+/**
+ * 🚀 EXECUTE_INSTALL_SEQUENCE
+ * Dispara o prompt de instalação do Node local.
+ */
 export const showInstallPrompt = async () => {
   if (!deferredPrompt) {
-    console.log('PWA: Prompt de instalação não disponível');
+    console.warn('🛰️ PWA_PROTOCOL: Install_Prompt_Unavailable');
     return { outcome: 'unavailable' };
   }
   
-  // Mostra o prompt
   deferredPrompt.prompt();
-  
-  // Aguarda a resposta do usuário
   const { outcome } = await deferredPrompt.userChoice;
   
-  // Limpa o evento
   deferredPrompt = null;
-  
   return { outcome };
 };
 
-// Verificar se o prompt de instalação está disponível
 export const canInstall = () => deferredPrompt !== null;
 
-// Forçar atualização do Service Worker
+/**
+ * ⚡ FORCE_PATCH_UPDATE
+ * Força o Service Worker a buscar novos módulos no servidor.
+ */
 export const updateServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     const registration = await navigator.serviceWorker.getRegistration();
@@ -93,7 +103,10 @@ export const updateServiceWorker = async () => {
   return false;
 };
 
-// Limpar cache do PWA (útil para forçar atualização)
+/**
+ * 🧹 PURGE_LOCAL_CACHE
+ * Limpa todos os assets cacheados (útil para Reset de Emergência).
+ */
 export const clearPWACache = async () => {
   if ('caches' in window) {
     const cacheNames = await caches.keys();
@@ -105,7 +118,10 @@ export const clearPWACache = async () => {
   return false;
 };
 
-// Obter informações do Service Worker
+/**
+ * 📊 GET_SERVICE_WORKER_TELEMETRY
+ * Retorna o status atual do Kernel do PWA.
+ */
 export const getServiceWorkerInfo = async () => {
   if (!('serviceWorker' in navigator)) {
     return { supported: false };
@@ -127,44 +143,45 @@ export const getServiceWorkerInfo = async () => {
   };
 };
 
-// Detectar dispositivo iOS
+/**
+ * 📱 OS_RECOGNITION
+ */
 export const isIOS = () => {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 };
 
-// Detectar Safari
 export const isSafari = () => {
   return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 };
 
-// Verificar se deve mostrar banner de instalação para iOS
+/**
+ * 💡 IOS_PROMPT_CONTROL
+ * Verifica se deve alertar o usuário Safari sobre a instalação manual.
+ */
 export const shouldShowIOSInstallBanner = () => {
-  // Só mostra no iOS Safari se não estiver instalado
   if (!isIOS() || !isSafari()) return false;
   if (isInstalledPWA()) return false;
   
-  // Verifica se usuário já dispensou o banner
   const dismissed = localStorage.getItem('ios-install-banner-dismissed');
   if (dismissed) {
     const dismissedDate = new Date(dismissed);
     const daysSinceDismissed = (Date.now() - dismissedDate.getTime()) / (1000 * 60 * 60 * 24);
-    // Mostra novamente após 7 dias
+    // Intervalo de re-sincronização de 7 dias
     if (daysSinceDismissed < 7) return false;
   }
   
   return true;
 };
 
-// Dispensar banner de instalação iOS
 export const dismissIOSInstallBanner = () => {
   localStorage.setItem('ios-install-banner-dismissed', new Date().toISOString());
 };
 
-// Inicializar todos os listeners do PWA
+/**
+ * 🚀 INITIALIZE_PWA_SERVICES
+ */
 export const initPWA = () => {
   initInstallPrompt();
-  
-  // Status PWA silencioso (sem log)
 };
 
 export default {

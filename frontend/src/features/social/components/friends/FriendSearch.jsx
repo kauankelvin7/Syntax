@@ -7,7 +7,7 @@
  */
 
 import React, { memo, useState, useRef, useCallback } from 'react';
-import { Search, UserPlus, Clock, Check, Loader2, Terminal, BookCode } from 'lucide-react';
+import { Search, UserPlus, Clock, Check, Loader2, Terminal, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { getInitials, getAvatarColor } from '../../utils/chatHelpers';
@@ -136,7 +136,7 @@ const FriendSearch = memo(({ onSearch, onSendRequest, sentRequests = [], friends
                       {resUser.displayName}
                     </p>
                     <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                      <BookCode size={12} className="text-indigo-500" />
+                      <BookOpen size={12} className="text-indigo-500" />
                       <p className="text-[11px] font-bold truncate uppercase tracking-widest">
                         {resUser.institution || 'Dev_Node'}
                       </p>
