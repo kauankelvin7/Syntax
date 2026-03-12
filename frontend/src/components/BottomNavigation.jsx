@@ -59,7 +59,6 @@ const MORE_ITEMS = [
   { path: '/simulados',          icon: Terminal,        label: 'Testes'     },
   { key:  'messages',            icon: MessageSquareCode, label: 'Threads', isChatTrigger: true },
   { path: '/consulta-rapida',    icon: Code2,           label: 'Snippets'   },
-  { path: '/quadro-branco',      icon: PenLine,         label: 'Quadro'     },
   { path: '/atlas-3d',           icon: Network,         label: 'Arquitetura'},
   { path: '/analytics',          icon: BarChart3,       label: 'Métricas'   },
   { path: '/conquistas',         icon: Trophy,          label: 'Conquistas' },

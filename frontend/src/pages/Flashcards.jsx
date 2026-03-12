@@ -27,7 +27,8 @@ import {
   Activity,
   Code2,
   Database,
-  Hash
+  Hash,
+  CheckCircle2 // ← ADD
 } from 'lucide-react';
 import { 
   listarFlashcards, 
@@ -133,6 +134,12 @@ function Flashcards() {
   const [slideDirection, setSlideDirection] = useState(0);
   const [studyCards, setStudyCards] = useState([]); 
   const [reviewStats, setReviewStats] = useState({ easy: 0, medium: 0, hard: 0 });
+
+  // Variáveis derivadas para o modo estudo
+  const currentFlashcard = studyCards[currentIndex] ?? null;
+  const progressPercent = studyCards.length > 0 
+    ? ((currentIndex + 1) / studyCards.length) * 100 
+    : 0;
 
   useEffect(() => {
     if (user) {

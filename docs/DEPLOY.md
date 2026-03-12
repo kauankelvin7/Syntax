@@ -9,36 +9,25 @@ firebase login
 ```
 
 ### Deploy manual
+# Deploy — Syntax
 ```bash
 cd frontend
 npm run build
-cd ..
-firebase deploy --only hosting
-```
-
-### Deploy via GitHub Actions (automático)
-Push na branch `main` dispara o workflow `.github/workflows/deploy.yml` automaticamente.
-
-**Configuração necessária (uma vez só):**
-
-1. Gerar service account no Firebase:
-   - Console Firebase → Project Settings → Service Accounts
-   - "Generate new private key" → baixe o JSON
-
-2. Adicionar secrets no GitHub (Settings → Secrets and Variables → Actions):
-
-| Secret | Descrição |
-|--------|-----------|
-| `VITE_FIREBASE_API_KEY` | Firebase API Key |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain |
-| `VITE_FIREBASE_PROJECT_ID` | Firebase Project ID |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase Storage Bucket |
+2. Nome: `syntax`
+3. Selecione o repositório `syntax`
+...existing code...
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase Sender ID |
+cd c:\Users\Kauan\Desktop\Syntax
 | `VITE_FIREBASE_APP_ID` | Firebase App ID |
+git commit -m "🎉 Initial commit - Syntax v1.0"
 | `VITE_FIREBASE_MEASUREMENT_ID` | Firebase Measurement ID |
+git remote add origin https://github.com/SEU_USUARIO/syntax.git
 | `VITE_GEMINI_API_KEY` | Google Gemini API Key |
+Sua URL será algo como: `https://syntax.vercel.app`
 | `VITE_CLOUDINARY_CLOUD_NAME` | Cloudinary Cloud Name |
+Adicione seu domínio (ex: `syntax.com.br`)
 | `VITE_CLOUDINARY_UPLOAD_PRESET` | Cloudinary Upload Preset |
+Adicione: `syntax.vercel.app` (ou seu domínio customizado)
 | `FIREBASE_SERVICE_ACCOUNT` | Conteúdo JSON do service account |
 
 3. Publicar regras do Firestore:

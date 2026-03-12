@@ -55,7 +55,6 @@ const Sidebar = memo(() => {
       title: 'Dev Tools',
       links: [
         { to: '/simulado', icon: Cpu, label: 'Testes Técnicos & IA' },
-        { to: '/quadro-branco', icon: PenTool, label: 'Whiteboard' },
         { to: '/atlas-3d', icon: Network, label: 'System Design' },
         { to: '/consulta-rapida', icon: Code2, label: 'Snippets Rápidos' },
       ]

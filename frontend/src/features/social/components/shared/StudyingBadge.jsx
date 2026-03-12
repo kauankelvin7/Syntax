@@ -15,7 +15,6 @@ const pageLabels = {
   flashcards: 'Logic_Units',
   simulado: 'Test_Suites',
   'consulta-rapida': 'Snippets',
-  'quadro-branco': 'Architecture',
   'atlas-3d': 'Structure_3D',
   analytics: 'Metrics',
   conquistas: 'Milestones',

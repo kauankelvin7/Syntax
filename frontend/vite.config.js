@@ -8,7 +8,26 @@ export default defineConfig({
   },
   base: '/',
   optimizeDeps: {
-    exclude: ['pdfjs-dist', 'framer-motion', 'firebase', 'lucide-react', 'hls.js', 'html2canvas', '@tldraw/tlschema']
+    exclude: ['pdfjs-dist', 'framer-motion', 'firebase', 'lucide-react', 'hls.js', 'html2canvas', '@tldraw/tlschema'],
+    include: [
+      'lodash.isequal',
+      'lodash.isequalwith',
+      'lodash.throttle',
+      'lodash.debounce',
+      'lodash.clonedeep',
+      'lodash.get',
+      'lodash.merge',
+      'lodash.chunk',
+      'lodash.difference',
+      'lodash.flatten',
+      'lodash.intersection',
+      'lodash.omit',
+      'lodash.pick',
+      'lodash.uniq',
+    ],
+    esbuildOptions: {
+      target: 'esnext',
+    },
   },
   plugins: [
     react(),
@@ -185,7 +204,11 @@ export default defineConfig({
     minify: 'esbuild',
     cssCodeSplit: true,
     sourcemap: false,
-    chunkSizeWarningLimit: 500
+    chunkSizeWarningLimit: 500,
+    commonjsOptions: {
+      include: [/lodash/, /node_modules/],
+      transformMixedEsModules: true,
+    },
   },
 
 

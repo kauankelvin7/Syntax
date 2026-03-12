@@ -21,6 +21,7 @@ npm install -g vercel
 ```
 
 ### Passo 2: Login na Vercel
+# 🚀 DEPLOY GUIDE - Syntax na Vercel
 ```bash
 vercel login
 ```
@@ -48,8 +49,8 @@ Siga as perguntas:
 
 ### Passo 1: Criar Repositório no GitHub
 1. Acesse [github.com/new](https://github.com/new)
-2. Nome: `cinesia`
-3. Privado ou Público (sua escolha)
+```bash
+cd c:\Users\Kauan\Desktop\Syntax
 4. **NÃO** marque "Initialize with README"
 
 ### Passo 2: Conectar o Projeto ao Git
@@ -58,7 +59,7 @@ cd c:\Users\Kauan\Desktop\Cinesia
 git init
 git add .
 git commit -m "🎉 Initial commit - Cinesia v1.0"
-git branch -M main
+ - **Project name?** → syntax
 git remote add origin https://github.com/SEU_USUARIO/cinesia.git
 git push -u origin main
 ```

@@ -11,7 +11,7 @@ import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, rtdb } from '../../../config/firebase-config';
 
 // Páginas que indicam estudo ativo
-const STUDY_PAGES = ['flashcards', 'resumos', 'simulados', 'materias', 'consulta-rapida', 'quadro-branco'];
+const STUDY_PAGES = ['flashcards', 'resumos', 'simulados', 'materias', 'consulta-rapida'];
 
 function isStudyPage(page) {
   return STUDY_PAGES.some((p) => page?.toLowerCase().includes(p));

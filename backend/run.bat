@@ -1,9 +1,9 @@
 @echo off
-title CINESIA BACKEND
+title SYNTAX BACKEND
 cd /d %~dp0
 echo.
 echo ==========================================
-echo    CINESIA BACKEND - Spring Boot
+echo    SYNTAX BACKEND - Spring Boot
 echo ==========================================
 echo.
 echo Iniciando na porta 8080...

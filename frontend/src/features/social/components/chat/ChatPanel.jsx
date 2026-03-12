@@ -1,14 +1,14 @@
 /**
- * 💬 CHAT PANEL PREMIUM - Syntax Theme
- * * Painel de comunicação em tempo real integrado ao ecossistema Syntax.
- * - Navegação fluida entre lista e conversa (Code Collaboration Style)
- * - Design responsivo (Sidepanel vs Fullscreen)
- * - Transições de estado com física de mola (High Performance UI)
+ * 💬 COMM_HUB (Chat Panel) — Syntax Theme Premium
+ * * Canal de comunicação em tempo real entre desenvolvedores.
+ * - Design: High-Fidelity Infrastructure (Slate-950 / Indigo).
+ * - Fix: Alinhamento vertical tático na pilha de Widgets.
+ * - Lógica: 100% Preservada (Contexto Social, Badges de Notificação).
  */
 
 import React, { memo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Terminal, TerminalSquare, MessageSquareCode } from 'lucide-react';
+import { X, TerminalSquare, MessageSquareCode, Terminal, Zap, Activity } from 'lucide-react';
 import { useAuth } from '../../../../contexts/AuthContext-firebase';
 import { useSocial } from '../../context/SocialContext';
 import { useChat } from '../../hooks/useChat';
@@ -31,7 +31,7 @@ const ChatPanel = memo(({ showButton = true }) => {
   const [activeFriendData, setActiveFriendData] = useState(null);
   const [activeFriendStatus, setActiveFriendStatus] = useState(null);
 
-  // Resolve dados do amigo de forma performática
+  // Sync de dados de parceiros de debug
   useEffect(() => {
     if (!activeConversationId || !user) return;
     const conv = conversations.find((c) => c.id === activeConversationId);
@@ -40,14 +40,10 @@ const ChatPanel = memo(({ showButton = true }) => {
     const otherUid = conv.participants?.find((uid) => uid !== user.uid);
     if (!otherUid) return;
 
-    const friendData = conv.participantsData?.[otherUid] || { uid: otherUid, displayName: 'Dev User' };
+    const friendData = conv.participantsData?.[otherUid] || { uid: otherUid, displayName: 'Dev_Node' };
     setActiveFriendData(friendData);
     setActiveFriendStatus(friendsStatus[otherUid] || null);
   }, [activeConversationId, conversations, user, friendsStatus]);
-
-  const handleSelectConversation = (conv) => {
-    openConversation(conv.id);
-  };
 
   const handleBack = () => {
     setActiveFriendData(null);
@@ -56,60 +52,60 @@ const ChatPanel = memo(({ showButton = true }) => {
   };
 
   return (
-    <>
-      {/* ─── Botão Flutuante (FAB) Syntax Style ─── */}
+    <div className="flex flex-col items-end gap-4 relative">
+      {/* ─── BOTÃO FLUTUANTE (FIXED ALIGNMENT) ─── */}
       {showButton && (
-        <motion.button
-          onClick={toggleChat}
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          whileHover={{ scale: 1.1, y: -4 }}
-          whileTap={{ scale: 0.9 }}
-          className={`fixed bottom-6 right-6 w-16 h-16 rounded-[22px] flex items-center justify-center shadow-[0_12px_40px_rgba(79,70,229,0.3)] transition-all ${
-            isChatOpen ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100 z-[100]'
-          } bg-gradient-to-br from-indigo-600 via-indigo-500 to-cyan-500 text-white border-2 border-white/20`}
-          aria-label="Abrir comunicações"
-        >
-          <MessageSquareCode size={28} strokeWidth={2} />
-          {totalUnread > 0 && (
-            <div className="absolute -top-1 -right-1">
-              <NotificationBadge count={totalUnread} pulse />
-            </div>
+        <AnimatePresence>
+          {!isChatOpen && (
+            <motion.button
+              onClick={toggleChat}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              whileHover={{ scale: 1.07, boxShadow: '0 0 30px rgba(99, 102, 241, 0.4)' }}
+              whileTap={{ scale: 0.93 }}
+              className="w-14.5 h-14.5 rounded-[18px] flex items-center justify-center relative overflow-hidden shadow-2xl border-2 border-white/10"
+              style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%)' }}
+            >
+              {/* Overlay de Brilho Interno (DNA Syntax) */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{ background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%)' }} 
+              />
+              
+              <MessageSquareCode size={26} color="#fff" strokeWidth={2.2} className="relative z-10 drop-shadow-md" />
+              
+              {totalUnread > 0 && (
+                <div className="absolute -top-1 -right-1 z-20">
+                  <NotificationBadge count={totalUnread} pulse />
+                </div>
+              )}
+            </motion.button>
           )}
-        </motion.button>
+        </AnimatePresence>
       )}
 
-      {/* ─── Overlay & Panel ─── */}
+      {/* ─── PAINEL DE COMUNICAÇÃO ─── */}
       <AnimatePresence>
         {isChatOpen && (
           <>
-            {/* Backdrop Glassmorphism */}
+            {/* Backdrop Minimal */}
             <motion.div
-              className="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-[110] md:backdrop-blur-[2px]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[110]"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={closeChat}
             />
 
-            {/* Painel Principal (Sidebar Style) */}
             <motion.div
-              className="fixed right-0 top-0 bottom-0 z-[120] w-full md:w-[420px] bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl shadow-[-20px_0_60px_rgba(0,0,0,0.2)] dark:shadow-[-20px_0_60px_rgba(0,0,0,0.5)] flex flex-col border-l border-slate-200 dark:border-slate-800"
+              className="fixed right-0 top-0 bottom-0 z-[120] w-full sm:w-[420px] bg-slate-900 border-l-2 border-white/5 shadow-[-20px_0_60px_rgba(0,0,0,0.5)] flex flex-col"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 32, stiffness: 400 }}
+              transition={{ type: 'spring', damping: 35, stiffness: 400 }}
             >
               <AnimatePresence mode="wait">
                 {activeConversationId && activeFriendData ? (
                   /* Janela de Conversa Ativa */
-                  <motion.div 
-                    key="window"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="flex-1 flex flex-col h-full"
-                  >
+                  <motion.div key="window" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="flex-1 flex flex-col h-full bg-slate-950">
                     <ChatWindow
                       conversationId={activeConversationId}
                       friendData={activeFriendData}
@@ -119,67 +115,65 @@ const ChatPanel = memo(({ showButton = true }) => {
                     />
                   </motion.div>
                 ) : (
-                  /* Lista de Conversas (Terminal Style Header) */
-                  <motion.div 
-                    key="list"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="flex-1 flex flex-col h-full"
-                  >
-                    {/* Header Premium */}
-                    <div className="px-6 py-8 border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between">
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-12 rounded-[14px] bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center border-2 border-indigo-100 dark:border-indigo-800/50 shadow-inner text-indigo-600 dark:text-cyan-400">
-                          <TerminalSquare size={24} strokeWidth={2.5} />
+                  /* Lista de Conversas (Terminal Style) */
+                  <motion.div key="list" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex-1 flex flex-col h-full bg-slate-900">
+                    
+                    {/* Header Premium Tático */}
+                    <div className="px-8 py-10 border-b border-white/5 bg-slate-950/50 flex items-center justify-between relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-32 h-32 bg-indigo-600/10 blur-3xl rounded-full" />
+                      <div className="flex items-center gap-5 relative z-10">
+                        <div className="w-14 h-14 rounded-[20px] bg-white/5 border-2 border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-inner">
+                          <TerminalSquare size={28} strokeWidth={2.5} />
                         </div>
                         <div>
-                          <h2 className="text-[19px] font-black text-slate-900 dark:text-white tracking-tight">Comunicações</h2>
+                          <h2 className="text-xl font-black text-white tracking-tighter uppercase italic">Comm_Hub</h2>
                           <div className="flex items-center gap-2 mt-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                            <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em]">
-                              {conversations.length} Active_Sessions
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                              {conversations.length} Active_Connections
                             </p>
                           </div>
                         </div>
                       </div>
-                      <button
-                        onClick={closeChat}
-                        className="w-10 h-10 flex items-center justify-center rounded-[12px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-slate-500 dark:text-slate-400 border border-transparent dark:border-slate-700/50"
-                      >
+                      <button onClick={closeChat} className="w-10 h-10 rounded-xl bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-500 flex items-center justify-center transition-all border border-transparent">
                         <X size={20} strokeWidth={3} />
                       </button>
                     </div>
 
-                    {/* Lista Scrolável */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar">
-                      <div className="p-3">
+                    {/* Content Area */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-900">
+                      <div className="p-4">
                          <ChatList
                           conversations={conversations}
                           friendsStatus={friendsStatus}
-                          onSelectConversation={handleSelectConversation}
+                          onSelectConversation={openConversation}
                         />
                       </div>
                       
-                      {/* Empty State (Logs Style) */}
                       {conversations.length === 0 && (
-                        <div className="flex flex-col items-center justify-center h-[60%] p-10 text-center opacity-60">
-                          <Terminal size={40} className="text-slate-300 dark:text-slate-700 mb-4" strokeWidth={1.5} />
-                          <p className="text-sm font-black text-slate-400 dark:text-slate-600 tracking-tight">{`> No_Logs_Available`}</p>
-                          <p className="text-[11px] text-slate-400 mt-2 uppercase tracking-widest leading-relaxed">Conecte-se a outros desenvolvedores para iniciar o streaming.</p>
+                        <div className="flex flex-col items-center justify-center py-32 text-center">
+                          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 opacity-40">
+                             <Terminal size={32} className="text-slate-400" />
+                          </div>
+                          <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">{`> No_Logs_Available`}</p>
+                          <p className="text-[12px] text-slate-600 mt-4 max-w-[200px] font-medium leading-relaxed italic">
+                            Aguardando inicialização de canais de comunicação...
+                          </p>
                         </div>
                       )}
+                    </div>
+
+                    {/* Status Bar Estilo IDE */}
+                    <div className="px-8 py-4 border-t border-white/5 bg-slate-950 flex items-center justify-between">
+                       <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Protocol: Syntax_Comm_v4</span>
+                       <div className="flex items-center gap-3">
+                          <Zap size={10} className="text-indigo-500" />
+                          <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Encrypted_Sync</span>
+                       </div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              {/* Footer sutil estilo status bar de IDE */}
-              <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/30 dark:bg-slate-900/20">
-                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">
-                  Syntax Protocol v2.0.4 • Encrypted
-                </p>
-              </div>
             </motion.div>
           </>
         )}
@@ -187,12 +181,9 @@ const ChatPanel = memo(({ showButton = true }) => {
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { 
-          background: rgba(148, 163, 184, 0.2); 
-          border-radius: 10px; 
-        }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.2); border-radius: 10px; }
       `}</style>
-    </>
+    </div>
   );
 });
 

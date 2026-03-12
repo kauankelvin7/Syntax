@@ -466,7 +466,6 @@ const Home = () => {
     { Icon: Target,     label: 'Simulados',   path: '/simulados',      onClick: () => navigate('/simulados'), color: '#10B981', rgb: '16,185,129' },
     { Icon: Search,     label: 'Consulta',    path: '/consulta-rapida',onClick: () => navigate('/consulta-rapida'), color: '#F59E0B', rgb: '245,158,11' },
     { Icon: Layers,     label: 'Arch_3D',     path: '/atlas-3d',       onClick: () => navigate('/atlas-3d'), color: '#8B5CF6', rgb: '139,92,246' },
-    { Icon: PenLine,    label: 'Schematic',   path: '/quadro-branco',  onClick: () => navigate('/quadro-branco'), color: '#F43F5E', rgb: '244,63,94' },
   ];
 
   return (

@@ -1,4 +1,4 @@
-# Arquitetura do Cinesia
+# Arquitetura do Syntax
 
 ## Stack Principal
 

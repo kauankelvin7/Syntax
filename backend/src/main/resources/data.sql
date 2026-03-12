@@ -12,7 +12,7 @@ KEY (email)
 VALUES (
     1, 
     'Desenvolvedor Local', 
-    'dev@cinesia.local', 
+    'dev@syntax.local', 
     'FIREBASE_AUTH', 
     CURRENT_TIMESTAMP, 
     CURRENT_TIMESTAMP

@@ -1,4 +1,4 @@
-# Contribuindo com o Cinesia
+# Contribuindo com o Syntax
 
 ## Pré-requisitos
 - Node.js 18+
