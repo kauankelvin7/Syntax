@@ -1,14 +1,14 @@
 /**
- * 🏟️ CHALLENGE ROOM PREMIUM — v2.0
- * * A Arena de Batalha (Full-Screen Container).
+ * 🏟️ CHALLENGE ROOM
+ * * A Arena de Batalha de Código (Full-Screen Container).
  * - Background radial imersivo (Modo Foco)
- * - Telas de Loading e Waiting gamificadas (Radar de oponente)
- * - Header de combate polido
+ * - Telas de Loading e Waiting gamificadas (Radar de rede)
+ * - Header de combate polido estilo CodeWars
  */
 
 import React, { memo, useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Swords, Loader2, Zap, WifiOff, ArrowLeft } from 'lucide-react';
+import { X, Swords, Loader2, Zap, WifiOff, ArrowLeft, Terminal } from 'lucide-react';
 import ChallengeQuestion from './ChallengeQuestion';
 import ChallengeScoreboard from './ChallengeScoreboard';
 import ChallengeResults from './ChallengeResults';
@@ -62,20 +62,20 @@ const ChallengeRoom = memo(({ challengeId, currentUserId, onClose }) => {
     }
   }, [challenge?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── TELA 1: LOADING (Warm-up) ───
+  // ─── TELA 1: LOADING (Warm-up Tech) ───
   if (loading) {
     return (
       <div className="fixed inset-0 z-[110] bg-slate-900 flex items-center justify-center">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/40 via-slate-900 to-slate-950" />
         <div className="relative text-center flex flex-col items-center">
           <div className="relative w-24 h-24 mb-6">
-             <div className="absolute inset-0 border-4 border-amber-500/20 rounded-full animate-ping" />
-             <div className="relative w-full h-full bg-gradient-to-tr from-amber-500 to-orange-500 rounded-full flex items-center justify-center shadow-xl shadow-amber-500/20">
-                <Swords size={40} className="text-white animate-pulse" strokeWidth={2} />
+             <div className="absolute inset-0 border-[3px] border-cyan-500/30 rounded-[24px] animate-ping rotate-12" />
+             <div className="relative w-full h-full bg-gradient-to-tr from-indigo-600 to-cyan-500 rounded-[24px] flex items-center justify-center shadow-[0_0_30px_rgba(6,182,212,0.3)]">
+                <Terminal size={40} className="text-white animate-pulse" strokeWidth={2} />
              </div>
           </div>
-          <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">Preparando Arena</h2>
-          <p className="text-sm font-medium text-slate-400">Carregando os flashcards...</p>
+          <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2">Iniciando Ambiente</h2>
+          <p className="text-[13px] font-mono text-cyan-400/80">Compilando dependências do duelo...</p>
         </div>
       </div>
     );
@@ -85,35 +85,37 @@ const ChallengeRoom = memo(({ challengeId, currentUserId, onClose }) => {
   if (!challenge) {
     return (
       <div className="fixed inset-0 z-[110] bg-slate-900 flex items-center justify-center">
-        <div className="text-center px-6">
-          <div className="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-slate-700 shadow-inner">
+        <div className="text-center px-6 w-full max-w-sm">
+          <div className="w-20 h-20 bg-slate-800 rounded-[24px] flex items-center justify-center mx-auto mb-6 border border-slate-700 shadow-inner">
              <WifiOff size={32} className="text-slate-400" strokeWidth={2} />
           </div>
-          <h2 className="text-xl font-black text-white mb-2">Desafio Perdido</h2>
-          <p className="text-sm text-slate-400 mb-8 max-w-[250px] mx-auto">Não foi possível encontrar a arena. O duelo pode ter expirado ou sido cancelado.</p>
+          <h2 className="text-2xl font-black text-white mb-2 tracking-tight">Connection Refused</h2>
+          <p className="text-[14px] text-slate-400 mb-8 mx-auto leading-relaxed">
+            Não foi possível localizar o servidor da arena. O duelo expirou ou foi cancelado.
+          </p>
           <button
             onClick={onClose}
-            className="flex items-center justify-center gap-2 w-full py-3.5 bg-white hover:bg-slate-100 text-slate-900 rounded-xl font-black uppercase tracking-wide transition-all active:scale-95"
+            className="flex items-center justify-center gap-2 w-full py-4 bg-slate-100 hover:bg-white text-slate-900 rounded-2xl font-black text-[14px] uppercase tracking-widest transition-all active:scale-[0.98] shadow-lg"
           >
-            <ArrowLeft size={18} strokeWidth={2.5} /> Sair da Arena
+            <ArrowLeft size={18} strokeWidth={2.5} /> Abortar (Exit 1)
           </button>
         </div>
       </div>
     );
   }
 
-  // ─── TELA 3: AGUARDANDO OPONENTE (Waiting Room) ───
+  // ─── TELA 3: AGUARDANDO OPONENTE (Network Radar) ───
   if (challenge.status === 'pending') {
     return (
       <div className="fixed inset-0 z-[110] bg-slate-900 flex flex-col items-center justify-center">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/20 via-slate-900 to-slate-950 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-900 to-slate-950 pointer-events-none" />
         
         <div className="relative text-center px-6 w-full max-w-sm">
           
           {/* Radar Animation */}
           <div className="relative w-32 h-32 mx-auto mb-10">
              {/* Oponent Placeholder */}
-             <div className="absolute top-0 right-0 w-10 h-10 bg-slate-800 border-2 border-slate-700 rounded-full flex items-center justify-center z-10 animate-bounce">
+             <div className="absolute top-0 right-0 w-10 h-10 bg-slate-800 border-2 border-slate-700 rounded-[12px] flex items-center justify-center z-10 animate-bounce shadow-lg">
                 <span className="text-lg">❓</span>
              </div>
              
@@ -121,29 +123,29 @@ const ChallengeRoom = memo(({ challengeId, currentUserId, onClose }) => {
              <motion.div
                animate={{ rotate: [0, 15, -15, 0] }}
                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-               className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-600 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(245,158,11,0.3)] z-20"
+               className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-cyan-500 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.4)] z-20"
              >
-               <Swords size={48} className="text-white drop-shadow-md" strokeWidth={2.5} />
+               <Swords size={44} className="text-white drop-shadow-md" strokeWidth={2.5} />
              </motion.div>
 
              {/* Radar Waves */}
-             <div className="absolute inset-0 border-2 border-amber-500/40 rounded-full animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]" />
-             <div className="absolute inset-[-20px] border border-amber-500/20 rounded-full animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite]" />
+             <div className="absolute inset-0 border-2 border-cyan-500/40 rounded-full animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]" />
+             <div className="absolute inset-[-20px] border border-cyan-500/20 rounded-full animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite]" />
           </div>
 
           <h2 className="text-2xl font-black text-white mb-2 tracking-tight">
-            Aguardando oponente...
+            Aguardando conexão...
           </h2>
           <p className="text-[14px] text-slate-400 mb-10 leading-relaxed">
-            O convite foi enviado para <br/>
-            <span className="font-black text-amber-400 text-lg uppercase tracking-wider">{challenge.inviteeName || challenge.challengedName || 'Oponente'}</span>
+            A request de duelo foi enviada para <br/>
+            <span className="font-black text-cyan-400 text-[16px] uppercase tracking-wider">{challenge.inviteeName || challenge.challengedName || 'Oponente'}</span>
           </p>
 
           <button
             onClick={onClose}
-            className="flex items-center justify-center gap-2 w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded-2xl font-bold transition-all active:scale-[0.98]"
+            className="flex items-center justify-center gap-2 w-full py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded-2xl font-bold transition-all active:scale-[0.98] shadow-lg"
           >
-            <X size={18} strokeWidth={2.5} /> Cancelar Duelo
+            <X size={18} strokeWidth={2.5} /> Cancelar Request
           </button>
         </div>
       </div>
@@ -170,17 +172,17 @@ const ChallengeRoom = memo(({ challengeId, currentUserId, onClose }) => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-100/50 via-slate-50 to-slate-50 dark:from-indigo-900/10 dark:via-slate-950 dark:to-slate-950 pointer-events-none" />
 
       {/* Header com scoreboard */}
-      <div className="relative shrink-0 px-4 pt-4 pb-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm z-10">
-        <div className="flex items-center justify-between mb-4 max-w-2xl mx-auto w-full">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-900/30">
-            <Zap size={16} className="text-amber-500 fill-amber-500" />
-            <span className="text-[12px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-500">
-              Duelo Real
+      <div className="relative shrink-0 px-4 pt-4 pb-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/80 shadow-sm z-10">
+        <div className="flex items-center justify-between mb-5 max-w-2xl mx-auto w-full">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/30 rounded-[10px] border border-rose-100 dark:border-rose-900/50 shadow-sm">
+            <Zap size={16} className="text-rose-500 fill-rose-500 animate-pulse" />
+            <span className="text-[11px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-500">
+              Code Battle
             </span>
           </div>
           <button
             onClick={onClose}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 transition-colors active:scale-90"
+            className="flex items-center justify-center w-10 h-10 rounded-[12px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors active:scale-95 border border-transparent dark:border-slate-700/50"
             aria-label="Sair"
           >
             <X size={20} strokeWidth={2.5} />

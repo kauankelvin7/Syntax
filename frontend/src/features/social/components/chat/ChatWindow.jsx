@@ -1,13 +1,13 @@
 /**
- * 🪟 CHAT WINDOW
- * * Janela de conversa de alta fidelidade com agrupamento inteligente.
- * - Header imersivo com status em tempo real
- * - Gerenciamento de scroll otimizado para mobile
- * - Separadores de data com design Glassmorphism
+ * 🪟 CHAT WINDOW PREMIUM - Syntax Theme
+ * * Interface de comunicação de alta performance com agrupamento lógico.
+ * - Header imersivo (IDE Context Style)
+ * - Scroll gerenciado para logs de conversa extensos
+ * - Separadores de data com design Glassmorphism Tech
  */
 
 import React, { memo, useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { ArrowLeft, ChevronDown, X, Sparkles, Clock, BookOpen } from 'lucide-react';
+import { ArrowLeft, ChevronDown, X, Terminal, Clock, Code2, Cpu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../../../contexts/AuthContext-firebase';
 import { useChat } from '../../hooks/useChat';
@@ -20,7 +20,7 @@ import { getInitials, getAvatarColor } from '../../utils/chatHelpers';
 import { challengeService } from '../../services/challengeService';
 import { toast } from 'sonner';
 
-/* ─── Funções de Processamento Intactas ─── */
+/* ─── Processamento de Mensagens (Intacto) ─── */
 function processMessages(messages, currentUserId) {
   const result = [];
   let lastDate = null;
@@ -130,42 +130,47 @@ const ChatWindow = memo(({ conversationId, friendData, friendStatus, onBack, onC
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-950 overflow-hidden relative">
-      {/* ─── Header Premium ─── */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl z-30">
+      {/* ─── Header Premium (IDE Style) ─── */}
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-100 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl z-30">
         <button
           onClick={onBack}
-          aria-label="Voltar para lista de conversas"
-          className="p-2 -ml-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 md:hidden"
+          aria-label="Voltar"
+          className="p-2 -ml-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-500 md:hidden transition-colors"
         >
-          <ArrowLeft size={20} strokeWidth={2.5} />
+          <ArrowLeft size={22} strokeWidth={2.5} />
         </button>
 
-        <div className="relative">
+        <div className="relative shrink-0">
           {friendData?.photoURL ? (
-            <img src={friendData.photoURL} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm" referrerPolicy="no-referrer" />
+            <img src={friendData.photoURL} alt="" className="w-11 h-11 rounded-[14px] object-cover border-2 border-white dark:border-slate-800 shadow-sm" referrerPolicy="no-referrer" />
           ) : (
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xs font-black" style={{ backgroundColor: getAvatarColor(friendData?.displayName) }}>
+            <div className="w-11 h-11 rounded-[14px] flex items-center justify-center text-white text-[13px] font-black shadow-inner" style={{ backgroundColor: getAvatarColor(friendData?.displayName) }}>
               {getInitials(friendData?.displayName)}
             </div>
           )}
-          <div className="absolute -bottom-0.5 -right-0.5 scale-110">
-            <OnlineIndicator isOnline={friendStatus?.isOnline} isStudying={friendStatus?.isStudying} size="xs" pulse />
+          <div className="absolute -bottom-0.5 -right-0.5 ring-4 ring-white dark:ring-slate-950 rounded-full">
+            <OnlineIndicator isOnline={friendStatus?.isOnline} isStudying={friendStatus?.isStudying} size="sm" pulse />
           </div>
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="text-[15px] font-black text-slate-900 dark:text-white truncate tracking-tight leading-none">
-            {friendData?.displayName || 'Estudante'}
+          <h3 className="text-[16px] font-black text-slate-900 dark:text-white truncate tracking-tight leading-none">
+            {friendData?.displayName || 'Dev User'}
           </h3>
-          <div className="flex items-center gap-1.5 mt-1">
+          <div className="flex items-center gap-1.5 mt-1.5">
             {typing.length > 0 ? (
-              <span className="text-[11px] font-bold text-indigo-500 animate-pulse uppercase tracking-tighter">Escrevendo...</span>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-black text-cyan-500 animate-pulse uppercase tracking-widest">Streaming_Data...</span>
+              </div>
             ) : friendStatus?.isStudying ? (
-              <span className="flex items-center gap-1 text-[11px] font-bold text-amber-500 uppercase tracking-tighter"><BookOpen size={10} /> Em Foco</span>
+              <span className="flex items-center gap-1 text-[10px] font-black text-amber-500 uppercase tracking-widest bg-amber-500/10 px-1.5 py-0.5 rounded-md border border-amber-500/20"><Code2 size={10} /> In_Focus</span>
             ) : friendStatus?.isOnline ? (
-              <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-tighter">Disponível</span>
+              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
+                <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,1)]" />
+                Active_Now
+              </span>
             ) : (
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter">Offline</span>
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest">Node_Offline</span>
             )}
           </div>
         </div>
@@ -173,39 +178,44 @@ const ChatWindow = memo(({ conversationId, friendData, friendStatus, onBack, onC
         {onClose && (
           <button
             onClick={onClose}
-            aria-label="Fechar conversa"
-            className="hidden md:flex p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-all"
+            aria-label="Fechar"
+            className="hidden md:flex p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-400 transition-all active:scale-95"
           >
-            <X size={20} strokeWidth={2.5} />
+            <X size={20} strokeWidth={3} />
           </button>
         )}
       </div>
 
-      {/* ─── Mensagens ─── */}
+      {/* ─── Mensagens (Terminal Content Area) ─── */}
       <div 
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar bg-slate-50/30 dark:bg-slate-950"
+        className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar bg-slate-50/20 dark:bg-slate-950"
       >
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3">
-            <div className="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Sincronizando</span>
+          <div className="flex flex-col items-center justify-center h-full gap-4">
+            <div className="relative flex items-center justify-center">
+              <div className="w-12 h-12 border-[3px] border-indigo-500/20 border-t-cyan-500 rounded-full animate-spin" />
+              <Cpu size={20} className="absolute text-indigo-500/40" />
+            </div>
+            <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse">Establishing_Link</span>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center p-8 opacity-40">
-            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-900 rounded-[32px] flex items-center justify-center mb-4">
-              <Sparkles size={32} className="text-slate-400" />
+          <div className="flex flex-col items-center justify-center h-full text-center p-10 opacity-60">
+            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-[28px] flex items-center justify-center mb-5 border border-slate-200 dark:border-slate-800 shadow-xl">
+              <Terminal size={32} className="text-slate-300 dark:text-slate-700" strokeWidth={1.5} />
             </div>
-            <p className="text-sm font-bold text-slate-500">O começo de uma jornada!</p>
-            <p className="text-xs mt-1">Diga olá para {friendData?.displayName?.split(' ')[0]}</p>
+            <p className="text-[15px] font-black text-slate-600 dark:text-slate-400 tracking-tight">Novo repositório de conversa</p>
+            <p className="text-[11px] font-bold text-slate-400 mt-2 uppercase tracking-widest leading-relaxed">
+              Dê o primeiro commit enviando um olá para {friendData?.displayName?.split(' ')[0]}
+            </p>
           </div>
         ) : (
           processedMessages.map((item) => {
             if (item.type === 'date-separator') {
               return (
-                <div key={item.key} className="flex justify-center my-6 sticky top-2 z-10">
-                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 bg-white/60 dark:bg-slate-900/60 px-4 py-1.5 rounded-full backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 shadow-sm">
+                <div key={item.key} className="flex justify-center my-8 sticky top-0 z-10">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 bg-white/80 dark:bg-slate-900/80 px-5 py-2 rounded-full backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 shadow-sm">
                     {formatDateSeparator(item.date)}
                   </span>
                 </div>
@@ -226,10 +236,10 @@ const ChatWindow = memo(({ conversationId, friendData, friendStatus, onBack, onC
           })
         )}
         <TypingIndicator typingUsers={typing} />
-        <div ref={messagesEndRef} className="h-4" />
+        <div ref={messagesEndRef} className="h-6" />
       </div>
 
-      {/* ─── Botão Scroll-to-Bottom ─── */}
+      {/* ─── Botão Scroll-to-Bottom Tech ─── */}
       <AnimatePresence>
         {showScrollDown && (
           <motion.button
@@ -237,13 +247,13 @@ const ChatWindow = memo(({ conversationId, friendData, friendStatus, onBack, onC
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 10 }}
             onClick={() => scrollToBottom()}
-            className="absolute bottom-24 right-6 w-11 h-11 rounded-full bg-white dark:bg-slate-800 shadow-2xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-indigo-500 z-40 transition-transform active:scale-90"
+            className="absolute bottom-28 right-6 w-12 h-12 rounded-[16px] bg-white dark:bg-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.2)] border border-slate-200 dark:border-slate-700 flex items-center justify-center text-cyan-500 z-40 transition-all hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-90"
           >
-            <ChevronDown size={22} strokeWidth={3} />
+            <ChevronDown size={24} strokeWidth={3} />
             {newMessageCount > 0 && (
               <motion.span 
                 initial={{ scale: 0 }} animate={{ scale: 1 }}
-                className="absolute -top-1 -left-1 flex h-5 min-w-[20px] px-1.5 items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-black shadow-lg"
+                className="absolute -top-1.5 -left-1.5 flex h-6 min-w-[24px] px-1.5 items-center justify-center rounded-[8px] bg-cyan-500 text-white text-[11px] font-black shadow-lg shadow-cyan-500/40"
               >
                 {newMessageCount}
               </motion.span>
@@ -253,7 +263,7 @@ const ChatWindow = memo(({ conversationId, friendData, friendStatus, onBack, onC
       </AnimatePresence>
 
       {/* ─── Input Row ─── */}
-      <div className="relative z-40">
+      <div className="relative z-40 border-t border-slate-100 dark:border-slate-800/50">
         <ChatInput onSend={sendMessage} onTyping={handleTyping} />
       </div>
     </div>

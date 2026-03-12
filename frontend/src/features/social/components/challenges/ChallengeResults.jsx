@@ -1,30 +1,31 @@
 /**
- * 🏆 CHALLENGE RESULTS PREMIUM — v2.0
- * * Tela de recompensa gamificada com física de partículas.
+ * 🏆 CHALLENGE RESULTS
+ * * Tela de recompensa gamificada (Code Battle) com física de partículas.
  * - Dynamic Backgrounds baseados no resultado (Vitória/Derrota)
- * - Scoreboard estilo E-sports com alto contraste
- * - Confetti otimizado com cores da marca Cinesia
+ * - Scoreboard estilo Hacker/E-sports com alto contraste
+ * - Confetti otimizado com cores da nossa paleta Dev
  */
 
 import React, { memo, useMemo, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Medal, Clock, Target, ArrowLeft, Star, Zap, Crown } from 'lucide-react';
+import { Trophy, Medal, Clock, Target, ArrowLeft, Star, Zap, Crown, Terminal } from 'lucide-react';
 import { getInitials, getAvatarColor } from '../../utils/chatHelpers';
 import { calculateScore, averageResponseTime, getResultData } from '../../utils/challengeHelpers';
 
 /**
- * 🎊 Confetti Premium (Física Melhorada)
+ * 🎊 Confetti Premium (Tech Colors)
  */
 const SimpleConfetti = () => {
-  const colors = ['#10b981', '#f59e0b', '#6366f1', '#14b8a6', '#8b5cf6', '#f43f5e'];
-  const pieces = Array.from({ length: 45 }, (_, i) => ({
+  // Cores da paleta Syntax
+  const colors = ['#06b6d4', '#4f46e5', '#10b981', '#f59e0b', '#8b5cf6'];
+  const pieces = Array.from({ length: 50 }, (_, i) => ({
     id: i,
     color: colors[i % colors.length],
     left: `${Math.random() * 100}%`,
     delay: Math.random() * 0.8,
     rotation: Math.random() * 360,
-    size: 5 + Math.random() * 8,
-    duration: 2 + Math.random() * 2
+    size: 6 + Math.random() * 8,
+    duration: 2 + Math.random() * 2.5
   }));
 
   return (
@@ -37,9 +38,10 @@ const SimpleConfetti = () => {
             left: p.left,
             top: -20,
             width: p.size,
-            height: p.size * (Math.random() > 0.5 ? 1 : 2), // Algumas tiras, alguns quadrados
+            height: p.size * (Math.random() > 0.5 ? 1 : 2.5), // Mistura de quadrados e retângulos (estilo "bits")
             backgroundColor: p.color,
-            borderRadius: Math.random() > 0.3 ? '2px' : '50%', // Mistura de formas
+            borderRadius: Math.random() > 0.2 ? '2px' : '50%', 
+            boxShadow: `0 0 10px ${p.color}80` // Glow tech
           }}
           initial={{ y: -20, rotate: 0, opacity: 1, scale: 0 }}
           animate={{
@@ -77,9 +79,9 @@ const ChallengeResults = memo(({ challenge, currentUserId, onClose }) => {
 
   if (!results || !challenge) {
     return (
-      <div className="fixed inset-0 z-[110] bg-white/90 dark:bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center">
-        <Zap size={32} className="text-amber-500 animate-pulse mb-4" strokeWidth={2} />
-        <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Calculando resultados...</p>
+      <div className="fixed inset-0 z-[110] bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center">
+        <Loader2 size={36} className="text-cyan-500 animate-spin mb-4" strokeWidth={2.5} />
+        <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">Compilando resultados...</p>
       </div>
     );
   }
@@ -97,21 +99,21 @@ const ChallengeResults = memo(({ challenge, currentUserId, onClose }) => {
     visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } },
   };
 
-  // Dinâmica de Cores baseada no resultado
+  // Dinâmica de Cores baseada no resultado (Dark Tech Vibes)
   const bgGradient = isWinner 
-    ? 'from-emerald-50/80 via-white to-amber-50/50 dark:from-emerald-950/30 dark:via-slate-950 dark:to-amber-950/20' 
+    ? 'from-emerald-500/20 via-slate-50 to-cyan-500/10 dark:from-emerald-900/30 dark:via-slate-950 dark:to-cyan-900/20' 
     : isDraw 
-      ? 'from-amber-50/80 via-white to-orange-50/50 dark:from-amber-950/30 dark:via-slate-950 dark:to-orange-950/20'
-      : 'from-slate-100 via-white to-slate-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900';
+      ? 'from-amber-500/20 via-slate-50 to-orange-500/10 dark:from-amber-900/30 dark:via-slate-950 dark:to-orange-900/20'
+      : 'from-rose-500/20 via-slate-50 to-red-500/10 dark:from-rose-900/30 dark:via-slate-950 dark:to-red-900/20';
 
-  const headlineColor = isWinner ? 'text-emerald-500 dark:text-emerald-400' : isDraw ? 'text-amber-500' : 'text-slate-500';
-  const headlineText = isWinner ? 'Vitória Absoluta!' : isDraw ? 'Empate Técnico!' : 'Fim de Jogo';
+  const headlineColor = isWinner ? 'text-emerald-600 dark:text-emerald-400' : isDraw ? 'text-amber-500' : 'text-rose-600 dark:text-rose-500';
+  const headlineText = isWinner ? 'Build Successful!' : isDraw ? 'Merge Conflict!' : 'Build Failed!';
   
   const headlineIcon = isWinner 
-    ? <Crown size={56} className="text-amber-400 drop-shadow-md" strokeWidth={2} />
+    ? <Crown size={64} className="text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" strokeWidth={2} />
     : isDraw 
-      ? <Medal size={56} className="text-amber-500 opacity-80" strokeWidth={2} />
-      : <Star size={56} className="text-slate-300 dark:text-slate-700" strokeWidth={2} />;
+      ? <Medal size={64} className="text-amber-500 opacity-90 drop-shadow-md" strokeWidth={2} />
+      : <Terminal size={64} className="text-rose-500 drop-shadow-[0_0_15px_rgba(244,63,94,0.5)]" strokeWidth={2} />;
 
   return (
     <motion.div
@@ -120,8 +122,8 @@ const ChallengeResults = memo(({ challenge, currentUserId, onClose }) => {
       initial="hidden"
       animate="visible"
     >
-      {/* Pattern de Fundo */}
-      <div className="absolute inset-0 opacity-[0.03] dark:opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none" />
+      {/* Pattern de Fundo (Grade Tech) */}
+      <div className="absolute inset-0 opacity-[0.04] dark:opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none" />
 
       {showConfetti && <SimpleConfetti />}
 
@@ -133,55 +135,65 @@ const ChallengeResults = memo(({ challenge, currentUserId, onClose }) => {
             initial={{ scale: 0, rotate: -20 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-            className="mx-auto mb-4 flex justify-center"
+            className="mx-auto mb-5 flex justify-center"
           >
             <div className="relative">
-              {isWinner && <div className="absolute inset-0 bg-amber-400 blur-xl opacity-30 rounded-full" />}
+              {isWinner && <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-40 rounded-full" />}
               <div className="relative">{headlineIcon}</div>
             </div>
           </motion.div>
-          <h1 className={`text-4xl font-black tracking-tight ${headlineColor} drop-shadow-sm`}>
+          <h1 className={`text-[32px] font-black tracking-tight ${headlineColor} uppercase`}>
             {headlineText}
           </h1>
           {isWinner && (
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="text-[15px] font-bold text-slate-600 dark:text-slate-300 mt-2">
-              Seu conhecimento prevaleceu! 🎉
+              Seu código rodou de primeira! 🎉
+            </motion.p>
+          )}
+          {isDraw && (
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="text-[15px] font-bold text-slate-600 dark:text-slate-300 mt-2">
+              Empate! Resolva esse conflito depois. 🤝
+            </motion.p>
+          )}
+          {!isWinner && !isDraw && (
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="text-[15px] font-bold text-slate-600 dark:text-slate-300 mt-2">
+              Deu bug no deploy. Estude e tente novamente! 🐛
             </motion.p>
           )}
         </motion.div>
 
-        {/* ─── Scoreboard (Placar E-sports) ─── */}
-        <motion.div variants={itemVariant} className="relative bg-white dark:bg-slate-900 rounded-[32px] p-6 mb-6 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md">
-            Placar Final
+        {/* ─── Scoreboard (Placar Tech) ─── */}
+        <motion.div variants={itemVariant} className="relative bg-white dark:bg-slate-900/90 backdrop-blur-xl rounded-[32px] p-6 mb-6 shadow-2xl border border-slate-200 dark:border-slate-800">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md">
+            Scoreboard
           </div>
           
           <div className="flex items-center justify-between mt-4">
             {/* Você */}
             <div className="text-center flex-1 relative">
-              {isWinner && <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-amber-400 animate-bounce"><Crown size={20} /></div>}
-              <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 border-4 ${isWinner ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50'}`}>
-                <span className={`text-3xl font-black ${isWinner ? 'text-emerald-500' : 'text-slate-700 dark:text-slate-300'}`}>{myCorrect}</span>
+              {isWinner && <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-emerald-500 animate-bounce"><Crown size={22} strokeWidth={2.5} /></div>}
+              <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 border-4 shadow-inner ${isWinner ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900'}`}>
+                <span className={`text-[32px] font-black ${isWinner ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{myCorrect}</span>
               </div>
               <p className="text-[14px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-tight">Você</p>
             </div>
 
             {/* Divisor VS */}
             <div className="px-2 flex flex-col items-center shrink-0">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center rotate-45 mb-2">
-                <span className="text-[12px] font-black text-slate-400 -rotate-45 italic">VS</span>
+              <div className="w-10 h-10 rounded-[14px] bg-slate-100 dark:bg-slate-800 flex items-center justify-center rotate-45 mb-2 shadow-sm border border-slate-200 dark:border-slate-700">
+                <span className="text-[12px] font-black text-indigo-500 dark:text-cyan-500 -rotate-45 italic">VS</span>
               </div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{totalQ} cards</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{totalQ} cards</p>
             </div>
 
             {/* Oponente */}
             <div className="text-center flex-1 relative">
-              {!isWinner && !isDraw && <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-amber-400 animate-bounce"><Crown size={20} /></div>}
-              <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 border-4 overflow-hidden ${!isWinner && !isDraw ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20' : 'border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50'}`}>
+              {!isWinner && !isDraw && <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-rose-500 animate-bounce"><Crown size={22} strokeWidth={2.5} /></div>}
+              <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-3 border-4 overflow-hidden shadow-inner ${!isWinner && !isDraw ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900'}`}>
                 {opponentPhoto ? (
                   <img src={opponentPhoto} alt={opponentName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 ) : (
-                  <span className={`text-3xl font-black ${!isWinner && !isDraw ? 'text-amber-500' : 'text-slate-700 dark:text-slate-300'}`}>{opponentCorrect}</span>
+                  <span className={`text-[32px] font-black ${!isWinner && !isDraw ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300'}`}>{opponentCorrect}</span>
                 )}
               </div>
               <p className="text-[14px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-tight truncate max-w-[100px] mx-auto">
@@ -194,17 +206,17 @@ const ChallengeResults = memo(({ challenge, currentUserId, onClose }) => {
         {/* ─── Estatísticas Detalhadas ─── */}
         <motion.div variants={itemVariant} className="grid grid-cols-2 gap-4 mb-10">
           <StatCard
-            icon={<Target size={18} className={isWinner ? 'text-emerald-500' : 'text-slate-500'} strokeWidth={2.5} />}
+            icon={<Target size={20} className={isWinner ? 'text-emerald-500' : 'text-slate-500'} strokeWidth={2.5} />}
             label="Precisão"
             value={`${Math.round((myCorrect / totalQ) * 100)}%`}
             sublabel={`${myCorrect} de ${totalQ} acertos`}
             highlight={isWinner}
           />
           <StatCard
-            icon={<Clock size={18} className={myAvgTime < opponentAvgTime ? 'text-indigo-500' : 'text-slate-500'} strokeWidth={2.5} />}
-            label="Velocidade"
+            icon={<Clock size={20} className={myAvgTime < opponentAvgTime ? 'text-cyan-500' : 'text-slate-500'} strokeWidth={2.5} />}
+            label="Ping (Velocidade)"
             value={myAvgTime > 0 ? `${(myAvgTime / 1000).toFixed(1)}s` : '-'}
-            sublabel="média por card"
+            sublabel="média por request"
             highlight={myAvgTime < opponentAvgTime && myAvgTime > 0}
           />
         </motion.div>
@@ -213,10 +225,10 @@ const ChallengeResults = memo(({ challenge, currentUserId, onClose }) => {
         <motion.div variants={itemVariant}>
           <button
             onClick={onClose}
-            className="w-full py-4 rounded-[20px] bg-slate-800 hover:bg-slate-900 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-black text-[15px] uppercase tracking-wider transition-all active:scale-[0.98] shadow-xl shadow-slate-900/10 flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-[20px] bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-black text-[15px] uppercase tracking-wider transition-all active:scale-[0.98] shadow-xl flex items-center justify-center gap-2"
           >
-            <ArrowLeft size={18} strokeWidth={2.5} />
-            Voltar para Amigos
+            <ArrowLeft size={20} strokeWidth={2.5} />
+            Voltar ao Repositório
           </button>
         </motion.div>
       </div>
@@ -226,14 +238,14 @@ const ChallengeResults = memo(({ challenge, currentUserId, onClose }) => {
 
 // StatCard Refinado
 const StatCard = memo(({ icon, label, value, sublabel, highlight }) => (
-  <div className={`bg-white dark:bg-slate-900 rounded-[24px] p-5 shadow-sm border ${highlight ? 'border-indigo-100 dark:border-indigo-900/50' : 'border-slate-100 dark:border-slate-800'}`}>
+  <div className={`bg-white dark:bg-slate-900/80 rounded-[24px] p-5 shadow-sm border-2 ${highlight ? 'border-cyan-200 dark:border-cyan-900/50' : 'border-slate-100 dark:border-slate-800'}`}>
     <div className="flex items-center gap-2 mb-2">
-      <div className={`p-1.5 rounded-lg ${highlight ? 'bg-indigo-50 dark:bg-indigo-900/20' : 'bg-slate-50 dark:bg-slate-800'}`}>
+      <div className={`p-1.5 rounded-[10px] ${highlight ? 'bg-cyan-50 dark:bg-cyan-950/30' : 'bg-slate-100 dark:bg-slate-800'}`}>
         {icon}
       </div>
       <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">{label}</span>
     </div>
-    <p className={`text-2xl font-black mb-0.5 ${highlight ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-100'}`}>
+    <p className={`text-[24px] font-black mb-0.5 tracking-tight ${highlight ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-800 dark:text-slate-100'}`}>
       {value}
     </p>
     <p className="text-[11px] font-medium text-slate-500">{sublabel}</p>

@@ -1,13 +1,14 @@
 /**
  * 📜 VIRTUAL LIST & GRID
- * * Renderização virtualizada de alta performance.
- * - Otimizado para GPU (Transform vs Top)
- * - Fade-in suave na entrada de itens
- * - Containment estrito para economia de CPU
+ * * Renderização virtualizada de alta performance para listas infinitas de código/cards.
+ * * - Otimizado para GPU (Transform vs Top)
+ * * - Fade-in suave na entrada de itens
+ * * - Containment estrito para economia de CPU
  */
 
 import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { TerminalSquare } from 'lucide-react'; // Adicionado para o Empty State Tech
 
 const VirtualList = memo(({
   items = [],
@@ -15,7 +16,7 @@ const VirtualList = memo(({
   overscan = 3,
   renderItem,
   className = '',
-  emptyMessage = 'Nenhum item encontrado',
+  emptyMessage = 'Nenhum dado encontrado',
   gap = 16
 }) => {
   const containerRef = useRef(null);
@@ -47,7 +48,12 @@ const VirtualList = memo(({
   }, [updateVisibleRange]);
 
   if (items.length === 0) {
-    return <div className="flex items-center justify-center py-20 text-slate-400 font-medium italic">{emptyMessage}</div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500 font-mono text-sm opacity-80">
+        <TerminalSquare size={32} className="mb-3 opacity-50" strokeWidth={1.5} />
+        {`> ${emptyMessage}_`}
+      </div>
+    );
   }
 
   const visibleItems = items.slice(visibleRange.start, visibleRange.end);
@@ -76,7 +82,7 @@ const VirtualList = memo(({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.15 }}
             >
               {renderItem(item, actualIndex)}
             </motion.div>
@@ -95,7 +101,7 @@ export const VirtualGrid = memo(({
   overscan = 2,
   renderItem,
   className = '',
-  emptyMessage = 'Nenhum item encontrado',
+  emptyMessage = 'Nenhum log encontrado',
   gap = 20
 }) => {
   const containerRef = useRef(null);
@@ -140,7 +146,12 @@ export const VirtualGrid = memo(({
   }, [updateColumns, updateVisibleRange]);
 
   if (items.length === 0) {
-    return <div className="flex items-center justify-center py-20 text-slate-400 font-medium italic">{emptyMessage}</div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500 font-mono text-sm opacity-80">
+        <TerminalSquare size={32} className="mb-3 opacity-50" strokeWidth={1.5} />
+        {`> ${emptyMessage}_`}
+      </div>
+    );
   }
 
   const visibleItems = items.slice(visibleRange.start, visibleRange.end);
@@ -177,7 +188,7 @@ export const VirtualGrid = memo(({
             <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.25 }}
+              transition={{ duration: 0.2 }}
             >
               {renderItem(item, actualIndex)}
             </motion.div>

@@ -1,6 +1,6 @@
 /**
  * 🎨 BUTTON
- * * Variants: primary (gradient), secondary (outlined), ghost, danger, glass
+ * * Variants: primary (gradient tech), secondary (outlined), ghost, danger, glass
  * Features: loading spinner, haptic feedback integration, scale micro-interaction.
  */
 
@@ -24,62 +24,63 @@ const Button = ({
   const baseStyles = `
     inline-flex items-center justify-center gap-2.5
     font-bold tracking-tight
-    rounded-xl
-    transition-all duration-200 ease-out
-    focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
-    disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none
-    cursor-pointer select-none
+    rounded-2xl
+    transition-all duration-300 ease-out
+    focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+    cursor-pointer select-none group
   `;
 
   const variants = {
     primary: `
-      bg-gradient-to-br from-indigo-500 via-indigo-600 to-teal-500
-      text-white
-      shadow-[0_4px_14px_0_rgba(99,102,241,0.39)]
-      hover:shadow-[0_6px_20px_rgba(99,102,241,0.23)]
-      hover:brightness-110
-      focus-visible:ring-indigo-500 dark:focus-visible:ring-offset-slate-900
+      bg-gradient-to-r from-indigo-600 to-cyan-500
+      text-white border-none
+      shadow-[0_8px_20px_rgba(79,70,229,0.25)]
+      hover:shadow-[0_12px_28px_rgba(79,70,229,0.35)]
+      hover:opacity-95
+      focus-visible:ring-indigo-500/50 dark:focus-visible:ring-offset-slate-950
     `,
     secondary: `
-      bg-white dark:bg-slate-800
+      bg-slate-50 dark:bg-slate-800/80
       text-slate-700 dark:text-slate-200
-      border border-slate-200 dark:border-slate-700
+      border-2 border-slate-200/80 dark:border-slate-700/80
       shadow-sm
-      hover:bg-slate-50 dark:hover:bg-slate-700/50
-      hover:border-slate-300 dark:hover:border-slate-600
-      focus-visible:ring-slate-400
+      hover:bg-white dark:hover:bg-slate-800
+      hover:border-indigo-300 dark:hover:border-indigo-500/50
+      hover:text-indigo-600 dark:hover:text-indigo-400
+      focus-visible:ring-slate-400/50
     `,
     ghost: `
       bg-transparent
       text-slate-500 dark:text-slate-400
       hover:bg-slate-100 dark:hover:bg-slate-800
       hover:text-slate-900 dark:hover:text-slate-100
-      focus-visible:ring-slate-400
+      focus-visible:ring-slate-400/50
     `,
     danger: `
-      bg-gradient-to-br from-red-500 to-rose-600
-      text-white
-      shadow-[0_4px_14px_0_rgba(239,68,68,0.3)]
-      hover:shadow-[0_6px_20px_rgba(239,68,68,0.2)]
-      hover:brightness-110
-      focus-visible:ring-red-500
+      bg-gradient-to-br from-rose-500 to-red-600
+      text-white border-none
+      shadow-[0_8px_20px_rgba(225,29,72,0.25)]
+      hover:shadow-[0_12px_28px_rgba(225,29,72,0.35)]
+      hover:opacity-95
+      focus-visible:ring-rose-500/50
     `,
     glass: `
-      bg-white/10 dark:bg-slate-800/20 backdrop-blur-md
+      bg-white/10 dark:bg-slate-900/40 backdrop-blur-md
       text-slate-700 dark:text-white
       border border-white/20 dark:border-slate-700/50
       shadow-xl
-      hover:bg-white/20 dark:hover:bg-slate-800/40
-      focus-visible:ring-indigo-500
+      hover:bg-white/20 dark:hover:bg-slate-800/60
+      focus-visible:ring-indigo-500/50
     `,
   };
 
   const sizes = {
-    xs: 'px-2.5 py-1.5 text-[11px] uppercase tracking-widest',
-    sm: 'px-4 py-2 text-[13px]',
-    md: 'px-6 py-3 text-[14px]',
-    lg: 'px-8 py-3.5 text-[16px]',
-    xl: 'px-10 py-4.5 text-[18px]',
+    xs: 'px-3 py-1.5 text-[10px] uppercase tracking-widest',
+    sm: 'px-4 py-2.5 text-[13px]',
+    md: 'px-6 py-3.5 text-[14px]',
+    lg: 'px-8 py-4 text-[16px]',
+    xl: 'px-10 py-5 text-[18px]',
   };
 
   const Spinner = () => (
@@ -101,9 +102,9 @@ const Button = ({
         ${fullWidth ? 'w-full' : ''}
         ${className}
       `.replace(/\s+/g, ' ').trim()}
-      whileHover={!disabled && !loading ? { scale: 1.02, y: -1 } : {}}
-      whileTap={!disabled && !loading ? { scale: 0.96, y: 0 } : {}}
-      transition={{ duration: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+      whileHover={!disabled && !loading ? { scale: 1.02, y: -2 } : {}}
+      whileTap={!disabled && !loading ? { scale: 0.95, y: 0 } : {}}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
       {...props}
     >
       {loading ? (
@@ -113,9 +114,9 @@ const Button = ({
         </div>
       ) : (
         <>
-          {leftIcon && <span className="flex-shrink-0 opacity-90 transition-transform group-hover:scale-110">{leftIcon}</span>}
+          {leftIcon && <span className="flex-shrink-0 opacity-90 transition-transform duration-300 group-hover:scale-110">{leftIcon}</span>}
           <span className="truncate">{children}</span>
-          {rightIcon && <span className="flex-shrink-0 opacity-90 transition-transform group-hover:scale-110">{rightIcon}</span>}
+          {rightIcon && <span className="flex-shrink-0 opacity-90 transition-transform duration-300 group-hover:scale-110 group-hover:translate-x-1">{rightIcon}</span>}
         </>
       )}
     </motion.button>
@@ -123,7 +124,7 @@ const Button = ({
 };
 
 export const ButtonGroup = ({ children, className = '' }) => (
-  <div className={`flex items-center gap-3 p-1.5 bg-slate-100/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200/50 dark:border-slate-800 ${className}`}>
+  <div className={`flex items-center gap-2 p-1.5 bg-slate-100/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[20px] border border-slate-200/80 dark:border-slate-800 shadow-inner ${className}`}>
     {children}
   </div>
 );
@@ -137,8 +138,8 @@ export const IconButton = ({
   ...props
 }) => {
   const iconPadding = {
-    xs: 'p-1.5',
-    sm: 'p-2',
+    xs: 'p-2',
+    sm: 'p-2.5',
     md: 'p-3',
     lg: 'p-4',
   };
@@ -146,7 +147,7 @@ export const IconButton = ({
   return (
     <Button
       variant={variant}
-      className={`${iconPadding[size]} !rounded-xl min-w-0 ${className}`}
+      className={`${iconPadding[size]} !rounded-[16px] min-w-0 ${className}`}
       aria-label={label}
       {...props}
     >

@@ -1,6 +1,6 @@
 /**
- * ⏱️ CHALLENGE QUESTION PREMIUM — v2.0
- * * Interface de duelo gamificada com timer de alta tensão.
+ * ⏱️ CHALLENGE QUESTION 
+ * * Interface de duelo gamificada (Code Battle) com timer de alta tensão.
  * - Animação de pulso quando o tempo está acabando (< 5s)
  * - Respostas com feedback visual forte (Ícones + Sombras coloridas)
  * - Entrada em cascata (Staggered) das alternativas
@@ -8,7 +8,7 @@
 
 import React, { memo, useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, CheckCircle2, XCircle, Zap } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, Terminal } from 'lucide-react';
 
 const TIMER_DURATION = 15; // 15 segundos por questão
 
@@ -66,8 +66,9 @@ const ChallengeQuestion = memo(({ question, questionIndex, totalQuestions, onAns
 
   const isUrgent = timeLeft <= 5 && !isAnswered;
   const timerPercent = (timeLeft / TIMER_DURATION) * 100;
-  const timerColor = timeLeft > 7 ? 'text-emerald-500' : timeLeft > 5 ? 'text-amber-500' : 'text-red-500';
-  const barColor = timeLeft > 7 ? 'bg-emerald-500' : timeLeft > 5 ? 'bg-amber-500' : 'bg-red-500';
+  // Cores adaptadas para a estética Tech/Neon
+  const timerColor = timeLeft > 7 ? 'text-cyan-500' : timeLeft > 5 ? 'text-amber-500' : 'text-rose-500';
+  const barColor = timeLeft > 7 ? 'bg-cyan-500' : timeLeft > 5 ? 'bg-amber-500' : 'bg-rose-500';
 
   const options = (question.options && question.options.length > 0)
     ? question.options
@@ -78,7 +79,7 @@ const ChallengeQuestion = memo(({ question, questionIndex, totalQuestions, onAns
   // Variantes para a animação em cascata
   const containerVariants = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
+    show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.15 } }
   };
   const itemVariants = {
     hidden: { opacity: 0, y: 15 },
@@ -95,39 +96,39 @@ const ChallengeQuestion = memo(({ question, questionIndex, totalQuestions, onAns
       className="flex flex-col h-full max-w-2xl mx-auto w-full"
     >
       {/* ─── Header: Progresso e Timer ─── */}
-      <div className="flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-black text-sm">
+      <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-8 h-8 rounded-[10px] bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-cyan-400 font-black text-[15px] border border-indigo-100 dark:border-indigo-800/50 shadow-inner">
             {questionIndex + 1}
           </div>
-          <span className="text-[13px] font-bold text-slate-400 uppercase tracking-widest">
+          <span className="text-[12px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
             de {totalQuestions}
           </span>
         </div>
         
-        <div className={`flex items-center gap-1.5 font-mono font-black text-xl transition-colors duration-300 ${timerColor} ${isUrgent ? 'animate-pulse scale-110' : ''}`}>
-          <Clock size={20} strokeWidth={isUrgent ? 3 : 2.5} />
+        <div className={`flex items-center gap-1.5 font-mono font-black text-[22px] transition-colors duration-300 ${timerColor} ${isUrgent ? 'animate-pulse scale-110 drop-shadow-md' : ''}`}>
+          <Clock size={22} strokeWidth={isUrgent ? 3 : 2.5} />
           <span>{timeLeft}s</span>
         </div>
       </div>
 
       {/* ─── Barra de Tempo Gamificada ─── */}
-      <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full mb-6 overflow-hidden shadow-inner">
+      <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full mb-8 overflow-hidden shadow-inner">
         <motion.div
-          className={`h-full rounded-full transition-colors duration-300 ${barColor} ${isUrgent ? 'shadow-[0_0_10px_rgba(239,68,68,0.6)]' : ''}`}
+          className={`h-full rounded-full transition-colors duration-300 ${barColor} ${isUrgent ? 'shadow-[0_0_12px_rgba(225,29,72,0.8)]' : ''}`}
           initial={{ width: '100%' }}
           animate={{ width: `${timerPercent}%` }}
           transition={{ duration: 1, ease: 'linear' }}
         />
       </div>
 
-      {/* ─── Pergunta ─── */}
-      <div className="relative bg-white dark:bg-slate-900 rounded-[24px] p-6 sm:p-8 mb-6 shadow-sm border border-slate-200/60 dark:border-slate-700/50">
-        <div className="absolute -top-3 -left-3 w-10 h-10 bg-gradient-to-br from-indigo-500 to-teal-400 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 rotate-[-6deg]">
-          <Zap size={20} className="fill-white" />
+      {/* ─── Pergunta (Terminal Style) ─── */}
+      <div className="relative bg-slate-50 dark:bg-slate-900/50 rounded-[24px] p-6 sm:p-8 mb-8 shadow-inner border border-slate-200/80 dark:border-slate-800">
+        <div className="absolute -top-4 -left-2 w-12 h-12 bg-gradient-to-br from-indigo-600 to-cyan-500 rounded-[14px] flex items-center justify-center text-white shadow-[0_8px_20px_rgba(6,182,212,0.3)] rotate-[-8deg] border-2 border-white dark:border-slate-900">
+          <Terminal size={22} className="text-white" strokeWidth={2.5} />
         </div>
-        <p className="text-lg sm:text-[19px] font-bold text-slate-800 dark:text-slate-100 leading-relaxed text-center mt-2">
-          {question.front || question.question || 'Pergunta'}
+        <p className="text-[17px] sm:text-[19px] font-bold text-slate-800 dark:text-slate-100 leading-relaxed text-center mt-2 tracking-tight">
+          {question.front || question.question || 'Compile Error: Pergunta não encontrada'}
         </p>
       </div>
 
@@ -137,18 +138,18 @@ const ChallengeQuestion = memo(({ question, questionIndex, totalQuestions, onAns
           const isCorrect = idx === correctIndex;
           const isSelected = idx === selectedOption;
           
-          let optionStyle = 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-500/10 text-slate-700 dark:text-slate-200';
+          let optionStyle = 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/10 text-slate-700 dark:text-slate-200';
           let IconComponent = null;
 
           if (isAnswered) {
             if (isCorrect) {
-              optionStyle = 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-500 shadow-md shadow-emerald-500/20 text-emerald-800 dark:text-emerald-300 z-10 scale-[1.02]';
+              optionStyle = 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-500 shadow-lg shadow-emerald-500/20 text-emerald-800 dark:text-emerald-300 z-10 scale-[1.02]';
               IconComponent = <CheckCircle2 size={20} className="text-emerald-500" strokeWidth={3} />;
             } else if (isSelected && !isCorrect) {
-              optionStyle = 'bg-red-50 dark:bg-red-900/20 border-red-500 shadow-md shadow-red-500/20 text-red-800 dark:text-red-300';
-              IconComponent = <XCircle size={20} className="text-red-500" strokeWidth={3} />;
+              optionStyle = 'bg-rose-50 dark:bg-rose-900/30 border-rose-500 shadow-lg shadow-rose-500/20 text-rose-800 dark:text-rose-300';
+              IconComponent = <XCircle size={20} className="text-rose-500" strokeWidth={3} />;
             } else {
-              optionStyle = 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-40 grayscale-[50%]';
+              optionStyle = 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-40 grayscale-[50%]';
             }
           }
 
@@ -164,14 +165,14 @@ const ChallengeQuestion = memo(({ question, questionIndex, totalQuestions, onAns
               className={`
                 w-full text-left flex items-center gap-4 p-4 rounded-[20px] border-2 transition-all duration-300
                 ${optionStyle}
-                ${!isAnswered ? 'cursor-pointer active:bg-slate-50 dark:active:bg-slate-800' : 'cursor-default'}
+                ${!isAnswered ? 'cursor-pointer active:bg-slate-50 dark:active:bg-slate-800/80' : 'cursor-default'}
               `}
             >
               <div className={`
-                flex items-center justify-center w-8 h-8 rounded-xl shrink-0 transition-colors
+                flex items-center justify-center w-8 h-8 rounded-[10px] shrink-0 transition-colors shadow-inner
                 ${isAnswered && isCorrect ? 'bg-emerald-200/50 dark:bg-emerald-900/50' : ''}
-                ${isAnswered && isSelected && !isCorrect ? 'bg-red-200/50 dark:bg-red-900/50' : ''}
-                ${!isAnswered || (!isCorrect && !isSelected) ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 font-black text-sm' : ''}
+                ${isAnswered && isSelected && !isCorrect ? 'bg-rose-200/50 dark:bg-rose-900/50' : ''}
+                ${!isAnswered || (!isCorrect && !isSelected) ? 'bg-slate-100 dark:bg-slate-900 text-slate-500 font-black text-sm border border-slate-200/50 dark:border-slate-700/50' : ''}
               `}>
                 {IconComponent ? IconComponent : labels[idx] || idx + 1}
               </div>

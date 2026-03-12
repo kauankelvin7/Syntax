@@ -1,9 +1,9 @@
 /**
- * ✅ MESSAGE STATUS
- * * Indicador visual de ciclo de vida da mensagem.
- * - Suporte a transições suaves entre estados (Enviado -> Lido)
- * - Otimizado para legibilidade em bolhas coloridas
- * - Micro-animação de feedback visual
+ * ✅ MESSAGE STATUS PREMIUM - Syntax Theme
+ * * Indicador visual de ciclo de vida da mensagem (Commit Status).
+ * - Suporte a transições suaves (Push -> Delivered -> Merged/Read)
+ * - Otimizado para legibilidade em bolhas Syntax Indigo
+ * - Micro-animações de feedback tátil
  */
 
 import React, { memo, useMemo } from 'react';
@@ -21,42 +21,43 @@ const MessageStatus = memo(({ status, readBy, senderId }) => {
   }, [status, readBy, senderId]);
 
   return (
-    <div className="flex items-center justify-center shrink-0 ml-1">
+    <div className="flex items-center justify-center shrink-0 ml-1.5 min-w-[14px]">
       <AnimatePresence mode="wait">
         {computedStatus === 'read' ? (
           <motion.div
             key="read"
-            initial={{ scale: 0.7, opacity: 0 }}
+            initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="text-sky-400 dark:text-sky-400" // Azul vibrante para leitura
+            className="text-cyan-400 drop-shadow-[0_0_3px_rgba(34,211,238,0.4)]"
           >
-            <CheckCheck size={13} strokeWidth={3.5} aria-label="Lida" />
+            <CheckCheck size={13} strokeWidth={3.5} aria-label="Lida/Merged" />
           </motion.div>
         ) : computedStatus === 'delivered' ? (
           <motion.div
             key="delivered"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-slate-300 dark:text-slate-500"
+            className="text-slate-300/60 dark:text-slate-500/60"
           >
-            <CheckCheck size={13} strokeWidth={3} aria-label="Entregue" />
+            <CheckCheck size={13} strokeWidth={2.5} aria-label="Entregue/Stored" />
           </motion.div>
         ) : computedStatus === 'sent' ? (
           <motion.div
             key="sent"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-slate-300 dark:text-slate-500"
+            className="text-slate-300/50 dark:text-slate-500/50"
           >
-            <Check size={13} strokeWidth={3} aria-label="Enviada" />
+            <Check size={13} strokeWidth={2.5} aria-label="Enviada/Push" />
           </motion.div>
         ) : (
           <motion.div
             key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="w-2.5 h-2.5 border-[1.5px] border-slate-300 border-t-transparent rounded-full animate-spin"
-            aria-label="Enviando..."
+            initial={{ opacity: 0, rotate: 0 }}
+            animate={{ opacity: 1, rotate: 360 }}
+            transition={{ rotate: { repeat: Infinity, duration: 1, ease: "linear" } }}
+            className="w-2.5 h-2.5 border-[1.5px] border-slate-300/40 border-t-cyan-400 rounded-full"
+            aria-label="Processando..."
           />
         )}
       </AnimatePresence>

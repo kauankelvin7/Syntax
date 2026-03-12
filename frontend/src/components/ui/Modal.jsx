@@ -1,7 +1,7 @@
 /**
  * 🎭 MODAL
  * * Features: Glassmorphism, Focus Trap, ESC Close, Scale & Fade Animations
- * Elevando a experiência de janelas flutuantes no Cinesia.
+ * Elevando a experiência de janelas flutuantes.
  */
 
 import React, { useEffect, useRef, useId } from 'react';
@@ -63,7 +63,7 @@ const Modal = ({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-          {/* Backdrop Glass */}
+          {/* Backdrop Glass Premium */}
           <motion.div
             className="absolute inset-0 bg-slate-900/40 dark:bg-black/70 backdrop-blur-md"
             initial={{ opacity: 0 }}
@@ -80,22 +80,22 @@ const Modal = ({
             aria-labelledby={title ? titleId : undefined}
             className={`
               relative bg-white dark:bg-slate-900 
-              rounded-[32px] shadow-2xl
+              rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.3)]
               w-full ${sizeClasses[size]}
               max-h-[90vh] overflow-hidden flex flex-col
-              border border-white/20 dark:border-slate-800
+              border border-slate-200/50 dark:border-slate-800/80
             `}
-            initial={{ opacity: 0, scale: 0.9, y: 30 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 30 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 400 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
+            {/* Header (Mac OS Window Style) */}
             {(title || showCloseButton) && (
-              <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm z-10">
+              <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/80 backdrop-blur-sm z-10 shrink-0">
                 {title && (
-                  <h2 id={titleId} className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                  <h2 id={titleId} className="text-[18px] font-black text-slate-900 dark:text-white tracking-tight">
                     {title}
                   </h2>
                 )}
@@ -104,9 +104,9 @@ const Modal = ({
                     ref={closeButtonRef}
                     onClick={onClose}
                     aria-label={title ? `Fechar modal ${title}` : 'Fechar modal'}
-                    className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 focus:outline-none"
+                    className="p-1.5 rounded-[12px] text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   >
-                    <X size={20} strokeWidth={2.5} />
+                    <X size={20} strokeWidth={3} />
                   </button>
                 )}
               </div>
@@ -119,17 +119,22 @@ const Modal = ({
 
             {/* Footer */}
             {footer && (
-              <div className="px-8 py-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-end gap-3 z-10">
+              <div className="px-8 py-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex items-center justify-end gap-3 z-10 shrink-0">
                 {footer}
               </div>
             )}
           </motion.div>
 
+          {/* Scrollbar estilizada */}
           <style>{`
-            .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+            .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
             .custom-scrollbar::-webkit-scrollbar-thumb { 
-              background: rgba(148, 163, 184, 0.2); 
+              background: rgba(148, 163, 184, 0.3); 
               border-radius: 10px; 
+            }
+            .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: rgba(71, 85, 105, 0.5); 
             }
           `}</style>
         </div>

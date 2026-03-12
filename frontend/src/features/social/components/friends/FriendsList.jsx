@@ -1,13 +1,12 @@
 /**
- * 👥 FRIENDS LIST PREMIUM — v2.0
- * * Lista segmentada de conexões com status em tempo real.
- * - Empty State focado em conversão e engajamento
- * - Cabeçalhos de categoria com indicadores visuais
- * - Animações de entrada suaves
+ * 👥 FRIENDS LIST PREMIUM — Syntax Theme
+ * * Lista segmentada de conexões com status de rede em tempo real.
+ * - Design: Network Monitor Style (Hierarquia clara e badges tech)
+ * - Features: Empty State focado em crescimento e sincronização performática.
  */
 
 import React, { memo } from 'react';
-import { Users, Search, Loader2, Sparkles, Wifi, Moon } from 'lucide-react';
+import { Users, Search, Loader2, Cpu, Wifi, Moon, Terminal } from 'lucide-react';
 import { motion } from 'framer-motion';
 import FriendCard from './FriendCard';
 
@@ -24,10 +23,13 @@ const FriendsList = memo(({
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl">
-          <Loader2 size={28} className="animate-spin text-indigo-500" />
+        <div className="relative">
+          <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse" />
+          <div className="relative p-4 bg-white dark:bg-slate-900 rounded-[22px] border border-slate-200 dark:border-slate-800">
+            <Cpu size={32} className="animate-spin text-indigo-500" strokeWidth={1.5} />
+          </div>
         </div>
-        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Sincronizando conexões...</p>
+        <p className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Sync_Connections...</p>
       </div>
     );
   }
@@ -35,31 +37,31 @@ const FriendsList = memo(({
   if (!friends?.length) {
     return (
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center py-16 text-center px-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center justify-center py-20 text-center px-6"
       >
-        <div className="relative mb-6">
-          <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full" />
-          <div className="relative w-20 h-20 rounded-[28px] bg-gradient-to-br from-indigo-50 to-white dark:from-slate-800 dark:to-slate-900 flex items-center justify-center border border-indigo-100/50 dark:border-slate-700 shadow-xl">
-            <Sparkles size={32} className="text-indigo-500" strokeWidth={2} />
+        <div className="relative mb-8">
+          <div className="absolute inset-0 bg-cyan-500/20 blur-2xl rounded-full" />
+          <div className="relative w-24 h-24 rounded-[32px] bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
+            <Users size={40} className="text-cyan-500" strokeWidth={1.5} />
           </div>
         </div>
         
-        <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 mb-2">
-          Sua rede está vazia
+        <h3 className="text-[18px] font-black text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+          {`> Network_Empty`}
         </h3>
-        <p className="text-[13px] text-slate-500 dark:text-slate-400 max-w-[240px] leading-relaxed mb-6 font-medium">
-          A jornada é melhor quando compartilhada. Busque colegas de Engenharia de Software e comecem a evoluir juntos!
+        <p className="text-[13px] text-slate-500 dark:text-slate-400 max-w-[260px] leading-relaxed mb-8 font-medium">
+          Nenhum desenvolvedor conectado ao seu nó. Expanda sua rede de engenharia e evoluam stacks juntos!
         </p>
         
         {onNavigateSearch && (
           <button
             onClick={onNavigateSearch}
-            className="flex items-center gap-2 px-6 py-3 text-[13px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-indigo-600 to-teal-500 rounded-xl hover:shadow-lg hover:shadow-indigo-500/25 transition-all active:scale-95"
+            className="flex items-center gap-2.5 px-8 py-4 text-[13px] font-black uppercase tracking-widest text-white bg-gradient-to-r from-indigo-600 to-cyan-500 rounded-[18px] shadow-[0_10px_25px_rgba(79,70,229,0.3)] hover:shadow-cyan-500/20 transition-all active:scale-95"
           >
-            <Search size={16} strokeWidth={2.5} />
-            Encontrar Estudantes
+            <Search size={18} strokeWidth={3} />
+            Scan_Developers
           </button>
         )}
       </motion.div>
@@ -70,21 +72,21 @@ const FriendsList = memo(({
   const offlineFriends = friends.filter((f) => !friendsStatus[f.uid]?.isOnline);
 
   return (
-    <div className="space-y-8">
-      {/* ─── Online ─── */}
+    <div className="space-y-10">
+      {/* ─── Online (Active Nodes) ─── */}
       {onlineFriends.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="flex items-center gap-2 px-2 mb-3">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="flex items-center gap-2.5 px-2 mb-5">
             <div className="relative flex items-center justify-center">
-              <span className="absolute w-full h-full rounded-full bg-emerald-400 opacity-50 animate-ping" />
-              <Wifi size={14} className="text-emerald-500 relative z-10" />
+              <span className="absolute w-4 h-4 rounded-full bg-emerald-400/30 animate-ping" />
+              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
             </div>
-            <h4 className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
-              Online ({onlineFriends.length})
+            <h4 className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
+              Active_Nodes ({onlineFriends.length})
             </h4>
           </div>
           
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {onlineFriends.map((friend) => (
               <FriendCard
                 key={friend.uid}
@@ -100,17 +102,21 @@ const FriendsList = memo(({
         </motion.div>
       )}
 
-      {/* ─── Offline ─── */}
+      {/* ─── Offline (Inactive Sessions) ─── */}
       {offlineFriends.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <div className="flex items-center gap-2 px-2 mb-3 opacity-60">
-            <Moon size={14} className="text-slate-500" />
-            <h4 className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-              Offline ({offlineFriends.length})
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ delay: 0.15 }}
+        >
+          <div className="flex items-center gap-2.5 px-2 mb-5 opacity-60">
+            <Moon size={14} className="text-slate-400 dark:text-slate-600" />
+            <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+              Inactive_Sessions ({offlineFriends.length})
             </h4>
           </div>
           
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {offlineFriends.map((friend) => (
               <FriendCard
                 key={friend.uid}

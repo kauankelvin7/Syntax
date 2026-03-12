@@ -15,11 +15,11 @@ const ConfirmModal = ({
   isOpen,
   onClose,
   onConfirm,
-  title = 'Confirmar Exclusão',
+  title = 'Confirmar Ação',
   itemName = 'este item',
   message = null,
-  confirmText = 'Excluir Definitivamente',
-  cancelText = 'Manter item',
+  confirmText = 'Confirmar',
+  cancelText = 'Cancelar',
   type = 'danger',
   isLoading = false
 }) => {
@@ -54,19 +54,19 @@ const ConfirmModal = ({
 
   const typeConfig = {
     danger: {
-      iconBg: 'bg-red-50 dark:bg-red-950/30 border-red-100 dark:border-red-900/50',
-      icon: <Trash2 className="text-red-500" size={28} strokeWidth={2.5} />,
-      buttonClass: 'bg-gradient-to-br from-red-500 to-rose-600 shadow-red-500/20 text-white border-none',
+      iconBg: 'bg-rose-50 dark:bg-rose-950/30 border-rose-100 dark:border-rose-900/50',
+      icon: <Trash2 className="text-rose-500" size={28} strokeWidth={2.5} />,
+      buttonClass: 'bg-gradient-to-r from-rose-500 to-red-600 shadow-[0_8px_20px_rgba(225,29,72,0.25)] text-white border-none',
     },
     warning: {
       iconBg: 'bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-900/50',
       icon: <AlertTriangle className="text-amber-500" size={28} strokeWidth={2.5} />,
-      buttonClass: 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-orange-500/20 text-white border-none',
+      buttonClass: 'bg-gradient-to-r from-amber-400 to-orange-500 shadow-[0_8px_20px_rgba(245,158,11,0.25)] text-white border-none',
     },
     info: {
       iconBg: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-100 dark:border-indigo-900/50',
-      icon: <Info className="text-indigo-500" size={28} strokeWidth={2.5} />,
-      buttonClass: 'bg-gradient-to-br from-indigo-500 to-teal-500 shadow-indigo-500/20 text-white border-none',
+      icon: <Info className="text-indigo-500 dark:text-cyan-400" size={28} strokeWidth={2.5} />,
+      buttonClass: 'bg-gradient-to-r from-indigo-600 to-cyan-500 shadow-[0_8px_20px_rgba(79,70,229,0.25)] text-white border-none',
     },
   };
 
@@ -74,9 +74,9 @@ const ConfirmModal = ({
 
   const messageContent = message || (
     <p className="text-[14px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-      Tem certeza que deseja remover <span className="font-bold text-slate-900 dark:text-slate-100">"{itemName}"</span>? 
+      Tem certeza que deseja apagar <span className="font-bold text-slate-900 dark:text-slate-100">"{itemName}"</span>? 
       <br />
-      <span className="text-red-500/80 dark:text-red-400/80 text-[13px] font-bold">Esta ação é irreversível.</span>
+      <span className="text-rose-500/80 dark:text-rose-400/90 text-[13px] font-bold mt-1 inline-block">Esta ação não pode ser desfeita.</span>
     </p>
   );
 
@@ -84,7 +84,7 @@ const ConfirmModal = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md"
+          className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/60 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -113,7 +113,7 @@ const ConfirmModal = ({
                 {config.icon}
               </motion.div>
               
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 tracking-tight">
+              <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight">
                 {title}
               </h3>
               
@@ -127,7 +127,7 @@ const ConfirmModal = ({
               <Button
                 onClick={handleConfirm}
                 disabled={isLoading}
-                className={`h-14 rounded-2xl font-bold text-[15px] ${config.buttonClass}`}
+                className={`h-14 rounded-[16px] font-bold text-[15px] hover:opacity-90 transition-all active:scale-[0.98] ${config.buttonClass}`}
                 leftIcon={isLoading ? <Loader2 className="animate-spin" size={18} /> : null}
               >
                 {isLoading ? 'Processando...' : confirmText}
@@ -137,7 +137,7 @@ const ConfirmModal = ({
                 ref={cancelRef}
                 onClick={onClose}
                 disabled={isLoading}
-                className="h-12 text-[14px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
+                className="h-12 text-[14px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-[12px] transition-colors disabled:opacity-50"
               >
                 {cancelText}
               </button>

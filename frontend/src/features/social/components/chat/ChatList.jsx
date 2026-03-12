@@ -1,13 +1,13 @@
 /**
  * 📱 CHAT LIST
- * * Lista de conversas otimizada com hierarquia visual clara.
- * - Suporte a badges dinâmicos e previews de conteúdo especial
- * - Diferenciação visual entre grupos e chats diretos
- * - Feedback tátil e estados de hover refinados
+ * * Lista de conexões otimizada com hierarquia visual de engenharia.
+ * - Suporte a badges dinâmicos (Cyan Neon) e previews inteligentes
+ * - Diferenciação visual entre Squads (Grupos) e Diretos
+ * - Feedback tátil estilo IDE
  */
 
 import React, { memo } from 'react';
-import { MessageCircle, Search, Swords, FileText, Sparkles } from 'lucide-react';
+import { MessageCircle, Terminal, Swords, FileCode, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../../../contexts/AuthContext-firebase';
 import OnlineIndicator from '../shared/OnlineIndicator';
@@ -18,20 +18,22 @@ const ChatList = memo(({ conversations, friendsStatus, onSelectConversation }) =
 
   if (!conversations?.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-        <div className="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center mb-4 border border-slate-200 dark:border-slate-800 shadow-inner">
-          <MessageCircle size={28} className="text-slate-300 dark:text-slate-600" />
+      <div className="flex flex-col items-center justify-center py-24 text-center px-6">
+        <div className="w-20 h-20 rounded-[24px] bg-slate-100 dark:bg-slate-900/50 flex items-center justify-center mb-6 border border-slate-200 dark:border-slate-800 shadow-inner">
+          <Terminal size={32} className="text-slate-300 dark:text-slate-700" strokeWidth={1.5} />
         </div>
-        <h3 className="text-[14px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">Silêncio por aqui...</h3>
-        <p className="text-[12px] text-slate-400 dark:text-slate-500 mt-2 max-w-[200px] leading-relaxed font-medium">
-          Escolha um amigo para começar a trocar conhecimentos!
+        <h3 className="text-[15px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">
+          {`> No_Connections_Found`}
+        </h3>
+        <p className="text-[12px] text-slate-400 dark:text-slate-500 mt-3 max-w-[220px] leading-relaxed font-bold">
+          Inicialize uma conversa com um dev para começar a trocar snippets!
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5 px-1">
       {conversations.map((conv) => {
         const otherUid = conv.participants?.find((uid) => uid !== user?.uid);
         const otherData = conv.participantsData?.[otherUid] || {};
@@ -41,40 +43,43 @@ const ChatList = memo(({ conversations, friendsStatus, onSelectConversation }) =
         const isStudying = status?.isStudying || false;
 
         const displayName = conv.type === 'group'
-          ? conv.groupName || 'Grupo de Estudo'
-          : otherData.displayName || 'Usuário Cinesia';
+          ? conv.groupName || 'Squad de Desenvolvimento'
+          : otherData.displayName || 'Dev Anonymous';
 
         const initials = getInitials(displayName);
         const avatarBg = getAvatarColor(displayName);
         const photoURL = conv.type === 'group' ? conv.groupPhoto : otherData.photoURL;
 
-        // Preview de conteúdo inteligente
+        // Preview de conteúdo inteligente (Contexto Tech)
         const renderPreview = () => {
-          if (!conv.lastMessage) return 'Nenhuma mensagem ainda';
+          if (!conv.lastMessage) return 'Aguardando inicialização...';
           const prefix = conv.lastMessage.senderId === user?.uid ? 'Você: ' : '';
           
-          if (conv.lastMessage.type === 'challenge_invite') return <span className="text-amber-500 font-bold flex items-center gap-1"><Swords size={12} /> Desafio enviado</span>;
-          if (conv.lastMessage.type === 'resumo') return <span className="text-indigo-500 font-bold flex items-center gap-1"><FileText size={12} /> Resumo compartilhado</span>;
+          if (conv.lastMessage.type === 'challenge_invite') 
+            return <span className="text-orange-500 font-bold flex items-center gap-1.5"><Swords size={13} /> Code Battle!</span>;
           
-          return `${prefix}${truncateText(conv.lastMessage.text || '', 35)}`;
+          if (conv.lastMessage.type === 'resumo') 
+            return <span className="text-cyan-500 font-bold flex items-center gap-1.5"><FileCode size={13} /> Snippet compartilhado</span>;
+          
+          return `${prefix}${truncateText(conv.lastMessage.text || '', 32)}`;
         };
 
         return (
           <motion.div
             key={conv.id}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => onSelectConversation(conv)}
             className={`
-              relative flex items-center gap-4 px-4 py-4 rounded-[22px] cursor-pointer transition-all duration-200 group
+              relative flex items-center gap-4 px-4 py-4 rounded-[24px] cursor-pointer transition-all duration-300 group
               ${unreadCount > 0
-                ? 'bg-indigo-50/40 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/40 shadow-sm'
-                : 'hover:bg-white dark:hover:bg-slate-900 border border-transparent hover:shadow-md'
+                ? 'bg-cyan-50/40 dark:bg-cyan-900/10 border border-cyan-100/50 dark:border-cyan-800/30 shadow-sm'
+                : 'hover:bg-white dark:hover:bg-slate-900/80 border border-transparent hover:border-slate-100 dark:hover:border-slate-800 hover:shadow-xl hover:shadow-slate-200/20 dark:hover:shadow-none'
               }
             `}
           >
-            {/* Indicador lateral de Unread */}
+            {/* Indicador lateral de Unread (Cyan Glow) */}
             {unreadCount > 0 && (
-              <div className="absolute left-1 w-1 h-8 bg-indigo-500 rounded-full" />
+              <div className="absolute left-1.5 w-1 h-10 bg-cyan-500 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
             )}
 
             {/* Avatar Section */}
@@ -83,20 +88,20 @@ const ChatList = memo(({ conversations, friendsStatus, onSelectConversation }) =
                 <img
                   src={photoURL}
                   alt={displayName}
-                  className={`w-14 h-14 object-cover shadow-sm transition-transform group-hover:scale-105 ${conv.type === 'group' ? 'rounded-2xl' : 'rounded-full border-2 border-white dark:border-slate-800'}`}
+                  className={`w-14 h-14 object-cover shadow-sm transition-all duration-500 group-hover:rotate-3 ${conv.type === 'group' ? 'rounded-[18px]' : 'rounded-full border-2 border-white dark:border-slate-800'}`}
                   referrerPolicy="no-referrer"
                 />
               ) : (
                 <div
-                  className={`w-14 h-14 flex items-center justify-center text-white text-base font-black shadow-inner ${conv.type === 'group' ? 'rounded-2xl' : 'rounded-full'}`}
+                  className={`w-14 h-14 flex items-center justify-center text-white text-[15px] font-black shadow-inner ${conv.type === 'group' ? 'rounded-[18px]' : 'rounded-full'}`}
                   style={{ backgroundColor: avatarBg }}
                 >
-                  {conv.type === 'group' ? <Sparkles size={20} /> : initials}
+                  {conv.type === 'group' ? <Sparkles size={22} /> : initials}
                 </div>
               )}
               
               {conv.type === 'direct' && (
-                <div className="absolute -bottom-0.5 -right-0.5">
+                <div className="absolute -bottom-0.5 -right-0.5 ring-4 ring-white dark:ring-slate-900 rounded-full">
                   <OnlineIndicator isOnline={isOnline} isStudying={isStudying} size="md" pulse />
                 </div>
               )}
@@ -104,12 +109,12 @@ const ChatList = memo(({ conversations, friendsStatus, onSelectConversation }) =
 
             {/* Content Section */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2 mb-0.5">
+              <div className="flex items-center justify-between gap-2 mb-1">
                 <h4 className={`text-[15px] truncate tracking-tight ${unreadCount > 0 ? 'font-black text-slate-900 dark:text-white' : 'font-bold text-slate-700 dark:text-slate-300'}`}>
                   {displayName}
                 </h4>
                 {conv.lastMessage?.timestamp && (
-                  <span className={`text-[10px] font-bold uppercase tracking-tighter shrink-0 ${unreadCount > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+                  <span className={`text-[10px] font-black uppercase tracking-tighter shrink-0 ${unreadCount > 0 ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400'}`}>
                     {formatMessageTime(conv.lastMessage.timestamp)}
                   </span>
                 )}
@@ -122,8 +127,9 @@ const ChatList = memo(({ conversations, friendsStatus, onSelectConversation }) =
                 
                 {unreadCount > 0 && (
                   <motion.span 
-                    initial={{ scale: 0.5 }} animate={{ scale: 1 }}
-                    className="flex h-5 min-w-[20px] px-1.5 items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-black shadow-lg shadow-indigo-500/30"
+                    initial={{ scale: 0.5, rotate: -10 }} 
+                    animate={{ scale: 1, rotate: 0 }}
+                    className="flex h-5 min-w-[20px] px-1.5 items-center justify-center rounded-[8px] bg-cyan-500 text-white text-[10px] font-black shadow-lg shadow-cyan-500/30"
                   >
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </motion.span>

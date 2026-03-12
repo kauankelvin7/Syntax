@@ -1,20 +1,21 @@
 /**
- * 🖼️ IMAGES
- * * Otimizado para evitar Layout Shift e economizar dados.
- * Efeito Blur-in suave para carregamento de alta fidelidade.
+ * 🖼️ OPTIMIZED IMAGES
+ * * Componentes otimizados para evitar Layout Shift (CLS) e economizar banda.
+ * * Efeito Blur-in suave (estilo Medium/Vercel) para carregamento de alta fidelidade.
  */
 
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const OptimizedImage = memo(({
+export const OptimizedImage = memo(({
   src,
   alt = '',
   className = '',
   width,
   height,
-  placeholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"%3E%3Crect fill="%23f1f5f9" width="10" height="10"/%3E%3C/svg%3E',
-  fallback = 'https://via.placeholder.com/400x300?text=Imagem+Indisponível',
+  // Pixel transparente em base64 permite que o background do container (Dark/Light) dite a cor inicial
+  placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+  fallback = 'https://via.placeholder.com/400x300/1e293b/475569?text=Missing+Asset',
   eager = false,
   onLoad,
   onError,
@@ -36,7 +37,7 @@ const OptimizedImage = memo(({
           observer.disconnect();
         }
       },
-      { rootMargin: '200px', threshold: 0.01 } // Margem maior para melhor UX
+      { rootMargin: '200px', threshold: 0.01 } // Margem generosa para pré-carregamento suave
     );
 
     observer.observe(imgRef.current);
@@ -46,7 +47,7 @@ const OptimizedImage = memo(({
   return (
     <div
       ref={imgRef}
-      className={`relative overflow-hidden bg-slate-100 dark:bg-slate-800/50 ${className}`}
+      className={`relative overflow-hidden bg-slate-100 dark:bg-slate-800/80 ${className}`}
       style={{
         width: width || '100%',
         aspectRatio: width && height ? `${width}/${height}` : 'auto',
@@ -58,10 +59,11 @@ const OptimizedImage = memo(({
           <motion.div 
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-10 flex items-center justify-center bg-slate-100 dark:bg-slate-800"
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 z-10 flex items-center justify-center bg-slate-100 dark:bg-slate-800/80"
           >
-            {/* Skeleton Pulse */}
-            <div className="w-full h-full animate-pulse bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            {/* Skeleton Pulse Refinado */}
+            <div className="w-full h-full animate-pulse bg-gradient-to-r from-transparent via-slate-200/60 dark:via-slate-700/50 to-transparent" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -71,8 +73,14 @@ const OptimizedImage = memo(({
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
-        onLoad={() => setIsLoaded(true)}
-        onError={() => setHasError(true)}
+        onLoad={() => {
+          setIsLoaded(true);
+          if (onLoad) onLoad();
+        }}
+        onError={() => {
+          setHasError(true);
+          if (onError) onError();
+        }}
         className={`
           w-full h-full object-cover transition-all duration-700 ease-out
           ${isLoaded ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-105 blur-lg'}
@@ -84,9 +92,11 @@ const OptimizedImage = memo(({
   );
 });
 
+OptimizedImage.displayName = 'OptimizedImage';
+
 /**
- * 👤 AVATAR IMAGE PREMIUM
- * Fallback elegante com gradiente e iniciais
+ * 👤 AVATAR IMAGE PREMIUM - Syntax Theme
+ * Fallback tech elegante com gradiente e iniciais
  */
 export const AvatarImage = memo(({ src, name = '', size = 40, className = '', ...props }) => {
   const [hasError, setHasError] = useState(false);
@@ -98,8 +108,8 @@ export const AvatarImage = memo(({ src, name = '', size = 40, className = '', ..
   if (hasError || !src) {
     return (
       <div
-        className={`flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-teal-500 text-white font-black shadow-inner ${className}`}
-        style={{ width: size, height: size, fontSize: size * 0.4 }}
+        className={`flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-cyan-500 text-white font-black shadow-inner border-[1.5px] border-white/20 dark:border-slate-800 ${className}`}
+        style={{ width: size, height: size, fontSize: size * 0.35 }}
         {...props}
       >
         {initials}
@@ -116,11 +126,13 @@ export const AvatarImage = memo(({ src, name = '', size = 40, className = '', ..
       loading="lazy"
       decoding="async"
       onError={() => setHasError(true)}
-      className={`rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm ${className}`}
+      className={`rounded-full object-cover border-[1.5px] border-white dark:border-slate-800 shadow-sm ${className}`}
       style={{ width: size, height: size }}
       {...props}
     />
   );
 });
+
+AvatarImage.displayName = 'AvatarImage';
 
 export default OptimizedImage;

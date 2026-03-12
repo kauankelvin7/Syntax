@@ -1,14 +1,14 @@
 /**
- * 💬 CHAT PANEL
- * * Painel de comunicação em tempo real integrado ao ecossistema Cinesia.
- * - Navegação fluida entre lista e conversa
+ * 💬 CHAT PANEL PREMIUM - Syntax Theme
+ * * Painel de comunicação em tempo real integrado ao ecossistema Syntax.
+ * - Navegação fluida entre lista e conversa (Code Collaboration Style)
  * - Design responsivo (Sidepanel vs Fullscreen)
- * - Indicadores de status e notificações dinâmicas
+ * - Transições de estado com física de mola (High Performance UI)
  */
 
 import React, { memo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, ArrowLeft, Sparkles, MessageSquare } from 'lucide-react';
+import { MessageCircle, X, Terminal, TerminalSquare, MessageSquareCode } from 'lucide-react';
 import { useAuth } from '../../../../contexts/AuthContext-firebase';
 import { useSocial } from '../../context/SocialContext';
 import { useChat } from '../../hooks/useChat';
@@ -40,7 +40,7 @@ const ChatPanel = memo(({ showButton = true }) => {
     const otherUid = conv.participants?.find((uid) => uid !== user.uid);
     if (!otherUid) return;
 
-    const friendData = conv.participantsData?.[otherUid] || { uid: otherUid, displayName: 'Usuário' };
+    const friendData = conv.participantsData?.[otherUid] || { uid: otherUid, displayName: 'Dev User' };
     setActiveFriendData(friendData);
     setActiveFriendStatus(friendsStatus[otherUid] || null);
   }, [activeConversationId, conversations, user, friendsStatus]);
@@ -57,20 +57,20 @@ const ChatPanel = memo(({ showButton = true }) => {
 
   return (
     <>
-      {/* ─── Botão Flutuante (FAB) ─── */}
+      {/* ─── Botão Flutuante (FAB) Syntax Style ─── */}
       {showButton && (
         <motion.button
           onClick={toggleChat}
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          whileHover={{ scale: 1.1 }}
+          whileHover={{ scale: 1.1, y: -4 }}
           whileTap={{ scale: 0.9 }}
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transition-all ${
-            isChatOpen ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
-          } bg-gradient-to-br from-indigo-600 via-indigo-500 to-teal-500 text-white`}
-          aria-label="Abrir mensagens"
+          className={`fixed bottom-6 right-6 w-16 h-16 rounded-[22px] flex items-center justify-center shadow-[0_12px_40px_rgba(79,70,229,0.3)] transition-all ${
+            isChatOpen ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100 z-[100]'
+          } bg-gradient-to-br from-indigo-600 via-indigo-500 to-cyan-500 text-white border-2 border-white/20`}
+          aria-label="Abrir comunicações"
         >
-          <MessageSquare size={24} strokeWidth={2.5} />
+          <MessageSquareCode size={28} strokeWidth={2} />
           {totalUnread > 0 && (
             <div className="absolute -top-1 -right-1">
               <NotificationBadge count={totalUnread} pulse />
@@ -83,22 +83,22 @@ const ChatPanel = memo(({ showButton = true }) => {
       <AnimatePresence>
         {isChatOpen && (
           <>
-            {/* Backdrop Mobile/Tablet */}
+            {/* Backdrop Glassmorphism */}
             <motion.div
-              className="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-[110] md:hidden"
+              className="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-[110] md:backdrop-blur-[2px]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeChat}
             />
 
-            {/* Painel Principal */}
+            {/* Painel Principal (Sidebar Style) */}
             <motion.div
-              className="fixed right-0 top-0 bottom-0 z-[120] w-full md:w-[400px] bg-white dark:bg-slate-950 shadow-[-10px_0_40px_rgba(0,0,0,0.1)] dark:shadow-[-10px_0_40px_rgba(0,0,0,0.4)] flex flex-col border-l border-slate-200/50 dark:border-slate-800/50"
+              className="fixed right-0 top-0 bottom-0 z-[120] w-full md:w-[420px] bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl shadow-[-20px_0_60px_rgba(0,0,0,0.2)] dark:shadow-[-20px_0_60px_rgba(0,0,0,0.5)] flex flex-col border-l border-slate-200 dark:border-slate-800"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 32, stiffness: 350 }}
+              transition={{ type: 'spring', damping: 32, stiffness: 400 }}
             >
               <AnimatePresence mode="wait">
                 {activeConversationId && activeFriendData ? (
@@ -119,7 +119,7 @@ const ChatPanel = memo(({ showButton = true }) => {
                     />
                   </motion.div>
                 ) : (
-                  /* Lista de Conversas */
+                  /* Lista de Conversas (Terminal Style Header) */
                   <motion.div 
                     key="list"
                     initial={{ opacity: 0, x: -20 }}
@@ -127,57 +127,71 @@ const ChatPanel = memo(({ showButton = true }) => {
                     exit={{ opacity: 0, x: -20 }}
                     className="flex-1 flex flex-col h-full"
                   >
-                    {/* Header Premium da Lista */}
-                    <div className="px-6 py-6 border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center border border-indigo-100 dark:border-indigo-800/50">
-                          <MessageCircle size={20} className="text-indigo-600 dark:text-indigo-400" strokeWidth={2.5} />
+                    {/* Header Premium */}
+                    <div className="px-6 py-8 border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded-[14px] bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center border-2 border-indigo-100 dark:border-indigo-800/50 shadow-inner text-indigo-600 dark:text-cyan-400">
+                          <TerminalSquare size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                          <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Mensagens</h2>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                              {conversations.length} Ativa{conversations.length !== 1 ? 's' : ''}
+                          <h2 className="text-[19px] font-black text-slate-900 dark:text-white tracking-tight">Comunicações</h2>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                            <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em]">
+                              {conversations.length} Active_Sessions
                             </p>
                           </div>
                         </div>
                       </div>
                       <button
                         onClick={closeChat}
-                        aria-label="Fechar painel de mensagens"
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-slate-400"
+                        className="w-10 h-10 flex items-center justify-center rounded-[12px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-slate-500 dark:text-slate-400 border border-transparent dark:border-slate-700/50"
                       >
-                        <X size={20} strokeWidth={2.5} />
+                        <X size={20} strokeWidth={3} />
                       </button>
                     </div>
 
                     {/* Lista Scrolável */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50 dark:bg-slate-950">
-                      <ChatList
-                        conversations={conversations}
-                        friendsStatus={friendsStatus}
-                        onSelectConversation={handleSelectConversation}
-                      />
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                      <div className="p-3">
+                         <ChatList
+                          conversations={conversations}
+                          friendsStatus={friendsStatus}
+                          onSelectConversation={handleSelectConversation}
+                        />
+                      </div>
                       
-                      {/* Estado Vazio Amigável */}
+                      {/* Empty State (Logs Style) */}
                       {conversations.length === 0 && (
-                        <div className="flex flex-col items-center justify-center h-full p-10 text-center">
-                          <div className="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center mb-4 border border-slate-200 dark:border-slate-800">
-                            <Sparkles size={28} className="text-slate-300" />
-                          </div>
-                          <p className="text-sm font-bold text-slate-400">Nenhuma conversa iniciada.</p>
-                          <p className="text-[12px] text-slate-300 mt-1 uppercase tracking-tighter">Escolha um amigo para começar!</p>
+                        <div className="flex flex-col items-center justify-center h-[60%] p-10 text-center opacity-60">
+                          <Terminal size={40} className="text-slate-300 dark:text-slate-700 mb-4" strokeWidth={1.5} />
+                          <p className="text-sm font-black text-slate-400 dark:text-slate-600 tracking-tight">{`> No_Logs_Available`}</p>
+                          <p className="text-[11px] text-slate-400 mt-2 uppercase tracking-widest leading-relaxed">Conecte-se a outros desenvolvedores para iniciar o streaming.</p>
                         </div>
                       )}
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Footer sutil estilo status bar de IDE */}
+              <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/30 dark:bg-slate-900/20">
+                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">
+                  Syntax Protocol v2.0.4 • Encrypted
+                </p>
+              </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { 
+          background: rgba(148, 163, 184, 0.2); 
+          border-radius: 10px; 
+        }
+      `}</style>
     </>
   );
 });

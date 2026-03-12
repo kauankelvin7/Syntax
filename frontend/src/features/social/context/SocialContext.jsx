@@ -1,11 +1,9 @@
 /**
- * @file SocialContext.jsx
- * @description Contexto global do sistema social. Centraliza:
- * - Total de mensagens não lidas (badge global)
- * - Pedidos de amizade pendentes (badge)
- * - Estado do painel de chat (aberto/fechado)
- * - Desafio ativo
- * - Presença do usuário
+ * 🛰️ SOCIAL CONTEXT - Syntax OS Core
+ * @description Orquestrador global do ecossistema social.
+ * - Centraliza: Telemetria de mensagens (Unread), Handshakes (Requests), 
+ * Presença de Node (Status) e Sessões de Duelo.
+ * - Lógica: Determinística e reativa (Firebase Realtime/Firestore).
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
@@ -29,7 +27,7 @@ export const SocialProvider = ({ children }) => {
   const { user } = useAuth();
   const location = useLocation();
 
-  // Estado global
+  // ─── Global Social State ───
   const [totalUnread, setTotalUnread] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -39,17 +37,17 @@ export const SocialProvider = ({ children }) => {
   const presenceInitialized = useRef(false);
   const presenceCleanup = useRef(null);
 
-  // Inicializa presença e perfil público
+  // ─── Node Presence Management ───
   useEffect(() => {
     if (!user?.uid) {
       presenceInitialized.current = false;
       return;
     }
 
-    // Garante que o perfil público existe
+    // Garante que o perfil público está indexado no DB
     friendsService.ensureUserProfile(user);
 
-    // Inicializa presença (online/offline automático)
+    // Inicializa presença do Node (Handshake Online/Offline)
     if (!presenceInitialized.current) {
       presenceCleanup.current = presenceService.initPresence(
         user.uid,
@@ -68,22 +66,24 @@ export const SocialProvider = ({ children }) => {
       }
       presenceInitialized.current = false;
     };
-  }, [user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.uid]);
 
-  // Atualiza página atual no sistema de presença
+  // Atualiza telemetria de página (Tracing)
   useEffect(() => {
     if (!user?.uid || !presenceInitialized.current) return;
     const page = location.pathname.replace('/', '') || 'home';
     presenceService.setCurrentPage(user.uid, page);
   }, [location.pathname, user?.uid]);
 
-  // Assina total de não lidas (chat)
+  // ─── Data Stream Subscriptions ───
+
+  // Assina stream de mensagens não lidas
   useEffect(() => {
     if (!user?.uid) return;
     return chatService.subscribeTotalUnread(user.uid, setTotalUnread);
   }, [user?.uid]);
 
-  // Assina pedidos pendentes
+  // Assina stream de conexões pendentes
   useEffect(() => {
     if (!user?.uid) return;
     return friendsService.subscribePendingRequests(user.uid, (requests) => {
@@ -91,7 +91,8 @@ export const SocialProvider = ({ children }) => {
     });
   }, [user?.uid]);
 
-  // Ações
+  // ─── Interface Control Actions ───
+
   const openChat = useCallback((conversationId = null) => {
     setIsChatOpen(true);
     if (conversationId) setActiveConversationId(conversationId);
