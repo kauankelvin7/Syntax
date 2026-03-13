@@ -11,7 +11,7 @@ import {
   BookOpen, CreditCard, FileCode2, Calendar, Flame, Rocket,
   ChevronLeft, ChevronRight, Sun, Moon, Trophy, Sparkles,
   ArrowRight, MessageSquareCode, Compass, User, Zap, Cpu, Terminal,
-  FolderPlus
+  FolderPlus, X, Check
 } from 'lucide-react';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
