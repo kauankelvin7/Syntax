@@ -1,9 +1,9 @@
 /**
- * 🎯 TEST_SUITE_ENGINE (Simulado Infinito) — Syntax Theme Premium
- * * Geração autônoma de testes via LLM (Gemini 2.5/2.0 Fallback).
+ * 🎯 TEST_SUITE_ENGINE 
+ * * Geração autônoma de testes via LLM (Gemini 2.5-flash).
  * - Features: PDF Data Extraction, Real-time Feedback, Performance Analytics.
  * - Design: QA Monitoring Interface (Slate-950 / Cyan / Indigo).
- * - v4.6: Fixed Gemini Models (2.5-flash + 2.0-flash + 2.0-flash-lite fallback).
+ * - v4.7: Fixed Gemini Model → gemini-2.5-flash only.
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
@@ -45,11 +45,8 @@ import { Input } from '../components/ui/Input';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ✅ CORRIGIDO: modelos atualizados — 1.5-flash e 1.5-pro foram descontinuados
 const MODEL_CANDIDATES = [
-  'gemini-2.5-flash-preview-04-17',
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-lite',
+  'gemini-2.5-flash',
 ];
 
 /* ═══════════════════════════════════════════
@@ -205,7 +202,6 @@ function Simulado() {
     } finally { setIsExtractingPdf(false); }
   };
 
-  // ✅ CORRIGIDO: fallback melhorado com retry em 429 e log de erro por modelo
   const generateWithFallback = async (prompt) => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     const genAI = new GoogleGenerativeAI(apiKey);
@@ -221,16 +217,14 @@ function Simulado() {
         lastError = err;
         const s = String(err?.status || err?.message || '');
         const is429 = s.includes('429');
-        const is404 = s.includes('404');
 
         console.warn(`[Simulado] Modelo ${modelName} falhou:`, s);
 
-        // 429 no primeiro modelo → aguarda antes de tentar o próximo
-        if (is429 && i === 0) {
+        // 429 → aguarda antes de tentar novamente
+        if (is429) {
           await new Promise(r => setTimeout(r, 3000));
         }
 
-        // Continua para o próximo modelo em qualquer erro
         continue;
       }
     }

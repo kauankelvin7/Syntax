@@ -143,8 +143,9 @@ service cloud.firestore {
     // ============================================================
 
     // -- USUÁRIOS (perfil público para busca) --
-    // O perfil /users/{userId} original permite apenas owner.
-    // Para buscas sociais, permitimos leitura autenticada de campos públicos.
+    // O perfil /users/{userId} original permite apenas owner para escrita.
+    // Para buscas sociais, permitimos leitura autenticada.
+    // IMPORTANTE: Evitar salvar PII (email, etc) no documento principal.
     match /users/{userId} {
       allow read: if isAuthenticated();
     }
