@@ -12,6 +12,15 @@
  * - handleRetryConnection: limpa estado corretamente antes de reconectar
  * - showHistorico: invalida cache antes de listar para sempre mostrar dados frescos
  * - System prompt: melhorado com instruções de quiz, próximo passo e humor
+ *
+ * CORREÇÕES v6.1:
+ * - GEMINI_MODELS: removido gemini-1.5-pro (descontinuado/404), adicionado gemini-2.0-flash-lite
+ * - initializeGemini: loop de fallback corrigido — retry com backoff em 429, continua em 404
+ *
+ * CORREÇÕES v6.2:
+ * - initializeGemini: retryCount substituído por modelRetries local — backoff agora escala corretamente (2s→5s→10s)
+ * - addSystemMessage adicionado nas deps do useCallback de initializeGemini — evita stale closure em StrictMode
+ * - gerarResumoSessao: gerandoResumoRef evita chamadas duplicadas e perda de resumo ao fechar
  */
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
@@ -46,10 +55,11 @@ const MAX_MESSAGES_PER_MINUTE = 15;
 const MEMORY_MAX_MESSAGES     = 20;
 const MAX_HISTORICO_GEMINI    = 10;
 
+// ✅ CORRIGIDO v6.1: gemini-1.5-pro descontinuado → substituído por gemini-2.0-flash-lite
 const GEMINI_MODELS = [
-  { name: 'gemini-2.5-flash', description: 'Latest' },
-  { name: 'gemini-2.0-flash', description: 'Stable' },
-  { name: 'gemini-1.5-pro',   description: 'Deep'   },
+  { name: 'gemini-2.5-flash-preview-04-17', description: 'Latest'   },
+  { name: 'gemini-2.0-flash',               description: 'Stable'   },
+  { name: 'gemini-2.0-flash-lite',          description: 'Fallback' },
 ];
 
 const sanitizarTexto = (t) =>
@@ -138,22 +148,22 @@ const QUICK_ACTIONS = {
     { icon: <GitBranch size={12} />, label: 'ADR',            prompt: 'Ajude a documentar uma decisão de arquitetura (ADR)' },
   ],
   '/quadro': [
-    { icon: <Layers size={12} />,   label: 'Diagrama C4',   prompt: 'Me ajude a criar um diagrama C4' },
-    { icon: <Database size={12} />, label: 'Schema DB',     prompt: 'Vamos desenhar o schema do banco de dados' },
-    { icon: <GitBranch size={12} />,label: 'Fluxo de dados',prompt: 'Mapear o fluxo de dados da aplicação' },
+    { icon: <Layers size={12} />,    label: 'Diagrama C4',    prompt: 'Me ajude a criar um diagrama C4' },
+    { icon: <Database size={12} />,  label: 'Schema DB',      prompt: 'Vamos desenhar o schema do banco de dados' },
+    { icon: <GitBranch size={12} />, label: 'Fluxo de dados', prompt: 'Mapear o fluxo de dados da aplicação' },
   ],
   '/tarefas': [
-    { icon: <Rocket size={12} />, label: 'Sprint',     prompt: 'Me ajude a planejar o próximo sprint' },
-    { icon: <Hash size={12} />,   label: 'Estimativas',prompt: 'Me ajude a estimar as tasks do backlog' },
-    { icon: <Shield size={12} />, label: 'Riscos',     prompt: 'Identifique os riscos técnicos do projeto' },
+    { icon: <Rocket size={12} />, label: 'Sprint',      prompt: 'Me ajude a planejar o próximo sprint' },
+    { icon: <Hash size={12} />,   label: 'Estimativas', prompt: 'Me ajude a estimar as tasks do backlog' },
+    { icon: <Shield size={12} />, label: 'Riscos',      prompt: 'Identifique os riscos técnicos do projeto' },
   ],
   '/materias': [
     { icon: <Layers size={12} />,    label: 'Nova matéria', prompt: 'Quero criar uma nova matéria, me ajude a organizar' },
     { icon: <BarChart2 size={12} />, label: 'Progresso',    prompt: 'Como está meu progresso de estudos?' },
   ],
   '/analytics': [
-    { icon: <BarChart2 size={12} />, label: 'Interpretar',  prompt: 'Me ajude a interpretar minhas métricas de estudo' },
-    { icon: <Zap size={12} />,       label: 'Melhorar',     prompt: 'Como posso melhorar meu desempenho?' },
+    { icon: <BarChart2 size={12} />, label: 'Interpretar', prompt: 'Me ajude a interpretar minhas métricas de estudo' },
+    { icon: <Zap size={12} />,       label: 'Melhorar',    prompt: 'Como posso melhorar meu desempenho?' },
   ],
 };
 
@@ -233,7 +243,7 @@ const descreverAcao = (a) => {
 };
 
 /* ─────────────────────────────────────────────────────
-   ANÁLISE DE ERRO (do KakaBot — muito melhor)
+   ANÁLISE DE ERRO
 ───────────────────────────────────────────────────── */
 const analyzeError = (error) => {
   const e = (typeof error === 'string' ? error : error?.message || String(error)).toLowerCase();
@@ -296,7 +306,6 @@ const ReactionBar = ({ index, reacoes, setReacoes, message, sendMessageRef, sess
             sendMessageRef.current?.(`Explica de forma diferente: "${message.content?.substring(0,80)}..."`);
           } else if (r.valor === 'salvar' && uid) {
             try {
-              // ✅ CORRIGIDO: path adabot_salvos (era ada_salvos)
               await setDoc(doc(db,'users',uid,'adabot_salvos',`salvo_${Date.now()}`), cleanUndefined({
                 content:   message.content,
                 timestamp: message.timestamp || new Date().toISOString(),
@@ -376,7 +385,7 @@ const buildSystemPrompt = (memoria, dadosSistema, pageContext) => {
   const materias  = dadosSistema?.materias?.map(m => m.nome).join(', ') || 'nenhuma ainda';
   const stack     = pref.areasDeInteresse?.join(', ') || 'não identificada';
 
-  return `Você é a Ada, assistente de estudos em engenharia de software da plataforma Syntax. Age como engenheira sênior: paciente, direta e didática. 
+  return `Você é a Ada, assistente de estudos em engenharia de software da plataforma Syntax. Age como engenheira sênior: paciente, direta e didática.
 
 ESPECIALIDADES:
 - Algoritmos e estruturas de dados (Big O incluso)
@@ -472,6 +481,8 @@ const AdaBot = () => {
   const loadingMaisRef       = useRef(false);
   const inicializadoRef      = useRef(false);
   const lastMessageTimeRef   = useRef(0);
+  // ✅ CORRIGIDO v6.2: evita chamadas duplicadas e perda de resumo ao fechar
+  const gerandoResumoRef     = useRef(false);
 
   /* ── Voice ── */
   const handleVoiceFinalResult = useCallback((t) => {
@@ -496,7 +507,6 @@ const AdaBot = () => {
   const carregarMemoria = useCallback(async () => {
     if (!uid) return;
     try {
-      // ✅ CORRIGIDO: path adabot_memoria (consistente com o sistema)
       const snap = await getDoc(doc(db, 'users', uid, 'adabot_memoria', 'historico'));
       if (snap.exists()) {
         const d = snap.data();
@@ -591,8 +601,12 @@ const AdaBot = () => {
   /* ════════════════════════════════════════
      RESUMO DE SESSÃO
   ════════════════════════════════════════ */
+  // ✅ CORRIGIDO v6.2: gerandoResumoRef evita duplicatas e perda ao fechar
   const gerarResumoSessao = useCallback(async () => {
+    if (gerandoResumoRef.current) return;
     if (!sessaoAtual || (sessaoAtual.mensagens || []).length < 4) return;
+    gerandoResumoRef.current = true;
+
     const texto = (sessaoAtual.mensagens || [])
       .filter(m => !m.isSystem)
       .slice(-20)
@@ -602,12 +616,11 @@ const AdaBot = () => {
     try {
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const model = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY)
-        .getGenerativeModel({ model: 'gemini-2.5-flash' });
+        .getGenerativeModel({ model: 'gemini-2.5-flash-preview-04-17' });
       const result = await model.generateContent(
         `Em 2-3 frases, resuma o que foi discutido nesta conversa técnica. Mencione linguagens, patterns ou decisões.\n${texto}`
       );
       const resumo = result.response.text().trim();
-      // ✅ CORRIGIDO: path adabot_sessoes (era ada_sessoes)
       await setDoc(
         doc(db, 'users', uid, 'adabot_sessoes', sessaoAtual.id),
         cleanUndefined({ resumoAutoGerado: resumo, resumoGeradoEm: new Date().toISOString() }),
@@ -615,6 +628,8 @@ const AdaBot = () => {
       );
     } catch {
       // Resumo é opcional — falha silenciosa
+    } finally {
+      gerandoResumoRef.current = false;
     }
   }, [sessaoAtual, uid]);
 
@@ -639,6 +654,7 @@ const AdaBot = () => {
   /* ════════════════════════════════════════
      GEMINI — INIT
   ════════════════════════════════════════ */
+  // ✅ CORRIGIDO v6.2: addSystemMessage nas deps — evita stale closure em StrictMode
   const initializeGemini = useCallback(async (retryCount = 0, sessaoParaContexto = null) => {
     setConnectionStatus('connecting');
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -650,34 +666,53 @@ const AdaBot = () => {
       let ctx = '';
       try { ctx = await construirContextoHistorico(); } catch {}
 
+      // ✅ CORRIGIDO v6.2: modelRetries local — backoff escala corretamente 2s → 5s → 10s
+      // (antes retryCount era parâmetro externo e nunca incrementava dentro do loop)
+      let modelRetries = 0;
+
       for (let i = 0; i < GEMINI_MODELS.length; i++) {
         try {
           const model = genAI.getGenerativeModel({
             model: GEMINI_MODELS[i].name,
             generationConfig: { temperature: 0.7, topP: 0.8, topK: 40, maxOutputTokens: 4096 },
           });
-          // Usa sessão fornecida (após carregar/criar) ou a atual
+
+          // Teste leve para confirmar que o modelo responde antes de criar o chat
+          await model.generateContent('ping');
+
           chatRef.current = createChatWithPersona(model, ctx, sessaoParaContexto);
           setActiveModelName(GEMINI_MODELS[i].name);
           setConnectionStatus('connected');
           return;
         } catch (err) {
-          if (err.message?.includes('429') || err.status === 429) throw err;
-          if (i === GEMINI_MODELS.length - 1) throw err;
+          const s = String(err?.status || err?.message || '');
+          const is429 = s.includes('429');
+
+          console.warn(`[Ada] Modelo ${GEMINI_MODELS[i].name} falhou:`, s);
+
+          // 429 → backoff escalado e retry no mesmo modelo (máx 3x)
+          if (is429 && modelRetries < 3) {
+            const wait = [2000, 5000, 10000][modelRetries];
+            addSystemMessage(`⏳ Rate limit. Aguardando ${wait / 1000}s... (${modelRetries + 1}/3)`, 'info');
+            await new Promise(r => setTimeout(r, wait));
+            modelRetries++;
+            i--; // retry no mesmo modelo
+            continue;
+          }
+
+          // Esgotou retries ou outro erro → reseta contador e tenta próximo modelo
+          modelRetries = 0;
+          if (i < GEMINI_MODELS.length - 1) continue;
+
+          // Todos os modelos falharam
+          throw new Error('All_Models_Unavailable');
         }
       }
     } catch (error) {
-      const is429 = error.message?.includes('429') || error.status === 429;
-      if (is429 && retryCount < 3) {
-        const wait = [0, 2000, 5000, 10000][retryCount + 1];
-        addSystemMessage(`⏳ Rate limit. Aguardando ${wait / 1000}s... (${retryCount + 1}/3)`, 'info');
-        setTimeout(() => initializeGemini(retryCount + 1, sessaoParaContexto), wait);
-      } else {
-        handleConnectionError(error);
-      }
+      handleConnectionError(error);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [construirContextoHistorico, memoriaUsuario, dadosSistema]);
+  }, [construirContextoHistorico, memoriaUsuario, dadosSistema, addSystemMessage]);
 
   /* Precisa ser função regular pois é chamada dentro de initializeGemini antes de ela estar definida no closure */
   const createChatWithPersona = (model, ctx = '', sessaoOverride = null) => {
@@ -686,7 +721,6 @@ const AdaBot = () => {
       .replace(/undefined|null/g, '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFD]/g, '').trim();
     if (sys.length > 12000) sys = sys.substring(0, 12000) + '\n[truncado]';
 
-    // ✅ CORRIGIDO: usa sessaoOverride quando fornecida (caso de carregarSessao / novaSessao)
     const sessaoRef = sessaoOverride || sessaoAtual;
     const remembered = (sessaoRef?.mensagens || [])
       .filter(m => !m.isSystem && typeof m.content === 'string' && m.content.trim())
@@ -754,7 +788,6 @@ const AdaBot = () => {
     }
   }, [isOpen, sessaoAtual, memoryLoaded, connectionStatus, verificarProatividade]);
 
-  // ✅ CORRIGIDO: initializeGemini após sessão estar disponível
   useEffect(() => {
     if (isOpen && connectionStatus === 'disconnected' && memoryLoaded && sessaoAtual && !isLoadingContext) {
       initializeGemini(0, sessaoAtual);
@@ -781,7 +814,6 @@ const AdaBot = () => {
     if (isOpen && connectionStatus === 'connected') setTimeout(() => inputRef.current?.focus(), 300);
   }, [isOpen, connectionStatus]);
 
-  // ✅ CORRIGIDO: invalida cache antes de listar para mostrar dados frescos
   useEffect(() => {
     if (showHistorico) {
       listarSessoes().then(lista => setSessoes([...lista]));
@@ -849,8 +881,8 @@ const AdaBot = () => {
       } catch { /* não crítico */ }
     }
 
-    const humor       = detectarHumor(userMessage);
-    const instrucao   = instrucaoHumor[humor] || '';
+    const humor     = detectarHumor(userMessage);
+    const instrucao = instrucaoHumor[humor] || '';
 
     try {
       const msgLimpa = (instrucao
@@ -861,10 +893,10 @@ const AdaBot = () => {
       const result         = await chatRef.current.sendMessage(msgLimpa);
       const textoCompleto  = result.response.text();
 
-      const { textoLimpo, acoes }               = extrairAcoes(textoCompleto);
-      let tf                                     = sanitizarTexto(textoLimpo);
-      const { proximoPasso, textoSemPasso }      = processarProximoPasso(tf); tf = textoSemPasso;
-      const { textoLimpo: tq, quizMeta }         = processarQuiz(tf);         tf = tq;
+      const { textoLimpo, acoes }          = extrairAcoes(textoCompleto);
+      let tf                               = sanitizarTexto(textoLimpo);
+      const { proximoPasso, textoSemPasso} = processarProximoPasso(tf); tf = textoSemPasso;
+      const { textoLimpo: tq, quizMeta }   = processarQuiz(tf);         tf = tq;
 
       if (quizMeta) {
         if      (quizMeta.tipo === 'inicio')  setQuizAtivo({ tema: quizMeta.tema, atual: 0, total: 5 });
@@ -947,12 +979,10 @@ const AdaBot = () => {
     setIsOpen(false);
   };
 
-  // ✅ CORRIGIDO: limpa chatRef e reconstrói estado completo antes de reconectar
   const handleRetryConnection = () => {
     chatRef.current = null;
     setActiveModelName(null);
     setConnectionStatus('disconnected');
-    // Remove última system message de erro para não poluir
     setMensagensVisiveis(prev => {
       const last = prev[prev.length - 1];
       if (last?.isSystem && last?.systemType === 'error') return prev.slice(0, -1);
@@ -961,14 +991,12 @@ const AdaBot = () => {
     initializeGemini(0, sessaoAtual);
   };
 
-  // ✅ CORRIGIDO: nova sessão reinicializa Gemini com contexto limpo
   const handleNovaSessao = async () => {
     if (mensagensVisiveis.length <= 1) {
       const nova = await novaSessao(memoriaUsuario, dadosSistema);
       if (nova) {
         chatRef.current = null;
         setConnectionStatus('disconnected');
-        // initializeGemini será disparado pelo useEffect que escuta sessaoAtual
       }
       return;
     }
@@ -980,18 +1008,14 @@ const AdaBot = () => {
     gerarResumoSessao();
     const nova = await novaSessao(memoriaUsuario, dadosSistema);
     if (nova) {
-      // ✅ Reinicializa o Gemini com sessão limpa
       chatRef.current = null;
       setConnectionStatus('disconnected');
     }
   };
 
-  // ✅ CORRIGIDO: carregar sessão do histórico reinicializa Gemini com histórico certo
   const handleCarregarSessao = async (sessaoId) => {
     setShowHistorico(false);
     await carregarSessao(sessaoId);
-    // O useEffect que escuta mudanças em sessaoAtual + connectionStatus === 'disconnected'
-    // cuidará de chamar initializeGemini com a nova sessão.
     chatRef.current = null;
     setConnectionStatus('disconnected');
   };
@@ -1018,9 +1042,10 @@ const AdaBot = () => {
 
   const formatModel = (n) =>
     !n ? 'Gemini'
-    : n.includes('2.5-flash') ? '2.5 Flash'
-    : n.includes('2.0-flash') ? '2.0 Flash'
-    : n.includes('1.5-pro')   ? '1.5 Pro'
+    : n.includes('2.5-flash')     ? '2.5 Flash'
+    : n.includes('2.0-flash-lite') ? '2.0 Lite'
+    : n.includes('2.0-flash')     ? '2.0 Flash'
+    : n.includes('1.5-pro')       ? '1.5 Pro'
     : n;
 
   /* ═══════════════════════════════════════
@@ -1112,7 +1137,6 @@ const AdaBot = () => {
                       {connectionStatus === 'disconnected' &&
                         <span className="text-slate-600 text-[11px]">Engenheira de Software IA</span>}
                     </div>
-                    {/* Página atual */}
                     <span className="text-slate-700 text-[10px] flex items-center gap-1 mt-0.5">
                       <MapPin size={8} />
                       {PAGE_LABELS[location.pathname] || 'App'}
@@ -1129,9 +1153,9 @@ const AdaBot = () => {
                     </motion.button>
                   )}
                   {[
-                    { icon:<History size={14}/>,                    fn:() => setShowHistorico(true), tip:'Histórico'   },
-                    { icon:<SquarePen size={14}/>,                  fn:handleNovaSessao,             tip:'Nova sessão' },
-                    { icon:<X size={14} strokeWidth={2.5}/>,        fn:handleFechar,                 tip:'Fechar'      },
+                    { icon:<History size={14}/>,             fn:() => setShowHistorico(true), tip:'Histórico'   },
+                    { icon:<SquarePen size={14}/>,           fn:handleNovaSessao,             tip:'Nova sessão' },
+                    { icon:<X size={14} strokeWidth={2.5}/>, fn:handleFechar,                 tip:'Fechar'      },
                   ].map((b, i) => (
                     <button key={i} onClick={b.fn} aria-label={b.tip}
                       className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-300 transition-colors"
@@ -1415,7 +1439,6 @@ const AdaBot = () => {
                             <p className="text-[11px] text-slate-700 mt-1">Suas conversas aparecerão aqui</p>
                           </div>
                         ) : sessoes.map(s => (
-                          // ✅ CORRIGIDO: chama handleCarregarSessao que reinicializa Gemini
                           <button key={s.id}
                             onClick={() => handleCarregarSessao(s.id)}
                             className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors"
@@ -1471,7 +1494,6 @@ const AdaBot = () => {
                             style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)' }}>
                             Cancelar
                           </button>
-                          {/* ✅ CORRIGIDO: usa confirmarNovaSessao que reinicializa Gemini */}
                           <button onClick={confirmarNovaSessao}
                             className="flex-1 py-2.5 rounded-xl text-[12px] font-semibold text-white hover:opacity-90 transition-opacity"
                             style={{ background:'linear-gradient(135deg,#4f46e5,#0891b2)' }}>
@@ -1553,7 +1575,7 @@ const AdaBot = () => {
                         onChange={e => !isListening && setInputValue(e.target.value)}
                         onKeyDown={handleKeyPress}
                         placeholder={
-                          isListening                       ? 'Ouvindo...'
+                          isListening                        ? 'Ouvindo...'
                           : connectionStatus !== 'connected' ? 'Aguardando conexão...'
                           : 'Pergunte ou peça algo à Ada...'
                         }
@@ -1561,13 +1583,13 @@ const AdaBot = () => {
                         rows={1}
                         className="flex-1 bg-transparent border-none text-[13.5px] outline-none resize-none disabled:opacity-40 disabled:cursor-not-allowed py-1.5"
                         style={{
-                          minHeight:   36,
-                          maxHeight:   120,
-                          lineHeight:  1.65,
-                          color:       '#e2e8f0',
-                          caretColor:  '#818cf8',
-                          fontFamily:  'inherit',
-                          paddingTop:  '7px',
+                          minHeight:    36,
+                          maxHeight:    120,
+                          lineHeight:   1.65,
+                          color:        '#e2e8f0',
+                          caretColor:   '#818cf8',
+                          fontFamily:   'inherit',
+                          paddingTop:   '7px',
                           paddingBottom:'7px',
                         }}
                       />

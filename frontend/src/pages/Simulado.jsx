@@ -1,9 +1,9 @@
 /**
  * 🎯 TEST_SUITE_ENGINE (Simulado Infinito) — Syntax Theme Premium
- * * Geração autônoma de testes via LLM (Gemini 2.5/1.5 Fallback).
+ * * Geração autônoma de testes via LLM (Gemini 2.5/2.0 Fallback).
  * - Features: PDF Data Extraction, Real-time Feedback, Performance Analytics.
  * - Design: QA Monitoring Interface (Slate-950 / Cyan / Indigo).
- * - v4.5: Fixed JSON Parsing & Multi-Model Ingestion.
+ * - v4.6: Fixed Gemini Models (2.5-flash + 2.0-flash + 2.0-flash-lite fallback).
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
@@ -37,7 +37,6 @@ import {
 } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import * as pdfjsLib from 'pdfjs-dist/build/pdf';
-// pdfjs-dist worker import removido; usar URL
 import { salvarSimulado } from '../services/firebaseService';
 import { Z } from '../constants/zIndex';
 import { useAuth } from '../contexts/AuthContext-firebase';
@@ -46,7 +45,12 @@ import { Input } from '../components/ui/Input';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const MODEL_CANDIDATES = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+// ✅ CORRIGIDO: modelos atualizados — 1.5-flash e 1.5-pro foram descontinuados
+const MODEL_CANDIDATES = [
+  'gemini-2.5-flash-preview-04-17',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+];
 
 /* ═══════════════════════════════════════════
    PROMPT ENGINEERING (Preservado e Adaptado)
@@ -178,7 +182,7 @@ function Simulado() {
   }, [fase, historicoSalvo, questoes, respostas, tema, timeLeft, timerDuration, user]);
 
   /* ═══════════════════════════════════════════
-     PDF & IA LOGIC (Lógica Intacta)
+     PDF & IA LOGIC
      ═══════════════════════════════════════════ */
 
   const extractTextFromPdf = async (file) => {
@@ -196,21 +200,41 @@ function Simulado() {
       setPdfText(cleaned);
       return cleaned;
     } catch (err) {
-      toast.error('Fail_to_Extract_Buffer.');
+      console.error('Erro ao extrair PDF:', err);
       throw err;
     } finally { setIsExtractingPdf(false); }
   };
 
+  // ✅ CORRIGIDO: fallback melhorado com retry em 429 e log de erro por modelo
   const generateWithFallback = async (prompt) => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     const genAI = new GoogleGenerativeAI(apiKey);
-    for (const modelName of MODEL_CANDIDATES) {
+    let lastError;
+
+    for (let i = 0; i < MODEL_CANDIDATES.length; i++) {
+      const modelName = MODEL_CANDIDATES[i];
       try {
         const model = genAI.getGenerativeModel({ model: modelName });
         const result = await model.generateContent(prompt);
         return result.response.text();
-      } catch { continue; }
+      } catch (err) {
+        lastError = err;
+        const s = String(err?.status || err?.message || '');
+        const is429 = s.includes('429');
+        const is404 = s.includes('404');
+
+        console.warn(`[Simulado] Modelo ${modelName} falhou:`, s);
+
+        // 429 no primeiro modelo → aguarda antes de tentar o próximo
+        if (is429 && i === 0) {
+          await new Promise(r => setTimeout(r, 3000));
+        }
+
+        // Continua para o próximo modelo em qualquer erro
+        continue;
+      }
     }
+
     throw new Error('All_Models_Unavailable');
   };
 
@@ -413,6 +437,13 @@ function Simulado() {
                     ))}
                   </div>
                 </div>
+
+                {error && (
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[12px] font-bold">
+                    <AlertTriangle size={16} className="shrink-0" />
+                    {error}
+                  </div>
+                )}
 
                 <Button onClick={gerarQuestoes} disabled={isLoading || isExtractingPdf || (activeTab === 'tema' ? !tema.trim() : !pdfText)} className="w-full h-16 bg-indigo-600 !rounded-[20px] font-black uppercase tracking-[0.2em] text-[12px] sm:text-[13px] shadow-2xl shadow-indigo-600/20">
                   {isLoading ? 'Gerando questões...' : 'Iniciar Simulado'}

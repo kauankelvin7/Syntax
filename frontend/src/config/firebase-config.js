@@ -19,7 +19,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore, terminate } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, terminate } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getDatabase } from 'firebase/database';
 import { getAnalytics, isSupported } from 'firebase/analytics';
@@ -62,8 +62,17 @@ export const auth = getAuth(app);
 /** Provider de OAuth para login com Google */
 export const googleProvider = new GoogleAuthProvider();
 
-/** Instância do Firestore — banco principal da aplicação */
-export const db = getFirestore(app);
+/**
+ * Instância do Firestore — banco principal da aplicação.
+ * ✅ CORRIGIDO: trocado getFirestore() por initializeFirestore() com
+ * experimentalForceLongPolling: true para eliminar o erro 400 do WebChannel
+ * (Firestore RPC 'Listen' stream transport errored).
+ * persistentLocalCache() adiciona cache offline automático.
+ */
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache(),
+  experimentalForceLongPolling: true,
+});
 
 /**
  * Instância do Firebase Storage — usada para upload de imagens de perfil.
@@ -104,4 +113,4 @@ export async function restartFirestore() {
   } catch {
     window.location.reload();
   }
-}
+} 
