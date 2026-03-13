@@ -9,6 +9,7 @@
 import React, { memo, useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Swords, Loader2, Zap, WifiOff, ArrowLeft, Terminal } from 'lucide-react';
+import { Z } from '../../../../constants/zIndex';
 import ChallengeQuestion from './ChallengeQuestion';
 import ChallengeScoreboard from './ChallengeScoreboard';
 import ChallengeResults from './ChallengeResults';
@@ -65,7 +66,7 @@ const ChallengeRoom = memo(({ challengeId, currentUserId, onClose }) => {
   // ─── TELA 1: LOADING (Warm-up Tech) ───
   if (loading) {
     return (
-      <div className="fixed inset-0 z-[110] bg-slate-900 flex items-center justify-center">
+      <div className="fixed inset-0 bg-slate-900 flex items-center justify-center" style={{ zIndex: Z.modal }}>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/40 via-slate-900 to-slate-950" />
         <div className="relative text-center flex flex-col items-center">
           <div className="relative w-24 h-24 mb-6">
@@ -84,7 +85,7 @@ const ChallengeRoom = memo(({ challengeId, currentUserId, onClose }) => {
   // ─── TELA 2: ERROR / NOT FOUND ───
   if (!challenge) {
     return (
-      <div className="fixed inset-0 z-[110] bg-slate-900 flex items-center justify-center">
+      <div className="fixed inset-0 bg-slate-900 flex items-center justify-center" style={{ zIndex: Z.modal }}>
         <div className="text-center px-6 w-full max-w-sm">
           <div className="w-20 h-20 bg-slate-800 rounded-[24px] flex items-center justify-center mx-auto mb-6 border border-slate-700 shadow-inner">
              <WifiOff size={32} className="text-slate-400" strokeWidth={2} />
@@ -107,7 +108,7 @@ const ChallengeRoom = memo(({ challengeId, currentUserId, onClose }) => {
   // ─── TELA 3: AGUARDANDO OPONENTE (Network Radar) ───
   if (challenge.status === 'pending') {
     return (
-      <div className="fixed inset-0 z-[110] bg-slate-900 flex flex-col items-center justify-center">
+      <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center" style={{ zIndex: Z.modal }}>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-900 to-slate-950 pointer-events-none" />
         
         <div className="relative text-center px-6 w-full max-w-sm">
@@ -162,7 +163,8 @@ const ChallengeRoom = memo(({ challengeId, currentUserId, onClose }) => {
   // ─── TELA 5: ARENA (JOGO EM ANDAMENTO) ───
   return (
     <motion.div
-      className="fixed inset-0 z-[110] bg-slate-50 dark:bg-slate-950 flex flex-col"
+      className="fixed inset-0 bg-slate-50 dark:bg-slate-950 flex flex-col"
+      style={{ zIndex: Z.modal }}
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}

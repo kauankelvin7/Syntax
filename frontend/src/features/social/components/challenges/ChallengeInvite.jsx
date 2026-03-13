@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../../../../contexts/AuthContext-firebase';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../../../../config/firebase-config';
+import { Z } from '../../../../constants/zIndex';
 import { getInitials, getAvatarColor } from '../../utils/chatHelpers';
 
 const ChallengeInvite = memo(({ isOpen, onClose, friend, onSendChallenge }) => {
@@ -88,7 +89,8 @@ const ChallengeInvite = memo(({ isOpen, onClose, friend, onSendChallenge }) => {
         <>
           {/* Backdrop Escuro */}
           <motion.div
-            className="fixed inset-0 bg-slate-900/70 dark:bg-black/80 backdrop-blur-md z-[100]"
+            className="fixed inset-0 bg-slate-900/70 dark:bg-black/80 backdrop-blur-md"
+            style={{ zIndex: Z.modal - 1 }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -96,7 +98,8 @@ const ChallengeInvite = memo(({ isOpen, onClose, friend, onSendChallenge }) => {
           />
           
           <motion.div
-            className="fixed inset-x-4 top-1/2 z-[101] max-w-sm mx-auto"
+            className="fixed inset-x-4 top-1/2 max-w-sm mx-auto"
+            style={{ zIndex: Z.modal, y: '-50%' }}
             initial={{ opacity: 0, y: '-45%', scale: 0.95 }}
             animate={{ opacity: 1, y: '-50%', scale: 1, transition: { type: "spring", damping: 25, stiffness: 300 } }}
             exit={{ opacity: 0, y: '-45%', scale: 0.95, transition: { duration: 0.2 } }}

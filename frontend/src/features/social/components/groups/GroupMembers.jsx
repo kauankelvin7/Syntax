@@ -17,6 +17,7 @@ import {
   Terminal
 } from 'lucide-react';
 import { useAuth } from '../../../../contexts/AuthContext-firebase';
+import { Z } from '../../../../constants/zIndex';
 import { getInitials, getAvatarColor } from '../../utils/chatHelpers';
 import OnlineIndicator from '../shared/OnlineIndicator';
 
@@ -46,7 +47,8 @@ const GroupMembers = memo(
           <>
             {/* Backdrop Tech Blur */}
             <motion.div
-              className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[110]"
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-md"
+              style={{ zIndex: Z.modal - 1 }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -54,7 +56,8 @@ const GroupMembers = memo(
             />
             
             <motion.div
-              className="fixed inset-x-4 top-1/2 z-[120] max-w-sm mx-auto"
+              className="fixed inset-x-4 top-1/2 max-w-sm mx-auto"
+              style={{ zIndex: Z.modal }}
               initial={{ opacity: 0, y: '-45%', scale: 0.95 }}
               animate={{ opacity: 1, y: '-50%', scale: 1 }}
               exit={{ opacity: 0, y: '-45%', scale: 0.95 }}

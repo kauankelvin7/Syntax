@@ -31,6 +31,7 @@ import {
 import { listarSimulados, criarFlashcard } from '../services/firebaseService';
 import { useAuth } from '../contexts/AuthContext-firebase';
 import { toast } from 'sonner';
+import { Z } from '../constants/zIndex';
 import Button from '../components/ui/Button';
 
 /* ═══════════════════════════════════════════
@@ -250,7 +251,9 @@ function HistoricoSimulados() {
         {/* ─── REPORT_INSPECTION_MODAL ─── */}
         <AnimatePresence>
           {selectedSimulado && (
-            <motion.div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-xl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedSimulado(null)}>
+            <motion.div className="fixed inset-0 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-xl" 
+              style={{ zIndex: Z.modal }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedSimulado(null)}>
               <motion.div onClick={e => e.stopPropagation()} initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
                 className="bg-white dark:bg-slate-900 rounded-[32px] border-2 border-white/5 shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
               >

@@ -14,6 +14,8 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, TrendingUp, Award, Zap } from 'lucide-react';
 
+import { Z } from '../constants/zIndex';
+
 const StreakIndicator = ({ 
   currentStreak = 0, 
   longestStreak = 0,
@@ -239,12 +241,12 @@ const StreakIndicator = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed w-64 max-w-[calc(100vw-3rem)] z-[9999]"
+            className="fixed w-64 max-w-[calc(100vw-3rem)]"
             style={{ 
               top: `${tooltipPosition.top}px`,
               left: `${tooltipPosition.left}px`,
               transform: 'none',
-              zIndex: 9999,
+              zIndex: Z.tooltip,
               maxWidth: 'calc(100vw - 3rem)',
             }}
           >

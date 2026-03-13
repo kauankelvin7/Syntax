@@ -13,6 +13,7 @@ import { useAuth } from '../../../../contexts/AuthContext-firebase';
 import { useSocial } from '../../context/SocialContext';
 import { useChat } from '../../hooks/useChat';
 import { useFriends } from '../../hooks/useFriends';
+import { Z } from '../../../../constants/zIndex';
 import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import NotificationBadge from '../shared/NotificationBadge';
@@ -90,17 +91,17 @@ const ChatPanel = memo(({ showButton = true }) => {
           <>
             {/* Backdrop Minimal */}
             <motion.div
-              className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[110]"
+              className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm"
+              style={{ zIndex: Z.modal - 1 }}
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={closeChat}
             />
 
             <motion.div
-              className="fixed right-0 top-0 bottom-0 z-[120] w-full sm:w-[420px] bg-slate-900 border-l-2 border-white/5 shadow-[-20px_0_60px_rgba(0,0,0,0.5)] flex flex-col"
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 35, stiffness: 400 }}
+              className="fixed right-0 top-0 bottom-0 w-full sm:w-[420px] bg-slate-900 border-l-2 border-white/5 shadow-[-20px_0_60px_rgba(0,0,0,0.5)] flex flex-col"
+              style={{ zIndex: Z.modal }}
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             >
               <AnimatePresence mode="wait">
                 {activeConversationId && activeFriendData ? (

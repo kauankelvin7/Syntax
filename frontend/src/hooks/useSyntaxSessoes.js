@@ -77,8 +77,23 @@ const withTimeout = (promise, ms = FIRESTORE_TIMEOUT_MS, label = 'op') =>
  * Remove markdown e limita a 40 caracteres.
  */
 const gerarTitulo = (primeiraMensagem) => {
+  const msg = (primeiraMensagem || '').trim().toLowerCase();
+
+  const categorias = [
+    { prefixo: '🐛 Debug',     tags: ['erro', 'bug', 'falha', 'exception', 'error', 'não funciona'] },
+    { prefixo: '👀 Review',    tags: ['revisa', 'review', 'analisa', 'melhora', 'refatora'] },
+    { prefixo: '📐 Arch',      tags: ['arquitetura', 'design', 'estrutura', 'pattern', 'sistema'] },
+    { prefixo: '📚 Conceito',  tags: ['explica', 'o que é', 'como funciona', 'diferença entre'] },
+    { prefixo: '⚙️ Algo',      tags: ['algoritmo', 'complexidade', 'ordenação', 'busca', 'árvore'] },
+    { prefixo: '🎯 Interview', tags: ['entrevista', 'interview', 'pergunta técnica'] },
+  ];
+
+  const categoria = categorias.find(c => c.tags.some(tag => msg.includes(tag)));
+  const prefixo = categoria?.prefixo ?? '💬';
   const limpo = (primeiraMensagem || '').trim().replace(/[*_`#>]/g, '');
-  return limpo.length > 40 ? limpo.substring(0, 37) + '...' : limpo || 'Nova conversa';
+  const corpo = limpo.length > 30 ? limpo.substring(0, 27) + '...' : limpo;
+
+  return `${prefixo} — ${corpo || 'Nova conversa'}`;
 };
 
 /**
@@ -196,26 +211,29 @@ const useSyntaxSessoes = (uid) => {
         const stats     = memoria?.estatisticasUso     || {};
         const nome      = pref.nomePreferido ? `, ${pref.nomePreferido}` : '';
         const totalMsgs = stats.totalMensagens || 0;
-        const ultimoProjeto      = dadosSistema?.ultimoProjeto      || null;
-        const linguagemFavorita  = pref.linguagemFavorita           || null;
+        const projetoRecente     = dadosSistema?.projetoRecente     || null;
+        const resumosSalvos      = dadosSistema?.resumosSalvos      || 0;
+        const diasSeguidos       = dadosSistema?.diasSeguidos       || 0;
 
         // Índice determinístico baseado na hora — evita comportamento diferente
         // no double-mount do StrictMode
-        const idx = agora.getMinutes() % 3;
-        const aberturasGenericas = [
-          `${saudacao}${nome}. Qual o problema de hoje?`,
-          `${saudacao}${nome}. Pronto pra codar?`,
-          `${saudacao}${nome}. Me manda o código ou descreve o que precisa.`,
+        const aberturas = [
+          `${saudacao}${nome}. O que vamos estudar hoje?`,
+          `${saudacao}${nome}. Tem código pra revisar ou alguma dúvida?`,
+          `${saudacao}${nome}. Me manda o que está trabalhando.`,
+          `${saudacao}${nome}. Pronto para mais engenharia?`,
+          `${saudacao}${nome}. Por onde começamos hoje?`,
         ];
+        const aberturaRandom = aberturas[agora.getMinutes() % aberturas.length];
 
         if (totalMsgs === 0) {
-          conteudoBoasVindas = `${saudacao}! Sou a Ada, sua assistente de engenharia de software. Pode me mandar código pra revisar, tirar dúvidas sobre arquitetura, pedir ajuda com debugging — o que precisar. Por onde quer começar?`;
-        } else if (ultimoProjeto) {
-          conteudoBoasVindas = `${saudacao}${nome}. Continuando com **${ultimoProjeto}**? É só mandar o código ou me contar onde travou.`;
-        } else if (linguagemFavorita) {
-          conteudoBoasVindas = `${saudacao}${nome}. Mais um dia de código. Trabalhando com ${linguagemFavorita} hoje?`;
+          conteudoBoasVindas = `Olá! Sou a Ada, sua assistente de estudos em engenharia de software. O que você está estudando agora ou em qual área quer se aprofundar?`;
+        } else if (projetoRecente) {
+          conteudoBoasVindas = `${saudacao}${nome}. Continuando o projeto **${projetoRecente}**? Me manda o que tem ou me conta onde travou.`;
+        } else if (resumosSalvos > 0) {
+          conteudoBoasVindas = `${saudacao}${nome}. Você já tem ${resumosSalvos} ${resumosSalvos === 1 ? 'resumo salvo' : 'resumos salvos'}. Vamos criar um novo ou quer revisar algum conceito?`;
         } else {
-          conteudoBoasVindas = aberturasGenericas[idx];
+          conteudoBoasVindas = aberturaRandom;
         }
       } catch (err) {
         console.warn('[useSyntaxSessoes] Erro ao gerar mensagem contextual:', err?.message);

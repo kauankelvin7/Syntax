@@ -259,9 +259,9 @@ function Flashcards() {
       
       await carregarDados();
       resetForm();
-      toast.success('System_Commit: Logic_Unit atualizada.');
+      toast.success('Flashcard salvo com sucesso.');
     } catch (err) {
-      toast.error('Falha no deploy do flashcard.');
+      toast.error('Erro ao salvar flashcard. Tente novamente.');
     }
   };
 
@@ -443,9 +443,9 @@ function Flashcards() {
                 <CreditCard size={32} className="text-white dark:text-slate-900" strokeWidth={2.5} />
               </div>
               <div>
-                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none mb-1">Flash_Cards</h1>
+                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none mb-1">Flashcards</h1>
                 <p className="text-[12px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                  <Activity size={14} className="text-cyan-500" /> Active Logic Synchronization
+                  <Activity size={14} className="text-cyan-500" /> Sincronização de conhecimento ativa
                 </p>
               </div>
             </div>
@@ -453,14 +453,14 @@ function Flashcards() {
             <div className="flex flex-wrap items-center gap-3">
               {pendingReviewCount > 0 && (
                 <Button onClick={() => iniciarModoEstudo(true)} className="bg-amber-500 hover:bg-amber-600 !rounded-xl px-6 h-14 font-black uppercase tracking-widest text-[11px] shadow-lg shadow-amber-500/20">
-                  <RotateCcw size={16} className="mr-2" /> Sync_Needed ({pendingReviewCount})
+                  <RotateCcw size={16} className="mr-2" /> Revisão Pendente ({pendingReviewCount})
                 </Button>
               )}
               <Button onClick={() => iniciarModoEstudo(false)} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 !rounded-xl px-6 h-14 font-black uppercase tracking-widest text-[11px] shadow-xl">
-                <Play size={16} className="mr-2" /> Launch_Simulation
+                <Play size={16} className="mr-2" /> Iniciar Estudo
               </Button>
               <Button onClick={() => setShowModal(true)} className="bg-indigo-600 hover:bg-indigo-700 !rounded-xl px-6 h-14 font-black uppercase tracking-widest text-[11px] shadow-lg shadow-indigo-600/20">
-                <Plus size={20} className="mr-2" strokeWidth={3} /> Add_Logic_Unit
+                <Plus size={20} className="mr-2" strokeWidth={3} /> Adicionar Flashcard
               </Button>
             </div>
           </div>
@@ -469,11 +469,11 @@ function Flashcards() {
           <motion.div className="flex flex-col lg:flex-row gap-4 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[24px] p-4 shadow-sm" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-center gap-3 px-2 text-slate-400">
               <Filter size={16} strokeWidth={3} />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Probe_Filters:</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Filtros:</span>
             </div>
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Select value={selectedMateria} onChange={(e) => { setSelectedMateria(e.target.value); setSelectedTag('all'); }} className="!rounded-[14px] bg-slate-50 dark:bg-slate-950 border-0 h-12 text-sm font-bold">
-                <option value="all">All_Stacks</option>
+                <option value="all">Todas as Matérias</option>
                 {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
               </Select>
               {(() => {
@@ -481,14 +481,14 @@ function Flashcards() {
                 const allTags = [...new Set(baseCards.flatMap(fc => fc.tags || []))].sort();
                 return allTags.length > 0 && (
                   <Select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)} className="!rounded-[14px] bg-slate-50 dark:bg-slate-950 border-0 h-12 text-sm font-bold">
-                    <option value="all">All_Hash_Tags</option>
+                    <option value="all">Todas as Tags</option>
                     {allTags.map(tag => <option key={tag} value={tag}>#{tag}</option>)}
                   </Select>
                 );
               })()}
             </div>
             <div className="flex items-center gap-2 px-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-[14px] border border-indigo-100 dark:border-indigo-800/50">
-              <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 font-mono">{flashcardsFiltrados.length} UNITS</span>
+              <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 font-mono">{flashcardsFiltrados.length} CARDS</span>
             </div>
           </motion.div>
         </motion.div>
@@ -507,8 +507,8 @@ function Flashcards() {
         {flashcardsFiltrados.length === 0 && (
           <div className="py-24 text-center opacity-40">
             <Terminal size={48} className="mx-auto mb-6" strokeWidth={1.5} />
-            <h3 className="text-xl font-black uppercase tracking-tight">No_Data_Detected</h3>
-            <p className="text-[14px] font-bold text-slate-500 uppercase tracking-widest mt-2">Inicialize o primeiro commit de flashcards para começar.</p>
+            <h3 className="text-xl font-black uppercase tracking-tight">Nenhum flashcard encontrado</h3>
+            <p className="text-[14px] font-bold text-slate-500 uppercase tracking-widest mt-2">Crie seu primeiro flashcard para começar.</p>
           </div>
         )}
 
@@ -561,7 +561,11 @@ function Flashcards() {
         {/* ─── MODO ESTUDO IMERSIVO (The Syntax Chamber) ─── */}
         <AnimatePresence>
           {modoEstudo && currentFlashcard && (
-            <motion.div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="fixed inset-0 bg-slate-950 flex flex-col overflow-hidden" 
+              style={{ zIndex: Z.onboarding }}
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}>
               <div className="absolute inset-0 pointer-events-none opacity-40">
                 <div className="absolute top-0 right-0 w-[80vw] h-[80vw] bg-indigo-600/10 rounded-full blur-[150px] -mr-40 -mt-40" />
                 <div className="absolute bottom-0 left-0 w-[60vw] h-[60vw] bg-cyan-400/5 rounded-full blur-[150px] -ml-40 -mb-40" />

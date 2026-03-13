@@ -19,6 +19,7 @@ import {
 import { useAuth } from '../contexts/AuthContext-firebase';
 import { useSocial } from '../features/social/context/SocialContext';
 import ProfileModal from './ProfileModal';
+import { Z } from '../constants/zIndex';
 
 /* ── Avatar (Tech Style) ────────────────────────────────────── */
 const NavAvatar = memo(({ user }) => {
@@ -92,7 +93,8 @@ const MoreBottomSheet = memo(({ isOpen, onClose, totalUnread, onChatOpen }) => {
         <>
           {/* Backdrop Blur Premium */}
           <motion.div
-            className="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md z-[70]"
+            className="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md"
+            style={{ zIndex: Z.modal - 1 }}
             aria-hidden="true"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -106,8 +108,9 @@ const MoreBottomSheet = memo(({ isOpen, onClose, totalUnread, onChatOpen }) => {
             role="dialog"
             aria-modal="true"
             aria-label="Menu de navegação"
-            className="fixed bottom-0 left-0 right-0 z-[71] rounded-t-[32px] shadow-2xl bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800"
+            className="fixed bottom-0 left-0 right-0 rounded-t-[32px] shadow-2xl bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800"
             style={{
+              zIndex: Z.modal,
               paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
             }}
             initial={{ y: '100%' }}
@@ -235,8 +238,9 @@ const BottomNavigation = memo(() => {
       <nav
         role="navigation"
         aria-label="Navegação principal"
-        className="fixed bottom-0 left-0 right-0 z-10 flex items-stretch backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 transition-colors shadow-[0_-4px_24px_rgba(0,0,0,0.02)]"
+        className="fixed bottom-0 left-0 right-0 flex items-stretch backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 transition-colors shadow-[0_-4px_24px_rgba(0,0,0,0.02)]"
         style={{
+          zIndex: Z.navbar,
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >

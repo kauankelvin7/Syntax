@@ -9,6 +9,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Trash2, X, Info, Sparkles, Loader2 } from 'lucide-react';
+import { Z } from '../../constants/zIndex';
 import Button from './Button';
 
 const ConfirmModal = ({
@@ -84,7 +85,8 @@ const ConfirmModal = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/60 backdrop-blur-md"
+          className="fixed inset-0 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/60 backdrop-blur-md"
+          style={{ zIndex: Z.modal }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

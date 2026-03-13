@@ -45,6 +45,7 @@ import { useDashboardData } from '../contexts/DashboardDataContext';
 import { salvarEvento, deletarEvento, listarFlashcards, atualizarMetaMensal } from '../services/firebaseService';
 import { isDueForReview } from '../utils/sm2';
 import { useTheme } from '../contexts/ThemeContext';
+import { Z } from '../constants/zIndex';
 import AddEventModal from '../components/modals/AddEventModal';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import Button from '../components/ui/Button';
@@ -56,9 +57,9 @@ import SkeletonPulse from '../components/ui/SkeletonPulse';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return { text: 'System_Boot: Bom dia', Icon: Sun, color: '#FBBF24' };
-  if (hour >= 12 && hour < 18) return { text: 'System_Uptime: Boa tarde', Icon: CloudSun, color: '#FB923C' };
-  return { text: 'System_Standby: Boa noite', Icon: Moon, color: '#A78BFA' };
+  if (hour >= 5 && hour < 12) return { text: 'Bom dia', Icon: Sun, color: '#FBBF24' };
+  if (hour >= 12 && hour < 18) return { text: 'Boa tarde', Icon: CloudSun, color: '#FB923C' };
+  return { text: 'Boa noite', Icon: Moon, color: '#A78BFA' };
 };
 
 const techPhrases = [
@@ -197,9 +198,9 @@ Avatar.displayName = 'Avatar';
    KPI CARD
    ═══════════════════════════════════════════ */
 const KPI_VARIANTS = {
-  materias:  { color: '#6366F1', Icon: Code2,    label: 'Stacks',    sublabel: 'Active_Nodes',   path: '/materias'  },
-  flashcard: { color: '#06B6D4', Icon: Cpu,      label: 'Logics',    sublabel: 'Pending_Sync',   path: '/flashcards' },
-  resumos:   { color: '#10B981', Icon: Database, label: 'Docs',      sublabel: 'In_Repository',  path: '/resumos'   },
+  materias:  { color: '#6366F1', Icon: Code2,    label: 'Stacks',    sublabel: 'Matérias ativas',   path: '/materias'  },
+  flashcard: { color: '#06B6D4', Icon: Cpu,      label: 'Logics',    sublabel: 'Revisões pendentes',   path: '/flashcards' },
+  resumos:   { color: '#10B981', Icon: Database, label: 'Docs',      sublabel: 'Resumos salvos',  path: '/resumos'   },
 };
 
 const KpiCard = memo(({ variant, value, loading, navigate: nav, delay = 0, isDarkMode = true }) => {
@@ -484,16 +485,16 @@ const Home = () => {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] -mr-40 -mt-40 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-cyan-400/5 rounded-full blur-[100px] -ml-40 -mb-40 pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
+        <div className="relative p-8 sm:p-12 flex flex-col md:flex-row md:items-center gap-8" style={{ zIndex: Z.base + 1 }}>
           <Avatar src={user?.photoURL} name={user?.displayName || user?.email} size={72} ring />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-3">
-              <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em]">Node_Active</span>
+              <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em]">Online</span>
               <span className="text-slate-500 font-mono text-[10px]">#USR-STX-{user?.uid?.slice(0, 6)}</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter uppercase mb-2">
-              {greeting.text}, <span className="text-cyan-400">{user?.displayName?.split(' ')[0] || 'Dev'}</span>
+              {greeting.text}, <span className="text-cyan-400">{user?.displayName?.split(' ')[0] || 'dev'}</span>
               <motion.span className="inline-flex ml-2" animate={{ rotate: [0, 15, -10, 0] }} transition={{ duration: 2.5, repeat: Infinity }}>
                 <greeting.Icon size={32} style={{ color: greeting.color }} />
               </motion.span>
@@ -504,7 +505,7 @@ const Home = () => {
 
             <div className="mt-5 inline-flex items-center gap-4 bg-black/40 backdrop-blur-md p-2 pl-4 rounded-full border border-white/10">
                <div className="flex items-baseline gap-2">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Streak:</span>
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sequência:</span>
                   <span className="text-xl font-black text-orange-500 font-mono">
                     {isLoading ? '—' : <AnimatedNumber value={dashboardData?.offensiveStreak || 0} />}
                   </span>
@@ -518,7 +519,7 @@ const Home = () => {
       </motion.div>
 
       {/* ─── ② FLOATING KPIs ─── */}
-      <div className="relative z-20 max-w-7xl mx-auto px-6 -mt-12">
+      <div className="relative max-w-7xl mx-auto px-6 -mt-12" style={{ zIndex: Z.raised }}>
         <div className="grid grid-cols-3 gap-5" role="list">
           <KpiCard variant="materias"  value={dashboardData?.totalMaterias || 0} loading={isLoading} navigate={navigate} delay={0.6} />
           <KpiCard variant="flashcard" value={dashboardData?.totalFlashcards || 0} loading={isLoading} navigate={navigate} delay={0.7} />
@@ -546,20 +547,20 @@ const Home = () => {
                       <Cpu size={40} strokeWidth={2.5} />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Sync_Required</h3>
+                      <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Revisão pendente</h3>
                       <p className="text-[16px] font-medium text-slate-500 dark:text-slate-400 mt-2">
-                        Detectamos <span className="font-black text-orange-500 text-lg">{pendingReviews} Logic_Units</span> prontas para re-compilação.
+                        Você tem <span className="font-black text-orange-500 text-lg">{pendingReviews} flashcards</span> prontos para revisão.
                       </p>
                     </div>
-                    <Button className="ml-auto bg-orange-500 hover:bg-orange-600 font-black uppercase tracking-widest text-[11px] h-14 px-10 !rounded-[14px]">Initialize_Sync</Button>
+                    <Button className="ml-auto bg-orange-500 hover:bg-orange-600 font-black uppercase tracking-widest text-[11px] h-14 px-10 !rounded-[14px]">Iniciar revisão</Button>
                   </div>
                 </SectionCard>
               ) : (
                 <div className="h-full flex items-center gap-6 p-8 rounded-[32px] border-2 border-dashed border-emerald-500/30 bg-emerald-500/[0.03]">
                   <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-500"><CheckCircle2 size={32} /></div>
                   <div>
-                    <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 uppercase">System_Optimal</h3>
-                    <p className="text-[14px] font-medium text-slate-500">Todo o repositório está sincronizado e atualizado.</p>
+                    <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 uppercase">Tudo em dia</h3>
+                    <p className="text-[14px] font-medium text-slate-500">Seu repositório de estudos está totalmente sincronizado.</p>
                   </div>
                 </div>
               )}
@@ -722,16 +723,19 @@ const Home = () => {
 
       <AnimatePresence>
         {editingMeta && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+            style={{ zIndex: Z.modal }}
+            className="fixed inset-0 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl"
+          >
              <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-white dark:bg-slate-900 rounded-[32px] p-10 w-full max-w-sm border-2 border-white/10 shadow-2xl">
-                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-6">Update_Target</h3>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-6">Ajustar Meta</h3>
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">Efficiency_Goal (Monthly)</label>
+                    <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">Meta Mensal (Itens)</label>
                     <input type="number" value={metaValue} onChange={e => setMetaValue(Number(e.target.value))} className="w-full h-16 bg-slate-100 dark:bg-slate-950 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-2xl font-black font-mono text-center text-indigo-500 focus:outline-none focus:border-indigo-500 transition-all" />
                   </div>
-                  <Button onClick={() => persistMetaMensal(metaValue)} loading={isSavingMeta} fullWidth className="bg-indigo-600 h-14 font-black uppercase tracking-widest text-[13px] !rounded-[16px] shadow-xl shadow-indigo-600/20">Commit_Update</Button>
-                  <button onClick={() => setEditingMeta(false)} className="w-full py-2 text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-white transition-colors">Abort_Operation</button>
+                  <Button onClick={() => { persistMetaMensal(metaValue); setEditingMeta(false); }} loading={isSavingMeta} fullWidth className="bg-indigo-600 h-14 font-black uppercase tracking-widest text-[13px] !rounded-[16px] shadow-xl shadow-indigo-600/20">Salvar Meta</Button>
+                  <button onClick={() => setEditingMeta(false)} className="w-full py-2 text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-white transition-colors">Cancelar</button>
                 </div>
              </motion.div>
           </motion.div>

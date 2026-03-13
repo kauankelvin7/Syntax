@@ -11,6 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, Share, Plus, Smartphone, Zap, Wifi, Sparkles, Terminal } from 'lucide-react';
 import { canInstall, showInstallPrompt, shouldShowIOSInstallBanner, dismissIOSInstallBanner } from '../utils/pwaUtils';
+import { Z } from '../constants/zIndex';
 import Button from './ui/Button'; // Garantindo a importação do Button
 
 const PWAInstallBanner = () => {
@@ -69,7 +70,8 @@ const PWAInstallBanner = () => {
     animate: { y: 0, opacity: 1, scale: 1 },
     exit: { y: 100, opacity: 0, scale: 0.9 },
     transition: { type: "spring", damping: 25, stiffness: 350 },
-    className: "fixed bottom-20 sm:bottom-8 left-0 right-0 z-[100] px-4 pointer-events-none"
+    className: "fixed bottom-20 sm:bottom-8 left-0 right-0 px-4 pointer-events-none",
+    style: { zIndex: Z.toast }
   };
 
   const CardWrapper = ({ children, gradient }) => (

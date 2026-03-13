@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Users, Plus, Loader2, Search, Check, TerminalSquare, Cpu, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../../../../contexts/AuthContext-firebase';
+import { Z } from '../../../../constants/zIndex';
 import { getInitials, getAvatarColor } from '../../utils/chatHelpers';
 
 const MAX_MEMBERS = 10;
@@ -62,7 +63,8 @@ const GroupCreate = memo(({ isOpen, onClose, friends = [], onCreateGroup }) => {
         <>
           {/* Backdrop Glassmorphism */}
           <motion.div
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[100]"
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-md"
+            style={{ zIndex: Z.modal - 1 }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -70,7 +72,8 @@ const GroupCreate = memo(({ isOpen, onClose, friends = [], onCreateGroup }) => {
           />
           
           <motion.div
-            className="fixed inset-x-4 top-1/2 z-[101] max-w-md mx-auto"
+            className="fixed inset-x-4 top-1/2 max-w-md mx-auto"
+            style={{ zIndex: Z.modal }}
             initial={{ opacity: 0, y: '-45%', scale: 0.95 }}
             animate={{ opacity: 1, y: '-50%', scale: 1 }}
             exit={{ opacity: 0, y: '-45%', scale: 0.95 }}

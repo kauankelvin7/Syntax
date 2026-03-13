@@ -64,8 +64,8 @@ export const AuthProvider = ({ children }) => {
         const userData = {
           id: firebaseUser.uid,
           uid: firebaseUser.uid,
-          nome: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-          displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+          nome: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+          displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
           email: firebaseUser.email,
           photoURL: firebaseUser.photoURL
         };
@@ -84,7 +84,29 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Listener para eventos customizados de recarga de perfil (ex: após updateProfile)
+    const handleReload = () => {
+      const firebaseUser = auth.currentUser;
+      if (firebaseUser) {
+        const userData = {
+          id: firebaseUser.uid,
+          uid: firebaseUser.uid,
+          nome: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+          displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+          email: firebaseUser.email,
+          photoURL: firebaseUser.photoURL
+        };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+    };
+
+    window.addEventListener('cinesia:user:reload', handleReload);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('cinesia:user:reload', handleReload);
+    };
   }, []);
 
   // Timeout de segurança — se o Firebase não responder em 10s,
@@ -201,21 +223,21 @@ export const AuthProvider = ({ children }) => {
    */
   const getErrorMessage = (errorCode) => {
     const errorMessages = {
-      'auth/email-already-in-use': 'Este email já está cadastrado.',
-      'auth/invalid-email': 'Email inválido.',
-      'auth/operation-not-allowed': 'Operação não permitida.',
-      'auth/weak-password': 'A senha deve ter pelo menos 6 caracteres.',
-      'auth/user-disabled': 'Esta conta foi desabilitada.',
-      'auth/user-not-found': 'Email ou senha incorretos.',
-      'auth/wrong-password': 'Email ou senha incorretos.',
-      'auth/invalid-credential': 'Credenciais inválidas.',
-      'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde.',
-      'auth/popup-closed-by-user': 'Login cancelado.',
-      'auth/cancelled-popup-request': 'Login cancelado.',
-      'auth/unauthorized-domain': 'Domínio não autorizado no Firebase Auth. Acesse por localhost:3000 ou adicione 127.0.0.1 em Authentication > Settings > Authorized domains.'
+      'auth/email-already-in-use': 'Auth_Error: Este email já está cadastrado no sistema.',
+      'auth/invalid-email': 'Protocol_Fault: Email inválido ou malformado.',
+      'auth/operation-not-allowed': 'Access_Denied: Operação não permitida pelo servidor.',
+      'auth/weak-password': 'Security_Warning: A senha deve ter pelo menos 6 caracteres.',
+      'auth/user-disabled': 'Account_Locked: Esta conta foi desabilitada pelo administrador.',
+      'auth/user-not-found': 'Credential_Mismatch: Email ou senha incorretos.',
+      'auth/wrong-password': 'Credential_Mismatch: Email ou senha incorretos.',
+      'auth/invalid-credential': 'Handshake_Failed: Credenciais inválidas.',
+      'auth/too-many-requests': 'Rate_Limit: Muitas tentativas. Tente novamente mais tarde.',
+      'auth/popup-closed-by-user': 'Session_Aborted: Login cancelado pelo usuário.',
+      'auth/cancelled-popup-request': 'Session_Aborted: Login cancelado.',
+      'auth/unauthorized-domain': 'Domain_Error: Domínio não autorizado no Firebase Auth.'
     };
 
-    return errorMessages[errorCode] || 'Erro ao autenticar. Tente novamente.';
+    return errorMessages[errorCode] || 'System_Error: Falha na autenticação. Tente novamente.';
   };
 
   const value = {

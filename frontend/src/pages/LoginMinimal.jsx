@@ -49,19 +49,19 @@ const LoginMinimal = () => {
     setError('');
 
     if (!isLogin && formData.nome.trim().length < 3) {
-      setError('Node_Identity_Error: Nome muito curto.');
+      setError('Nome muito curto. Use ao menos 3 caracteres.');
       setLoading(false);
       return;
     }
 
     if (!EMAIL_REGEX.test(formData.email)) {
-      setError('Endpoint_Error: Formato de email inválido.');
+      setError('Email inválido. Verifique o formato.');
       setLoading(false);
       return;
     }
 
     if (!PASSWORD_REGEX.test(formData.password)) {
-      setError('Hash_Weak_Error: Senha deve ter letras e ao menos 1 número ou símbolo.');
+      setError('Senha fraca. Use letras, números e ao menos um símbolo.');
       setLoading(false);
       return;
     }
@@ -75,12 +75,14 @@ const LoginMinimal = () => {
 
     if (!result.success) {
       const errorMap = {
-        'auth/user-not-found': 'Target_Not_Found: Email não registrado.',
-        'auth/wrong-password': 'Credential_Mismatch: Senha incorreta.',
-        'auth/email-already-in-use': 'Registry_Conflict: Email já em uso.',
-        'auth/invalid-email': 'Endpoint_Error: Formato de email inválido.',
+        'auth/user-not-found': 'Email não encontrado. Verifique ou crie uma conta.',
+        'auth/wrong-password': 'Senha incorreta. Tente novamente ou redefina sua senha.',
+        'auth/email-already-in-use': 'Email já cadastrado. Tente entrar ou recupere sua senha.',
+        'auth/invalid-email': 'Email inválido. Verifique o formato e tente novamente.',
+        'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+        'auth/network-request-failed': 'Sem conexão. Verifique sua internet e tente novamente.',
       };
-      setError(errorMap[result.code] || result.error || 'Connection_Error: Tente novamente.');
+      setError(errorMap[result.code] || result.error || 'Erro de conexão. Tente novamente.');
     }
 
     setLoading(false);
@@ -90,7 +92,7 @@ const LoginMinimal = () => {
     setLoading(true);
     setError('');
     const result = await loginWithGoogle();
-    if (!result.success) setError('Provider_Error: Falha no handshake com o Google.');
+    if (!result.success) setError('Não foi possível entrar com o Google. Tente novamente.');
     setLoading(false);
   };
 
@@ -131,9 +133,9 @@ const LoginMinimal = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            Engineered <br />
+            Do Hello World <br />
             <span className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">
-              Logic Synchronization
+              à arquitetura distribuída
             </span>
             .
           </motion.h2>
@@ -144,8 +146,7 @@ const LoginMinimal = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Sua central de operações para dominar Stacks de Tecnologia e Arquitetura de Sistemas
-            com Inteligência Artificial.
+            &ldquo;A melhor forma de prever o futuro do seu código é estudando os fundamentos hoje.&rdquo;
           </motion.p>
 
           <motion.div
@@ -154,7 +155,7 @@ const LoginMinimal = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            {['Architecture 3D', 'Stress_Tests', 'Logic_Units', 'Syntax Agent'].map((f) => (
+            {['Code Review', 'Algoritmos', 'System Design', 'Ada AI'].map((f) => (
               <span
                 key={f}
                 className="px-5 py-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md text-cyan-400/80 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg"
@@ -183,13 +184,13 @@ const LoginMinimal = () => {
             <div className="flex items-center justify-center gap-3 mb-2">
               <Terminal size={18} className="text-indigo-500" />
               <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">
-                {isLogin ? 'Establish_Session' : 'Registry_Node'}
+                {isLogin ? 'Entrar' : 'Criar conta'}
               </h1>
             </div>
             <p className="text-[13px] font-bold text-slate-400 uppercase tracking-widest">
               {isLogin
-                ? 'Credenciais para acesso ao mainframe'
-                : 'Inicialize seu node na rede Syntax'}
+                ? 'Entre com sua conta para continuar.'
+                : 'Crie sua conta e comece a estudar com IA.'}
             </p>
           </div>
 
@@ -219,13 +220,13 @@ const LoginMinimal = () => {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
-            Handshake via Google
+            Continuar com Google
           </button>
 
           <div className="flex items-center gap-4 my-10">
             <div className="flex-1 h-0.5 bg-slate-100 dark:bg-slate-800" />
             <span className="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.3em]">
-              Credentials_Input
+              ou entre com email
             </span>
             <div className="flex-1 h-0.5 bg-slate-100 dark:bg-slate-800" />
           </div>
@@ -233,7 +234,7 @@ const LoginMinimal = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
               <Input
-                label="Identity_Name"
+                label="Seu nome"
                 name="nome"
                 value={formData.nome}
                 onChange={handleInputChange}
@@ -244,19 +245,19 @@ const LoginMinimal = () => {
               />
             )}
             <Input
-              label="Network_Address"
+              label="Email"
               type="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="node@syntax.network"
+              placeholder="seu@email.com"
               leftIcon={Mail}
               required
               className="!h-14 !rounded-2xl"
             />
             <div className="relative">
               <Input
-                label="Access_Hash"
+                label="Senha"
                 type={showPassword ? 'text' : 'password'}
                 name="password"
                 value={formData.password}
@@ -281,19 +282,19 @@ const LoginMinimal = () => {
               disabled={loading}
               className="h-16 !rounded-[20px] bg-indigo-600 border-none font-black text-[13px] uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/30"
             >
-              {isLogin ? 'Initiate_Session' : 'Generate_Node'}
+              {isLogin ? 'Entrar' : 'Criar conta'}
               <ArrowRight size={18} className="ml-2" />
             </Button>
           </form>
 
           <div className="mt-10 text-center p-6 rounded-[24px] bg-slate-100/50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800">
             <p className="text-[13px] font-bold text-slate-500 dark:text-slate-400">
-              {isLogin ? 'Não possui um Node?' : 'Já possui um Node ativo?'}
+              {isLogin ? 'Ainda não tem conta?' : 'Já tem uma conta?'}
               <button
                 onClick={toggleMode}
                 className="ml-2 text-indigo-600 dark:text-cyan-400 font-black uppercase tracking-widest hover:underline transition-colors"
               >
-                {isLogin ? 'Criar Registry' : 'Login Terminal'}
+                {isLogin ? 'Criar conta' : 'Já tenho conta'}
               </button>
             </p>
           </div>

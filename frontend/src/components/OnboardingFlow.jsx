@@ -18,6 +18,7 @@ import { updateProfile } from 'firebase/auth';
 import { db, auth } from '../config/firebase-config';
 import { useAuth } from '../contexts/AuthContext-firebase';
 import { useTheme } from '../contexts/ThemeContext';
+import { Z } from '../constants/zIndex';
 import AdaAvatar from './Ada/AdaAvatar'; 
 
 // ─── Confetti CSS Animation ──────────────────────────────────────────────────
@@ -46,8 +47,7 @@ const ConfettiPiece = ({ index }) => {
 };
 
 // ─── Step Definitions ────────────────────────────────────────────────────────
-const TOTAL_STEPS = 9;
-const SKIPPABLE_STEPS = [4, 5, 6, 7, 8]; // tour steps
+const TOTAL_STEPS = 6;
 
 // ─── Slide variants ──────────────────────────────────────────────────────────
 const slideVariants = {
@@ -74,7 +74,9 @@ export default function OnboardingFlow() {
   const [direction, setDirection] = useState(1);
   const [onboardingData, setOnboardingData] = useState({
     nomePreferido: user?.displayName || '',
-    temaPreferido: isDarkMode ? 'dark' : 'light',
+    nivel: 'Iniciante',
+    stack: [],
+    objetivos: [],
   });
   const [nomeError, setNomeError] = useState('');
   const [savingNome, setSavingNome] = useState(false);
@@ -116,7 +118,6 @@ export default function OnboardingFlow() {
     setStep(TOTAL_STEPS); // pula direto para conclusão
   }, []);
 
-  // ─── Step 2: Save name ──────────────────────────────────────────────────────
   const handleSaveName = async () => {
     const trimmed = onboardingData.nomePreferido.trim();
     if (trimmed.length < 2) {
@@ -143,25 +144,19 @@ export default function OnboardingFlow() {
     }
   };
 
-  // ─── Step 3: Save theme ─────────────────────────────────────────────────────
-  const handleSaveTheme = async () => {
-    setSavingTheme(true);
-    try {
-      setMode(onboardingData.temaPreferido);
-      setOnboardingData((prev) => ({
-        ...prev,
-        temaPreferido: prev.temaPreferido,
-      }));
-      goNext();
-    } catch (error) {
-      console.error("Erro detalhado:", error);
-      goNext();
-    } finally {
-      setSavingTheme(false);
-    }
+  // ─── Step 3: Save stack ─────────────────────────────────────────────────────
+  const handleSaveStack = async (stacks) => {
+    setOnboardingData(prev => ({ ...prev, stack: stacks }));
+    goNext();
   };
 
-  // ─── Step 9: Finish onboarding ──────────────────────────────────────────────
+  // ─── Step 4: Save goals ─────────────────────────────────────────────────────
+  const handleSaveGoals = async (goals) => {
+    setOnboardingData(prev => ({ ...prev, objetivos: goals }));
+    goNext();
+  };
+
+  // ─── Step 5: Finish onboarding ──────────────────────────────────────────────
   const finishOnboarding = useCallback(async (action) => {
     if (!uid || !auth.currentUser) return;
     setFinishing(true);
@@ -176,9 +171,25 @@ export default function OnboardingFlow() {
         doc(db, 'users', uid, 'perfil', 'dados'),
         {
           nomePreferido: onboardingData.nomePreferido,
-          temaPreferido: onboardingData.temaPreferido,
+          nivel: onboardingData.nivel,
+          stack: onboardingData.stack,
+          objetivos: onboardingData.objetivos,
           onboardingConcluido: true,
           onboardingConcluidoEm: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      // Também salvar em preferenciasUsuario para a Ada ler
+      await setDoc(
+        doc(db, 'users', uid),
+        {
+          preferenciasUsuario: {
+            nomePreferido: onboardingData.nomePreferido,
+            nivelConhecimento: onboardingData.nivel,
+            areasDeInteresse: onboardingData.stack,
+            objetivos: onboardingData.objetivos
+          }
         },
         { merge: true }
       );
@@ -205,8 +216,6 @@ export default function OnboardingFlow() {
   // ─── Render conditions ──────────────────────────────────────────────────────
   if (status !== 'show') return null;
 
-  const isSkippable = SKIPPABLE_STEPS.includes(step);
-
   const nomePreferido =
     (onboardingData.nomePreferido &&
       onboardingData.nomePreferido.trim()) ||
@@ -223,7 +232,7 @@ export default function OnboardingFlow() {
         }
       `}</style>
 
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      <div style={{ zIndex: Z.onboarding }} className="fixed inset-0 flex items-center justify-center p-4">
         {/* Backdrop Refinado Premium */}
         <motion.div
           className="absolute inset-0 bg-slate-900/70 dark:bg-slate-950/80 backdrop-blur-md"
@@ -276,19 +285,27 @@ export default function OnboardingFlow() {
                   />
                 )}
                 {step === 3 && (
-                  <StepTheme
-                    selected={onboardingData.temaPreferido}
-                    setSelected={(t) => setOnboardingData((prev) => ({ ...prev, temaPreferido: t }))}
-                    saving={savingTheme}
-                    onConfirm={handleSaveTheme}
+                  <StepLevel
+                    selected={onboardingData.nivel}
+                    onSelect={(nivel) => {
+                      setOnboardingData(prev => ({ ...prev, nivel }));
+                      goNext();
+                    }}
                   />
                 )}
-                {step === 4 && <StepTourMaterias />}
-                {step === 5 && <StepTourFlashcards />}
-                {step === 6 && <StepTourResumos />}
-                {step === 7 && <StepTourAda />}
-                {step === 8 && <StepTourAgenda />}
-                {step === 9 && (
+                {step === 4 && (
+                  <StepStack
+                    selected={onboardingData.stack}
+                    onConfirm={handleSaveStack}
+                  />
+                )}
+                {step === 5 && (
+                  <StepGoals
+                    selected={onboardingData.objetivos}
+                    onConfirm={handleSaveGoals}
+                  />
+                )}
+                {step === 6 && (
                   <StepConclusion
                     nome={nomePreferido}
                     finishing={finishing}
@@ -333,24 +350,6 @@ export default function OnboardingFlow() {
 
             {/* Skip / Next for tour steps */}
             <div className="w-24 flex justify-end">
-              {isSkippable && (
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={skipTour}
-                    className="hidden sm:block text-[12px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors whitespace-nowrap"
-                  >
-                    Skip Tour
-                  </button>
-                  <button
-                    type="button"
-                    onClick={goNext}
-                    className="flex items-center justify-center w-11 h-11 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 transition-all active:scale-95 shadow-sm"
-                  >
-                    <ChevronRight size={22} strokeWidth={3} />
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </motion.div>
@@ -362,6 +361,162 @@ export default function OnboardingFlow() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // STEP COMPONENTS (Tech Adapted)
 // ═══════════════════════════════════════════════════════════════════════════════
+
+function StepLevel({ selected, onSelect }) {
+  const levels = [
+    { id: 'Iniciante', label: 'Iniciante', desc: 'Estou começando agora', icon: Rocket, color: '#10b981' },
+    { id: 'Júnior', label: 'Júnior', desc: 'Já conheço o básico', icon: Zap, color: '#6366f1' },
+    { id: 'Pleno', label: 'Pleno', desc: 'Atuo profissionalmente', icon: Cpu, color: '#8b5cf6' },
+    { id: 'Sênior', label: 'Sênior', desc: 'Foco em arquitetura', icon: Trophy, color: '#f59e0b' },
+  ];
+
+  return (
+    <div className="flex flex-col items-center text-center w-full">
+      <h2 className="text-2xl font-extrabold text-slate-800 dark:text-white mb-3 tracking-tight">
+        Qual seu nível atual?
+      </h2>
+      <p className="text-[14px] font-medium text-slate-500 dark:text-slate-400 mb-8">
+        A Ada adaptará as explicações com base nisso.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-[440px]">
+        {levels.map((lvl) => (
+          <button
+            key={lvl.id}
+            type="button"
+            onClick={() => onSelect(lvl.id)}
+            className={`relative p-4 rounded-2xl border-2 transition-all text-left flex items-center gap-4 group
+              ${selected === lvl.id
+                ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/30 shadow-lg'
+                : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-300 dark:hover:border-indigo-700'
+              }`}
+          >
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${selected === lvl.id ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:text-indigo-500'}`}>
+              <lvl.icon size={24} strokeWidth={2.5} />
+            </div>
+            <div>
+              <span className="block text-[15px] font-bold text-slate-800 dark:text-white">{lvl.label}</span>
+              <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">{lvl.desc}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StepStack({ selected, onConfirm }) {
+  const [input, setInput] = useState('');
+  const [chips, setChips] = useState(selected.length > 0 ? selected : ['Javascript', 'TypeScript', 'React']);
+
+  const addChip = (e) => {
+    if (e.key === 'Enter' && input.trim()) {
+      if (!chips.includes(input.trim())) setChips([...chips, input.trim()]);
+      setInput('');
+    }
+  };
+
+  const removeChip = (c) => setChips(chips.filter(item => item !== c));
+
+  return (
+    <div className="flex flex-col items-center text-center w-full">
+      <h2 className="text-2xl font-extrabold text-slate-800 dark:text-white mb-3 tracking-tight">
+        Sua Stack Principal
+      </h2>
+      <p className="text-[14px] font-medium text-slate-500 dark:text-slate-400 mb-8">
+        Quais linguagens e tecnologias você domina ou quer focar?
+      </p>
+
+      <div className="w-full max-w-sm mb-8">
+        <div className="relative mb-4">
+          <Terminal size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={addChip}
+            placeholder="Ex: Python, Go, SQL..."
+            className="w-full pl-12 pr-4 h-14 rounded-2xl text-[15px] font-bold border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:border-indigo-500 outline-none transition-all"
+          />
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-2">
+          {chips.map(c => (
+            <span key={c} className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[12px] font-black uppercase tracking-wider">
+              {c}
+              <button onClick={() => removeChip(c)} className="hover:text-rose-500"><X size={14} /></button>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onConfirm(chips)}
+        className="w-full sm:w-[85%] h-14 rounded-2xl font-bold text-white text-[15px] shadow-lg bg-gradient-to-r from-indigo-600 to-cyan-500 hover:opacity-90 transition-all active:scale-[0.97]"
+      >
+        Continuar <ArrowRight size={18} strokeWidth={2.5} />
+      </button>
+    </div>
+  );
+}
+
+function StepGoals({ selected, onConfirm }) {
+  const options = [
+    { id: 'entrevistas', label: 'Entrevistas técnicas', icon: MessageSquareCode },
+    { id: 'clean_code', label: 'Clean code e boas práticas', icon: BookOpen },
+    { id: 'arquitetura', label: 'Arquitetura de sistemas', icon: Cpu },
+    { id: 'algoritmos', label: 'Algoritmos e estruturas', icon: Terminal },
+  ];
+
+  const [goals, setGoals] = useState(selected);
+
+  const toggle = (id) => {
+    if (goals.includes(id)) setGoals(goals.filter(g => g !== id));
+    else setGoals([...goals, id]);
+  };
+
+  return (
+    <div className="flex flex-col items-center text-center w-full">
+      <h2 className="text-2xl font-extrabold text-slate-800 dark:text-white mb-3 tracking-tight">
+        Qual seu objetivo?
+      </h2>
+      <p className="text-[14px] font-medium text-slate-500 dark:text-slate-400 mb-8">
+        Selecione um ou mais focos de estudo.
+      </p>
+
+      <div className="grid grid-cols-1 gap-3 w-full max-w-[400px] mb-8">
+        {options.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => toggle(opt.id)}
+            className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left
+              ${goals.includes(opt.id)
+                ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/30'
+                : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-200'
+              }`}
+          >
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${goals.includes(opt.id) ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+              <opt.icon size={20} />
+            </div>
+            <span className="font-bold text-[14px] text-slate-700 dark:text-slate-200">{opt.label}</span>
+            {goals.includes(opt.id) && <Check size={20} className="ml-auto text-indigo-500" strokeWidth={3} />}
+          </button>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onConfirm(goals)}
+        disabled={goals.length === 0}
+        className="w-full sm:w-[85%] h-14 rounded-2xl font-bold text-white text-[15px] shadow-lg bg-gradient-to-r from-indigo-600 to-cyan-500 hover:opacity-90 transition-all disabled:opacity-50"
+      >
+        Finalizar Setup
+      </button>
+    </div>
+  );
+}
 
 function StepWelcome({ onNext }) {
   return (

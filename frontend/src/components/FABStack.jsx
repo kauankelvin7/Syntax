@@ -7,10 +7,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
+import { Z } from '../constants/zIndex';
+
 const FABStack = ({ children }) => (
   <motion.div 
-    className="fixed z-50 flex flex-col-reverse gap-3 items-end pointer-events-none"
+    className="fixed flex flex-col-reverse gap-3 items-end pointer-events-none"
     style={{ 
+      zIndex: Z.pomodoro,
       // bottom-20 (80px) no mobile por causa da tab bar, bottom-6 (24px) no desktop
       bottom: 'max(5rem, calc(1.5rem + env(safe-area-inset-bottom)))',
       right: 'max(1rem, env(safe-area-inset-right))',

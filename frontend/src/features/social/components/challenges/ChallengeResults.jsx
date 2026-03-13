@@ -9,6 +9,7 @@
 import React, { memo, useMemo, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Medal, Clock, Target, ArrowLeft, Star, Zap, Crown, Terminal } from 'lucide-react';
+import { Z } from '../../../../constants/zIndex';
 import { getInitials, getAvatarColor } from '../../utils/chatHelpers';
 import { calculateScore, averageResponseTime, getResultData } from '../../utils/challengeHelpers';
 
@@ -29,7 +30,7 @@ const SimpleConfetti = () => {
   }));
 
   return (
-    <div className="fixed inset-0 z-[120] pointer-events-none overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: Z.modal + 1 }}>
       {pieces.map((p) => (
         <motion.div
           key={p.id}
@@ -79,7 +80,7 @@ const ChallengeResults = memo(({ challenge, currentUserId, onClose }) => {
 
   if (!results || !challenge) {
     return (
-      <div className="fixed inset-0 z-[110] bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center">
+      <div className="fixed inset-0 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center" style={{ zIndex: Z.modal }}>
         <Loader2 size={36} className="text-cyan-500 animate-spin mb-4" strokeWidth={2.5} />
         <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">Compilando resultados...</p>
       </div>

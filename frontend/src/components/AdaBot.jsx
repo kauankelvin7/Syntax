@@ -33,6 +33,7 @@ import useSpeechRecognition from '../hooks/useSpeechRecognition';
 import useAdaSessoes from '../hooks/useSyntaxSessoes';
 import useTextToSpeech from '../hooks/useTextToSpeech';
 import { extrairAcoes, executarAcoes } from '../utils/adaActions';
+import { Z } from '../constants/zIndex';
 import AdaAvatar from './Ada/AdaAvatar';
 import AdaSkeleton from './Ada/AdaSkeleton';
 
@@ -60,16 +61,16 @@ const cleanUndefined = (obj) => JSON.parse(JSON.stringify(obj));
    RESPOSTAS LOCAIS
 ───────────────────────────────────────────────────── */
 const RESPOSTAS_LOCAIS = {
-  'oi':       'Oi! Tô aqui. O que você precisa?',
-  'ola':      'Olá! Como posso ajudar?',
-  'olá':      'Olá! Como posso ajudar?',
-  'ok':       'Certo!',
-  'obrigado': 'De nada! Se precisar é só chamar.',
-  'obrigada': 'De nada! Se precisar é só chamar.',
-  'valeu':    'Sempre! Qualquer coisa é só falar.',
-  'vlw':      'Sempre!',
-  'blz':      'Beleza! Tô por aqui.',
-  'beleza':   'Show! Se precisar é só chamar.',
+  'oi':       'Oi! Sou a Ada. Como posso te ajudar com seus estudos hoje?',
+  'ola':      'Olá! Sou a Ada, sua assistente de engenharia de software. O que vamos estudar?',
+  'olá':      'Olá! Sou a Ada, sua assistente de engenharia de software. O que vamos estudar?',
+  'ok':       'Entendido. Quando precisar de uma revisão ou explicação, estou aqui.',
+  'obrigado': 'Disponha! Se tiver mais alguma dúvida de engenharia, é só chamar.',
+  'obrigada': 'Disponha! Se tiver mais alguma dúvida de engenharia, é só chamar.',
+  'valeu':    'Sempre à disposição para ajudar no seu progresso como dev!',
+  'vlw':      'Sempre à disposição!',
+  'blz':      'Combinado. Estou por aqui se precisar revisar algum código ou conceito.',
+  'beleza':   'Combinado. Estou por aqui se precisar revisar algum código ou conceito.',
 };
 const tentarRespostaLocal = (msg) =>
   RESPOSTAS_LOCAIS[msg.toLowerCase().trim().replace(/[!?.\s]+$/g, '').trim()] ?? null;
@@ -239,17 +240,17 @@ const analyzeError = (error) => {
 
   if (e.includes('429') || e.includes('rate limit') || e.includes('quota')) {
     return {
-      message: '⏱️ _Limite de requisições da API atingido_',
+      message: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
       solutions: [
         '**Aguarde 1-2 minutos** antes de reconectar',
-        'O Gemini tem limite gratuito por minuto',
+        'O Gemini tem um limite gratuito por minuto',
         'Verifique sua cota em Google AI Studio',
       ],
     };
   }
   if (e.includes('api key') || e.includes('invalid')) {
     return {
-      message: '🔑 _API Key inválida ou não configurada_',
+      message: 'Chave da API inválida ou não configurada.',
       solutions: [
         'Verifique se `VITE_GEMINI_API_KEY` está no `.env`',
         'Gere uma nova key em Google AI Studio',
@@ -259,8 +260,8 @@ const analyzeError = (error) => {
   }
   if (e.includes('network') || e.includes('fetch') || e.includes('failed to fetch')) {
     return {
-      message: '🌐 _Erro de conexão de rede_',
-      solutions: ['Verifique sua internet', 'Desabilite VPN temporariamente', 'Tente reconectar'],
+      message: 'Sem conexão. Verifique sua internet e tente novamente.',
+      solutions: ['Verifique sua conexão', 'Desabilite VPN temporariamente', 'Tente reconectar'],
     };
   }
   return {
@@ -375,52 +376,33 @@ const buildSystemPrompt = (memoria, dadosSistema, pageContext) => {
   const materias  = dadosSistema?.materias?.map(m => m.nome).join(', ') || 'nenhuma ainda';
   const stack     = pref.areasDeInteresse?.join(', ') || 'não identificada';
 
-  return `Você é Ada — engenheira de software sênior fazendo pair programming com esse dev.
+  return `Você é a Ada, assistente de estudos em engenharia de software da plataforma Syntax. Age como engenheira sênior: paciente, direta e didática. 
 
-## PERSONALIDADE
-- Apaixonada por código limpo, arquitetura e sistemas que escalam
-- Direta e objetiva — vai ao ponto sem enrolação
-- Tem opinião técnica forte — discorda quando necessário, com argumentos
-- Conhece os trade-offs reais (não existe bala de prata)
-- Muda de abordagem quando o dev trava
-- Comemora genuinamente quando o código funciona
+ESPECIALIDADES:
+- Algoritmos e estruturas de dados (Big O incluso)
+- Design patterns (GoF, arquiteturais, comportamentais)
+- Arquitetura de sistemas (microserviços, DDD, event-driven)
+- Clean Code, SOLID, DRY, KISS
+- Debugging e análise de erros
+- Revisão de código com sugestões construtivas
+- Preparação para entrevistas técnicas
+- Git e workflows de desenvolvimento
+- DevOps básico (CI/CD, Docker, cloud)
+- Banco de dados (SQL, NoSQL, trade-offs)
 
-## TOM DE VOZ
-❌ Nunca: "Claro!", "Com certeza!", "Ótima pergunta!", respostas sycophant
-❌ Não inicie com "Eu" nem seja excessivamente entusiasta
-❌ Não bullet points para tudo — prefira explicações fluidas
-✅ Linguagem direta: "o problema aqui é", "na prática", "olha", "então"
-✅ Termos técnicos corretos sem explicar o óbvio
-✅ Quando não souber: "Não tenho certeza — vale checar a documentação"
-✅ Nunca exponha detalhes internos (JSON, schema, id interno, hex)
-✅ Varie as aberturas — às vezes vai direto sem saudação
+COMPORTAMENTO:
+- Seja direto — não enrole antes de responder
+- Use exemplos de código quando relevante (especifique a linguagem)
+- Explique o "por quê", não só o "como"
+- Ao corrigir erros, dê contexto — nunca só "está errado"
+- Faça perguntas quando a dúvida for vaga
+- Não seja bajulador — evite "ótima pergunta!"
+- Se não souber algo, diga claramente
+- Sugira recursos adicionais com moderação
 
-## CONTEXTO DO DEV
-${pref.nomePreferido ? `Pair programming com ${pref.nomePreferido}. Use o nome naturalmente, não em toda frase.` : 'Ainda não sabe o nome do dev.'}
-Nível: ${pref.nivelConhecimento || 'não identificado'} | Stack: ${stack}
-${pref.linguagemFavorita ? `Linguagem favorita: ${pref.linguagemFavorita}` : ''}
-Projetos/matérias: ${materias} | Total de interações: ${totalMsgs}
-${totalMsgs === 0
-  ? '- Primeira vez — apresente-se brevemente como engenheira de software'
-  : totalMsgs < 10
-  ? '- Ainda se conhecendo — seja um pouco mais explicativa'
-  : '- Já trabalham juntos — seja direta e assuma contexto'
-}
-Ações realizadas: ${JSON.stringify(stats.acoesExecutadas || {})}
-
-${pageContext ? `## CONTEXTO ATUAL\n${pageContext}` : ''}
-
-## INTELIGÊNCIA CONTEXTUAL
-- Mensagem curta e seca → dev está com pressa, seja objetivo
-- Erro ou frustração → valide antes de ajudar, não pule para a solução
-- "Explica de novo" → a primeira explicação não funcionou, mude completamente a abordagem
-- Ponto de exclamação / emoji → dev animado, combine o tom
-- Texto longo e detalhado → quer profundidade, entregue isso
-
-## PROFUNDIDADE
-**Rápido** (saudações, confirmações): 1-2 frases, sem formatação.
-**Padrão** (dúvidas técnicas): 2-4 parágrafos com código quando relevante.
-**Profundo** (pedido explícito): Contexto, código, trade-offs, próximos passos.
+CONTEXTO DO USUÁRIO:
+Projetos: ${materias} | Stack: ${stack} | Total de mensagens: ${totalMsgs}
+${pageContext ? `\nAmbiente atual: ${pageContext}` : ''}
 
 ## AÇÕES DISPONÍVEIS
 Execute ações reais com este formato EXATO no FINAL da mensagem:
@@ -428,7 +410,6 @@ Execute ações reais com este formato EXATO no FINAL da mensagem:
 { "acao": "NOME", "dados": { ... } }
 \`\`\`
 Ações: CRIAR_MATERIA, CRIAR_FLASHCARD, CRIAR_MULTIPLOS_FLASHCARDS, CRIAR_RESUMO, AGENDAR_REVISAO, ATUALIZAR_PREFERENCIAS
-Matérias: ${dadosSistema?.materias?.map(m => `${m.nome} (${m.id})`).join(', ') || 'nenhuma'}
 Regras:
 1. Blocos action SEMPRE no final
 2. Um bloco por item — para múltiplos items, gere múltiplos blocos separados
@@ -438,11 +419,9 @@ Regras:
 ## MODO QUIZ
 Para "me testa", "quiz", "desafio": UMA questão por vez.
 [QUIZ_INICIO: tema | total] → [QUIZ_QUESTAO: atual | total] → [QUIZ_FIM: acertos | total | ponto_fraco]
-Tipos: direta, aplicada, diferencial, arquitetura.
 
 ## PRÓXIMO PASSO
-Ao final de respostas técnicas: [PROXPASSO: texto curto acionável] (máx 5 palavras)
-NUNCA em saudações ou após ações já executadas.`;
+Ao final de respostas técnicas: [PROXPASSO: texto curto acionável] (máx 5 palavras)`;
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -1052,7 +1031,9 @@ const AdaBot = () => {
       {/* ─── FAB ─── */}
       <AnimatePresence>
         {!isOpen && (
-          <motion.button onClick={() => setIsOpen(true)} className="relative group"
+          <motion.button onClick={() => setIsOpen(true)}
+            style={{ zIndex: Z.pomodoro }}
+            className="relative group"
             initial={{ scale:0, opacity:0 }} animate={{ scale:1, opacity:1 }} exit={{ scale:0, opacity:0 }}
             whileHover={{ scale:1.06 }} whileTap={{ scale:0.94 }} aria-label="Abrir Ada">
             <div className="absolute inset-0 rounded-[18px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
@@ -1077,17 +1058,18 @@ const AdaBot = () => {
         {isOpen && (
           <>
             {/* Mobile backdrop */}
-            <motion.div className="fixed inset-0 z-[190] sm:hidden"
-              style={{ background:'rgba(0,0,0,0.55)', backdropFilter:'blur(4px)' }}
+            <motion.div className="fixed inset-0 sm:hidden"
+              style={{ zIndex: Z.modal - 1, background:'rgba(0,0,0,0.55)', backdropFilter:'blur(4px)' }}
               initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
               onClick={handleFechar} />
 
             <motion.div
-              className="fixed z-[200] flex flex-col overflow-hidden
+              className="fixed flex flex-col overflow-hidden
                          bottom-0 left-0 right-0 h-[80vh] rounded-t-[24px]
                          sm:bottom-5 sm:right-5 sm:left-auto sm:w-[410px]
                          sm:h-[680px] sm:max-h-[calc(100vh-80px)] sm:rounded-[24px]"
               style={{
+                zIndex:      Z.modal,
                 background:  '#0d1117',
                 border:      '1px solid rgba(255,255,255,0.07)',
                 boxShadow:   '0 32px 80px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.05)',

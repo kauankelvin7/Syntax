@@ -10,6 +10,7 @@ import React, { useState, useEffect, useMemo, Suspense, lazy, memo } from 'react
 import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import DOMPurify from 'dompurify';
 import 'react-quill/dist/quill.snow.css';
 
 // Lazy loading para performance de rede
@@ -123,9 +124,10 @@ const TEMPLATE_ARQUITETURA = `<h2>🏗️ System Architecture Proposal</h2>
    ═══════════════════════════════════════════ */
 
 const stripHtml = (html) => {
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
+  if (!html) return '';
+  // Usa DOMPurify para sanitizar e depois extrair o texto
+  const clean = DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
+  return clean.trim();
 };
 
 const formatDate = (timestamp) => {
@@ -259,9 +261,9 @@ function Resumos() {
       await carregarDados();
       refreshData(userId).catch(() => {});
       resetForm();
-      toast.success('Commit_Success: Documentação sincronizada.');
+      toast.success('Resumo salvo com sucesso.');
     } catch {
-      toast.error('Deploy_Error: Falha ao salvar documento.');
+      toast.error('Erro ao salvar resumo. Tente novamente.');
     }
   };
 
@@ -378,23 +380,23 @@ function Resumos() {
                 <FileText size={32} className="text-white dark:text-slate-900" strokeWidth={2.5} />
               </div>
               <div>
-                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none mb-1">Doc_Repository</h1>
+                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none mb-1">Repositório</h1>
                 <p className="text-[12px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                  <Activity size={14} className="text-indigo-500" /> Synthesized Knowledge Assets
+                  <Activity size={14} className="text-indigo-500" /> Documentação técnica e resumos
                 </p>
               </div>
             </div>
             <Button onClick={() => setShowModal(true)} className="bg-indigo-600 h-14 px-8 font-black uppercase tracking-widest text-[11px] !rounded-[16px] shadow-lg">
-              <Plus size={18} className="mr-2" strokeWidth={3} /> New_Document
+              <Plus size={18} className="mr-2" strokeWidth={3} /> Novo Resumo
             </Button>
           </div>
 
           {/* TELEMETRY */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-10">
             {[
-              { label: 'Total_Docs', val: statsResumos.total, icon: FileText, col: 'text-indigo-500', bg: 'bg-indigo-500/10' },
-              { label: 'Stacks_Documented', val: statsResumos.materiasCobertas, icon: Layers, col: 'text-cyan-500', bg: 'bg-cyan-500/10' },
-              { label: 'Weekly_Throughput', val: `+${statsResumos.novosNaSemana}`, icon: BarChart2, col: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+              { label: 'Total de Resumos', val: statsResumos.total, icon: FileText, col: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+              { label: 'Matérias Cobertas', val: statsResumos.materiasCobertas, icon: Layers, col: 'text-cyan-500', bg: 'bg-cyan-500/10' },
+              { label: 'Novos na Semana', val: `+${statsResumos.novosNaSemana}`, icon: BarChart2, col: 'text-emerald-500', bg: 'bg-emerald-500/10' },
             ].map((s, i) => (
               <div key={i} className="bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[28px] p-6 shadow-sm">
                 <div className={`w-10 h-10 rounded-[12px] ${s.bg} flex items-center justify-center mb-4 ${s.col}`}><s.icon size={20} strokeWidth={2.5} /></div>
@@ -408,17 +410,17 @@ function Resumos() {
           <div className="flex flex-col lg:flex-row gap-4 bg-white dark:bg-slate-900 p-3 rounded-[24px] border-2 border-slate-100 dark:border-slate-800 shadow-sm mt-10">
             <div className="relative flex-1">
               <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input type="text" placeholder="Probe documentation..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 h-14 rounded-[16px] bg-slate-50 dark:bg-slate-950 border-0 text-slate-900 dark:text-white font-bold" />
+              <input type="text" placeholder="Pesquisar resumos..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 h-14 rounded-[16px] bg-slate-50 dark:bg-slate-950 border-0 text-slate-900 dark:text-white font-bold" />
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <Select value={selectedMateria} onChange={(e) => setSelectedMateria(e.target.value)} className="!rounded-[14px] bg-slate-50 dark:bg-slate-950 border-0 h-14 font-bold min-w-[200px]">
-                <option value="all">All_Stacks</option>
+                <option value="all">Todas as Matérias</option>
                 {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
               </Select>
               <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="!rounded-[14px] bg-slate-50 dark:bg-slate-950 border-0 h-14 font-black uppercase text-[11px] tracking-widest">
-                <option value="recente">Most_Recent</option>
-                <option value="antigo">Legacy_First</option>
-                <option value="nome">Alpha_Sort</option>
+                <option value="recente">Mais Recentes</option>
+                <option value="antigo">Mais Antigos</option>
+                <option value="nome">Ordem Alfabética</option>
               </Select>
             </div>
           </div>
@@ -462,15 +464,20 @@ function Resumos() {
         {resumosFiltrados.length === 0 && (
           <div className="py-24 text-center opacity-40">
             <Terminal size={48} className="mx-auto mb-6" />
-            <h3 className="text-xl font-black uppercase tracking-tight">Repository_Empty</h3>
-            <p className="text-[14px] font-bold text-slate-500 uppercase tracking-widest mt-2">Nenhum documento localizado no buffer atual.</p>
+            <h3 className="text-xl font-black uppercase tracking-tight">Repositório vazio</h3>
+            <p className="text-[14px] font-bold text-slate-500 uppercase tracking-widest mt-2">Nenhum documento encontrado.</p>
           </div>
         )}
 
         {/* FULLSCREEN MODAL */}
         <AnimatePresence>
           {showModal && (
-            <motion.div className="fixed inset-0 z-[200] flex items-center justify-center p-0 sm:p-6 bg-slate-950/90 backdrop-blur-xl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={resetForm}>
+            <motion.div className="fixed inset-0 flex items-center justify-center p-0 sm:p-6 bg-slate-950/90 backdrop-blur-xl" 
+              style={{ zIndex: Z.onboarding }}
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={resetForm}>
               <motion.div className="bg-white dark:bg-slate-900 w-full max-w-6xl h-full sm:h-[90vh] rounded-none sm:rounded-[32px] overflow-hidden flex flex-col shadow-2xl border-2 border-white/5" initial={{ y: 50, scale: 0.98 }} animate={{ y: 0, scale: 1 }} exit={{ y: 50, scale: 0.98 }} onClick={e => e.stopPropagation()}>
                 
                 {/* MODAL HEADER */}
@@ -542,7 +549,7 @@ function Resumos() {
                     <div className="p-12 sm:p-20 max-w-4xl mx-auto bg-white dark:bg-slate-900 shadow-inner rounded-[42px] my-10 border border-slate-100 dark:border-slate-800 selection:bg-indigo-500 selection:text-white">
                       <Badge color={getMateriaInfo(formData.materiaId).cor} className="mb-10 uppercase font-black text-[10px] tracking-[0.2em] !px-4 !py-2 shadow-xl">{getMateriaInfo(formData.materiaId).nome}</Badge>
                       <h1 className="font-black text-slate-900 dark:text-white leading-tight mb-12 tracking-tighter uppercase italic" style={{ fontSize: `${viewFontSize * 3}rem` }}>{formData.titulo}</h1>
-                      <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tighter prose-headings:italic prose-p:font-medium prose-p:leading-relaxed" style={{ fontSize: `${viewFontSize}rem` }} dangerouslySetInnerHTML={{ __html: formData.conteudo }} />
+                      <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tighter prose-headings:italic prose-p:font-medium prose-p:leading-relaxed" style={{ fontSize: `${viewFontSize}rem` }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formData.conteudo) }} />
                       
                       {formData.imagens.length > 0 && (
                         <div className="mt-20 pt-20 border-t border-slate-100 dark:border-slate-800">

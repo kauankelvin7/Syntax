@@ -13,6 +13,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { format, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Z } from '../constants/zIndex';
 import { 
   Plus, 
   X, 
@@ -227,8 +228,9 @@ const AgendaWidget = () => {
       {/* Modal de Novo Evento - Estilo Syntax Premium */}
       <AnimatePresence>
         {showModal && (
-          <motion.div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[1000] p-4"
+          <motion.div 
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4"
+            style={{ zIndex: Z.modal }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

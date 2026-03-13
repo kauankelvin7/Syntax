@@ -59,11 +59,12 @@ const REFRESH_EVENTS = [
 const INITIAL_STATE = {
   materias:        [],
   totalFlashcards: 0,
-  totalResumos:    0,
+  resumosSalvos:   0,
   totalSimulados:  0,
   totalEventos:    0,
-  streakAtual:     0,
-  longestStreak:   0,
+  diasSeguidos:    0,
+  maiorSequencia:  0,
+  projetoRecente:  null,
 };
 
 // ─── UTILITÁRIOS ───────────────────────────────────────────────────────────────
@@ -190,15 +191,24 @@ const useSyntaxContext = (uid) => {
       warnIfTruncated(resumosSnap,    'resumos');
 
       const materias = materiasSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const resumos  = resumosSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+      // Determina o projeto recente (última matéria ou resumo atualizado)
+      const projetoRecente = materias.length > 0 
+        ? materias.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0))[0]?.nome
+        : resumos.length > 0 
+        ? resumos.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0))[0]?.titulo
+        : null;
 
       const novoDado = {
         materias,
         totalFlashcards: flashcardsSnap.size,
-        totalResumos:    resumosSnap.size,
+        resumosSalvos:   resumosSnap.size,
         totalSimulados:  simuladosSnap.size,
         totalEventos:    eventosSnap.size,
-        streakAtual:     streakStats?.currentStreak  ?? 0,
-        longestStreak:   streakStats?.longestStreak  ?? 0,
+        diasSeguidos:    streakStats?.currentStreak  ?? 0,
+        maiorSequencia:  streakStats?.longestStreak  ?? 0,
+        projetoRecente,
       };
 
       // Atualiza cache

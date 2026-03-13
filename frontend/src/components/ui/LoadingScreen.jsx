@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Z } from '../../constants/zIndex';
 import Logo from '../Logo'; // Certifique-se de que o caminho está correto
 
 // Partícula flutuante individual (Estilo "Data particles")
@@ -74,7 +75,8 @@ const LoadingScreen = () => {
       `}</style>
 
       <motion.div
-        className="fixed inset-0 z-[1000] flex flex-col items-center justify-center bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-xl overflow-hidden"
+        className="fixed inset-0 flex flex-col items-center justify-center bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-xl overflow-hidden"
+        style={{ zIndex: Z.onboarding + 20 }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}

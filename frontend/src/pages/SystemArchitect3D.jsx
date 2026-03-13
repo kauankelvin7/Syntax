@@ -21,6 +21,8 @@ import {
   TrendingUp, Clock, Hash, Wifi
 } from 'lucide-react';
 
+import { Z } from '../constants/zIndex';
+
 /* ═══════════════════════════════════════════════════════
    SYNTAX THEME — DESIGN TOKENS
 ═══════════════════════════════════════════════════════ */
@@ -869,7 +871,7 @@ function DetailPanel({ selected, onClose }) {
         overflow: 'hidden',
         boxShadow: `0 0 40px ${cfg?.color ?? TOKEN.indigo}15, 0 20px 40px rgba(0,0,0,0.4)`,
         fontFamily: TOKEN.fontSans,
-        zIndex: 30,
+        zIndex: Z.raised,
       }}
     >
       <div style={{ height: 4, background: `linear-gradient(90deg, ${cfg?.color}, transparent)` }} />
@@ -1060,7 +1062,7 @@ function SidePanel({ visible, selectedId, onSelect, searchTerm, setSearchTerm, v
       display: 'flex',
       flexDirection: 'column',
       fontFamily: TOKEN.fontSans,
-      zIndex: 30,
+      zIndex: Z.raised,
       transform: visible ? 'translateX(0)' : 'translateX(-100%)',
       transition: 'transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
     }}>
@@ -1293,7 +1295,7 @@ export default function SystemArchitect3D() {
           <AnimatePresence mode="wait">
             <motion.div
               key={hoveredModule.id} initial={{ opacity: 0, y: 12, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.96 }}
-              style={{ position: 'absolute', bottom: 30, left: 30, width: 280, background: TOKEN.bgCard, backdropFilter: 'blur(20px)', border: `2px solid ${LAYER_CONFIG[hoveredModule.layer].color}40`, borderRadius: 20, overflow: 'hidden', boxShadow: `0 0 30px ${TOKEN.indigo}15`, pointerEvents: 'none', zIndex: 90 }}
+              style={{ position: 'absolute', bottom: 30, left: 30, width: 280, background: TOKEN.bgCard, backdropFilter: 'blur(20px)', border: `2px solid ${LAYER_CONFIG[hoveredModule.layer].color}40`, borderRadius: 20, overflow: 'hidden', boxShadow: `0 0 30px ${TOKEN.indigo}15`, pointerEvents: 'none', zIndex: Z.tooltip }}
             >
               <div style={{ height: 3, background: `linear-gradient(90deg, ${LAYER_CONFIG[hoveredModule.layer].color}, transparent)` }} />
               <div style={{ padding: '16px 20px' }}>
@@ -1323,12 +1325,12 @@ export default function SystemArchitect3D() {
           {selected && <DetailPanel selected={selected} onClose={() => setSelectedId(null)} />}
         </AnimatePresence>
 
-        <div style={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 10, zIndex: 120 }}>
+        <div style={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 10, zIndex: Z.modal }}>
           <button onClick={() => setSelectedId(null)} title="Reset Viewport" style={{ width: 44, height: 44, borderRadius: 14, border: `2px solid ${TOKEN.border}`, background: TOKEN.bgCard, backdropFilter: 'blur(12px)', cursor: 'pointer', color: TOKEN.textSecondary }}><RotateCcw size={18} /></button>
           <button onClick={() => setVisLayers([...LAYERS])} title="Show All Nodes" style={{ width: 44, height: 44, borderRadius: 14, border: `2px solid ${TOKEN.border}`, background: TOKEN.bgCard, backdropFilter: 'blur(12px)', cursor: 'pointer', color: TOKEN.textSecondary }}><Layers size={18} /></button>
         </div>
 
-        <button onClick={() => setPanelOpen(p => !p)} style={{ position: 'absolute', bottom: 30, left: panelOpen ? 340 : 30, height: 48, padding: '0 20px', borderRadius: 14, border: `2px solid ${TOKEN.border}`, background: TOKEN.bgCard, backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', color: TOKEN.textSecondary, fontSize: 13, fontFamily: TOKEN.fontMono, fontWeight: 900, textTransform: 'uppercase', transition: 'left 0.4s cubic-bezier(0.23, 1, 0.32, 1)', zIndex: 120 }}>
+        <button onClick={() => setPanelOpen(p => !p)} style={{ position: 'absolute', bottom: 30, left: panelOpen ? 340 : 30, height: 48, padding: '0 20px', borderRadius: 14, border: `2px solid ${TOKEN.border}`, background: TOKEN.bgCard, backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', color: TOKEN.textSecondary, fontSize: 13, fontFamily: TOKEN.fontMono, fontWeight: 900, textTransform: 'uppercase', transition: 'left 0.4s cubic-bezier(0.23, 1, 0.32, 1)', zIndex: Z.modal }}>
           {panelOpen ? <ChevronLeft size={18} strokeWidth={3} /> : <Layers size={18} strokeWidth={3} />}
           {panelOpen ? 'Collapse_Arch' : 'Expand_Modules'}
         </button>

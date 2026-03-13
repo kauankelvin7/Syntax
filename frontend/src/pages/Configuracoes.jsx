@@ -168,7 +168,7 @@ export default function Configuracoes() {
       const credential = EmailAuthProvider.credential(user.email, currentPasswordForEmail);
       await reauthenticateWithCredential(auth.currentUser, credential);
       await updateEmail(auth.currentUser, newEmail.trim());
-      await setDoc(doc(db, 'users', user.uid), { email: newEmail.trim() }, { merge: true });
+      // Email NÃO é salvo no Firestore por privacidade (PII)
       toast.success('Endpoint de email atualizado!');
       setCurrentPasswordForEmail('');
     } catch (err) { toast.error('Falha na reautenticação.'); }

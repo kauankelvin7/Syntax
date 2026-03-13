@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 📂 STACKS (Matérias) — Syntax Theme Premium
  * * Gerenciamento tático de módulos de conhecimento.
  * - Features: Grid Responsivo, Seletor de Stacks, Telemetria de Progresso.
@@ -158,8 +158,8 @@ function Materias() {
       else await criarMateria(formData, user.id || user.uid);
       await carregarMaterias();
       resetForm();
-      toast.success('Stack_Update: Sincronização concluída.');
-    } catch { toast.error('Falha no deploy da stack.'); }
+      toast.success('Matéria salva com sucesso.');
+    } catch { toast.error('Erro ao salvar matéria. Tente novamente.'); }
   };
 
   const handleEdit = (materia) => {
@@ -217,23 +217,23 @@ function Materias() {
                 <Layers size={32} className="text-white dark:text-slate-900" strokeWidth={2.5} />
               </div>
               <div>
-                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none mb-1">System_Stacks</h1>
+                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none mb-1">Minhas Matérias</h1>
                 <p className="text-[12px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                  <Activity size={14} className="text-cyan-500" /> Infrastructure & Knowledge Modules
+                  <Activity size={14} className="text-cyan-500" /> Infraestrutura e módulos de conhecimento
                 </p>
               </div>
             </div>
             <Button onClick={() => setShowModal(true)} className="bg-indigo-600 hover:bg-indigo-700 h-14 px-8 font-black uppercase tracking-widest text-[11px] !rounded-[16px] shadow-lg shadow-indigo-600/20">
-              <Plus size={18} className="mr-2" strokeWidth={3} /> New_Module
+              <Plus size={18} className="mr-2" strokeWidth={3} /> Nova Matéria
             </Button>
           </div>
 
           {/* TELEMETRY DASH */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {[
-              { label: 'Efficiency_Rate', val: `${completionPercent}%`, sub: 'Concluídas', icon: CheckCircle2, col: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-              { label: 'Active_Modules', val: materias.filter(m => !m.concluida).length, sub: 'Em andamento', icon: Cpu, col: 'text-indigo-500', bg: 'bg-indigo-500/10' },
-              { label: 'Hot_Syncs', val: Object.values(reviewsByMateria).reduce((s, r) => s + r.pending, 0), sub: 'Revisões pendentes', icon: RotateCcw, col: 'text-amber-500', bg: 'bg-amber-500/10' },
+              { label: 'Taxa de Eficiência', val: `${completionPercent}%`, sub: 'Concluídas', icon: CheckCircle2, col: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+              { label: 'Em Andamento', val: materias.filter(m => !m.concluida).length, sub: 'Módulos ativos', icon: Cpu, col: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+              { label: 'Revisões Pendentes', val: Object.values(reviewsByMateria).reduce((s, r) => s + r.pending, 0), sub: 'Sincronizações necessárias', icon: RotateCcw, col: 'text-amber-500', bg: 'bg-amber-500/10' },
             ].map((s, i) => (
               <motion.div key={i} className="bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[28px] p-6 shadow-sm flex flex-col" whileHover={{ y: -4 }}>
                 <div className={`w-10 h-10 rounded-[12px] ${s.bg} flex items-center justify-center mb-4 ${s.col}`}><s.icon size={20} strokeWidth={2.5} /></div>
@@ -248,12 +248,12 @@ function Materias() {
           <motion.div className="flex flex-col sm:flex-row gap-3 mt-10 bg-white dark:bg-slate-900 p-3 rounded-[24px] border-2 border-slate-100 dark:border-slate-800 shadow-sm" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="relative flex-1">
               <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input type="text" placeholder="Probe system stacks..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 h-14 rounded-[16px] bg-slate-50 dark:bg-slate-950 border-0 text-slate-900 dark:text-white font-bold" />
+              <input type="text" placeholder="Pesquisar matérias..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 h-14 rounded-[16px] bg-slate-50 dark:bg-slate-950 border-0 text-slate-900 dark:text-white font-bold" />
             </div>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="h-14 px-6 rounded-[16px] bg-slate-50 dark:bg-slate-950 border-0 font-black uppercase text-[11px] tracking-widest cursor-pointer">
-              <option value="recente">Most_Recent</option>
-              <option value="nome">A-Z_Sort</option>
-              <option value="flashcards">Logic_Units</option>
+              <option value="recente">Mais Recentes</option>
+              <option value="nome">Ordem Alfabética</option>
+              <option value="flashcards">Flashcards</option>
             </select>
           </motion.div>
         </motion.div>
@@ -283,11 +283,11 @@ function Materias() {
                       </div>
 
                       <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 tracking-tight uppercase leading-tight">{materia.nome}</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3 mb-8">{materia.descricao || 'No documentation provided.'}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3 mb-8">{materia.descricao || 'Nenhuma descrição disponível.'}</p>
                       
                       <div className="mt-auto flex flex-wrap gap-2">
-                        {pending > 0 && <span className="px-3 py-1.5 rounded-full bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-amber-500/20"><RotateCcw size={12} /> {pending} Sync_Needed</span>}
-                        {materia.concluida && <span className="px-3 py-1.5 rounded-full bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-emerald-500/20"><CheckCircle2 size={12} /> Compiled</span>}
+                        {pending > 0 && <span className="px-3 py-1.5 rounded-full bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-amber-500/20"><RotateCcw size={12} /> {pending} Revisões Pendentes</span>}
+                        {materia.concluida && <span className="px-3 py-1.5 rounded-full bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-emerald-500/20"><CheckCircle2 size={12} /> Concluída</span>}
                       </div>
                     </div>
 
@@ -295,12 +295,12 @@ function Materias() {
                        <div className="flex gap-3">
                          <div className="flex flex-col">
                            <span className="text-[14px] font-black font-mono text-slate-900 dark:text-white leading-none">{materia.totalFlashcards || 0}</span>
-                           <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Logics</span>
+                           <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Cards</span>
                          </div>
                          <div className="w-px h-6 bg-slate-200 dark:bg-slate-800 my-auto" />
                          <div className="flex flex-col">
                            <span className="text-[14px] font-black font-mono text-slate-900 dark:text-white leading-none">{materia.totalResumos || 0}</span>
-                           <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Docs</span>
+                           <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Resumos</span>
                          </div>
                        </div>
                        <button onClick={() => toggleConcluida(materia)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${materia.concluida ? 'bg-emerald-500 text-white' : 'bg-white dark:bg-slate-800 text-slate-300 border-2 border-slate-100 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-500'}`}>
@@ -315,13 +315,13 @@ function Materias() {
         </AnimatePresence>
 
         {/* MODAL EDITOR */}
-        <Modal isOpen={showModal} onClose={resetForm} title={editingId ? 'Edit_Stack_Node' : 'Initialize_New_Stack'} size="md">
+        <Modal isOpen={showModal} onClose={resetForm} title={editingId ? 'Editar Matéria' : 'Nova Matéria'} size="md">
           <form onSubmit={handleSubmit} className="space-y-8">
-            <Input label="Module_Name" placeholder="Ex: Backend System, Cloud Infra..." value={formData.nome} onChange={e => setFormData({ ...formData, nome: e.target.value })} required className="!h-14 !rounded-2xl" />
-            <Textarea label="Documentation_Brief" placeholder="Module scope and core objectives..." value={formData.descricao} onChange={e => setFormData({ ...formData, descricao: e.target.value })} rows={3} className="!rounded-2xl" />
+            <Input label="Nome da Matéria" placeholder="Ex: Backend, Infraestrutura..." value={formData.nome} onChange={e => setFormData({ ...formData, nome: e.target.value })} required className="!h-14 !rounded-2xl" />
+            <Textarea label="Descrição" placeholder="Objetivos e escopo da matéria..." value={formData.descricao} onChange={e => setFormData({ ...formData, descricao: e.target.value })} rows={3} className="!rounded-2xl" />
             
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Identity_Color_Hash</label>
+              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Cor da Identidade</label>
               <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 p-4 bg-slate-50 dark:bg-slate-950 rounded-[24px] border-2 border-slate-100 dark:border-slate-900">
                 {CORES_DISPONIVEIS.map(cor => (
                   <button key={cor.valor} type="button" onClick={() => setFormData({ ...formData, cor: cor.valor })} className="aspect-square rounded-[14px] relative transition-transform hover:scale-110" style={{ backgroundColor: cor.valor }}>
@@ -332,13 +332,13 @@ function Materias() {
             </div>
 
             <div className="flex gap-4 pt-4">
-              <Button type="submit" className="flex-1 bg-indigo-600 h-16 !rounded-[18px] font-black uppercase tracking-widest text-[11px] shadow-xl">Commit_Stack</Button>
-              <Button type="button" onClick={resetForm} variant="secondary" className="px-8 h-16 !rounded-[18px] font-black uppercase tracking-widest text-[11px]">Abort</Button>
+              <Button type="submit" className="flex-1 bg-indigo-600 h-16 !rounded-[18px] font-black uppercase tracking-widest text-[11px] shadow-xl">Salvar Matéria</Button>
+              <Button type="button" onClick={resetForm} variant="secondary" className="px-8 h-16 !rounded-[18px] font-black uppercase tracking-widest text-[11px]">Cancelar</Button>
             </div>
           </form>
         </Modal>
 
-        <ConfirmModal isOpen={confirmDelete.isOpen} onClose={() => setConfirmDelete({ isOpen: false, id: null, nome: '' })} onConfirm={confirmarExclusao} title="Stack_Termination_Request" itemName={confirmDelete.nome} confirmText="Confirm_Termination" isLoading={isDeleting} type="danger" />
+        <ConfirmModal isOpen={confirmDelete.isOpen} onClose={() => setConfirmDelete({ isOpen: false, id: null, nome: '' })} onConfirm={confirmarExclusao} title="Deseja excluir esta matéria?" itemName={confirmDelete.nome} confirmText="Confirmar exclusão" isLoading={isDeleting} type="danger" />
       </div>
     </div>
   );

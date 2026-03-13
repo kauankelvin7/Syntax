@@ -7,6 +7,7 @@
 import React, { useEffect, useRef, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import { Z } from '../../constants/zIndex';
 
 const Modal = ({ 
   isOpen, 
@@ -62,7 +63,7 @@ const Modal = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+        <div style={{ zIndex: Z.modal }} className="fixed inset-0 flex items-center justify-center p-4">
           {/* Backdrop Glass Premium */}
           <motion.div
             className="absolute inset-0 bg-slate-900/40 dark:bg-black/70 backdrop-blur-md"

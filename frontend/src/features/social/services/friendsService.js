@@ -269,7 +269,6 @@ export const friendsService = {
         uid:               user.uid,
         displayName,
         displayNameLower:  displayName.toLowerCase(),
-        email:             user.email    || '',
         photoURL:          user.photoURL || null,
         bio:               '',
       }));
@@ -297,7 +296,6 @@ export function ensureUserProfileOnAuth() {
           uid:                user.uid,
           displayName,
           displayNameLower:   displayName.toLowerCase(),
-          email:              user.email    || '',
           photoURL:           user.photoURL || null,
           bio:                '',
           institution:        '',

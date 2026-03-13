@@ -16,6 +16,7 @@ import {
   Rocket, // Substitui o GraduationCap
   Check
 } from 'lucide-react';
+import { Z } from '../../constants/zIndex';
 import { Input } from '../ui/Input';
 import Button from '../ui/Button';
 
@@ -86,7 +87,8 @@ const AddEventModal = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 flex items-center justify-center p-4 sm:p-6"
+          style={{ zIndex: Z.modal }}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         >
           {/* Backdrop Blur Premium */}

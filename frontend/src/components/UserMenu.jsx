@@ -1,7 +1,7 @@
 /**
  * 👤 USER MENU PREMIUM — Dropdown de Perfil e Sistema v2.0
  * Theme: Syntax (Software Engineering)
- * * Dropdown flutuante com Glassmorphism, controle de tema deslizante
+ * Dropdown flutuante com Glassmorphism, controle de tema deslizante
  * e feedback visual de status focado em devs.
  */
 
@@ -19,6 +19,7 @@ import {
   ChevronUp,
   Sparkles
 } from 'lucide-react';
+import { Z } from '../constants/zIndex';
 import { useAuth } from '../contexts/AuthContext-firebase';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -52,10 +53,10 @@ const ThemeSegmented = memo(() => {
               `}
             >
               {active && (
-                <motion.div 
+                <motion.div
                   layoutId="menuThemeActive"
                   className="absolute inset-0 bg-white dark:bg-slate-800 rounded-[10px] shadow-sm border border-slate-200/50 dark:border-slate-700"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
               <opt.icon size={14} strokeWidth={2.5} className="relative z-20" />
@@ -93,13 +94,19 @@ const MenuItem = memo(({ icon: Icon, label, onClick, danger, badge }) => (
 ));
 
 /* ── Componente Principal ── */
-const UserMenu = ({ onOpenProfile, className = '' }) => {
+const UserMenu = ({ onOpenProfile, className = '', collapsed }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
   const triggerRef = useRef(null);
 
+  // Fecha o dropdown automaticamente ao colapsar a sidebar
+  useEffect(() => {
+    if (collapsed) setOpen(false);
+  }, [collapsed]);
+
+  // Fecha ao clicar fora
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
@@ -114,57 +121,70 @@ const UserMenu = ({ onOpenProfile, className = '' }) => {
 
   return (
     <div className={`relative ${className}`}>
-      {/* Trigger Button */}
+
+      {/* Trigger Button — desabilitado quando collapsed */}
       <button
         ref={triggerRef}
-        onClick={() => setOpen((v) => !v)}
-        className={`w-full p-2.5 rounded-[16px] transition-all duration-300 group text-left border ${
-          open 
-            ? 'bg-indigo-50/50 dark:bg-indigo-900/20 border-indigo-200/50 dark:border-indigo-800/50 shadow-sm' 
+        onClick={() => !collapsed && setOpen((v) => !v)}
+        className={`
+          w-full transition-all duration-300 group border rounded-[16px]
+          ${open && !collapsed
+            ? 'bg-indigo-50/50 dark:bg-indigo-900/20 border-indigo-200/50 dark:border-indigo-800/50 shadow-sm'
             : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 border-transparent'
-        }`}
+          }
+          ${collapsed
+            ? 'flex justify-center items-center py-2.5 px-0 cursor-default pointer-events-none'
+            : 'p-2.5 text-left'
+          }
+        `}
       >
-        <div className="flex items-center gap-3">
-          <div className="relative shrink-0">
+        <div className={`flex items-center ${collapsed ? 'justify-center mx-auto translate-x-[-3px]' : 'w-full justify-start gap-3'}`}>
+
+          {/* Avatar */}
+          <div className={`relative shrink-0 flex justify-center items-center transition-all duration-300 ${collapsed ? 'w-8 h-8' : 'w-10 h-10'}`}>
             {user?.photoURL ? (
               <img
                 src={user.photoURL}
                 alt="Profile"
-                className="w-10 h-10 rounded-[12px] object-cover border-2 border-indigo-200 dark:border-indigo-800 shadow-sm transition-transform group-hover:scale-105"
+                className="object-cover border-2 border-indigo-200 dark:border-indigo-800 shadow-sm transition-transform group-hover:scale-105 rounded-[12px] w-full h-full"
               />
             ) : (
-              <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center text-white font-black text-sm shadow-md transition-transform group-hover:scale-105">
+              <div className={`bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center text-white font-black shadow-md transition-transform group-hover:scale-105 rounded-[12px] w-full h-full ${collapsed ? 'text-xs' : 'text-sm'}`}>
                 {initial}
               </div>
             )}
-            {/* Status Online Pulsante */}
-            <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-[2.5px] border-white dark:border-slate-800 shadow-sm animate-pulse" />
+            <span className={`absolute rounded-full bg-emerald-500 border-[2px] border-white dark:border-[#0B1120] shadow-sm animate-pulse ${collapsed ? '-bottom-0.5 -right-0.5 w-2.5 h-2.5' : '-bottom-1 -right-1 w-3.5 h-3.5'}`} />
           </div>
-          
-          <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-extrabold text-slate-800 dark:text-slate-100 truncate tracking-tight">
-              {user?.displayName || 'Developer'}
-            </p>
-          </div>
-          
-          <ChevronUp
-            size={16}
-            className={`text-slate-300 dark:text-slate-600 transition-transform duration-300 ${open ? '' : 'rotate-180'}`}
-            strokeWidth={3}
-          />
+
+          {/* Nome e seta — ocultos quando collapsed */}
+          {!collapsed && (
+            <>
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] font-extrabold text-slate-800 dark:text-slate-100 truncate tracking-tight">
+                  {user?.displayName || 'Developer'}
+                </p>
+              </div>
+              <ChevronUp
+                size={16}
+                className={`text-slate-300 dark:text-slate-600 transition-transform duration-300 ${open ? '' : 'rotate-180'}`}
+                strokeWidth={3}
+              />
+            </>
+          )}
         </div>
       </button>
 
       {/* Dropdown Menu */}
       <AnimatePresence>
-        {open && (
+        {open && !collapsed && (
           <div ref={menuRef}>
             <motion.div
-              className="absolute bottom-full left-0 right-0 mb-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/60 rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.2)] z-[200] overflow-hidden"
+              className={`absolute bottom-full mb-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/60 rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.2)] overflow-hidden ${collapsed ? 'left-0 w-64' : 'left-0 right-0'}`}
+              style={{ zIndex: Z.modal - 10 }}
               initial={{ opacity: 0, y: 15, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 15, scale: 0.95 }}
-              transition={{ type: "spring", damping: 25, stiffness: 400 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 400 }}
             >
               {/* User Info Header */}
               <div className="px-6 py-5 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
@@ -188,7 +208,6 @@ const UserMenu = ({ onOpenProfile, className = '' }) => {
 
               <Divider />
 
-              {/* Appearance Section */}
               <div className="px-5 pt-3 pb-1">
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Interface</span>
               </div>

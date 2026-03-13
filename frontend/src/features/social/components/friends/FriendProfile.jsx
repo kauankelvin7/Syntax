@@ -12,6 +12,7 @@ import { X, MessageSquare, Swords, Terminal, Flame, Code2, Cpu } from 'lucide-re
 import OnlineIndicator from '../shared/OnlineIndicator';
 import StudyingBadge from '../shared/StudyingBadge';
 import StreakComparison from '../shared/StreakComparison';
+import { Z } from '../../../../constants/zIndex';
 import { getInitials, getAvatarColor } from '../../utils/chatHelpers';
 import { friendsService } from '../../services/friendsService';
 
@@ -42,7 +43,8 @@ const FriendProfile = memo(({ friend, friendStatus, isOpen, onClose, onMessage, 
         <>
           {/* Backdrop com Blur Profundo */}
           <motion.div
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[100]"
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-md"
+            style={{ zIndex: Z.modal - 1 }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -51,7 +53,8 @@ const FriendProfile = memo(({ friend, friendStatus, isOpen, onClose, onMessage, 
 
           {/* Modal Container */}
           <motion.div
-            className="fixed inset-x-4 top-1/2 z-[101] max-w-sm mx-auto"
+            className="fixed inset-x-4 top-1/2 max-w-sm mx-auto"
+            style={{ zIndex: Z.modal }}
             initial={{ opacity: 0, y: '-45%', scale: 0.9 }}
             animate={{ opacity: 1, y: '-50%', scale: 1, transition: { type: "spring", damping: 25, stiffness: 350 } }}
             exit={{ opacity: 0, y: '-45%', scale: 0.9, transition: { duration: 0.2 } }}

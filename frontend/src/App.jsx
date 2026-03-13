@@ -25,6 +25,7 @@ import PWAInstallBanner from './components/PWAInstallBanner';
 import OnboardingFlow from './components/OnboardingFlow';
 import { initPWA } from './utils/pwaUtils';
 import { useFontSize } from './utils/useFontSize';
+import { initializeStreakTracking } from './services/streakService';
 
 
 // 🔥 LAZY LOADING - Páginas carregadas sob demanda
@@ -121,6 +122,7 @@ function AppContent() {
   useEffect(() => {
     if (!user) return;
     ensureUserProfileOnAuth(user);
+    initializeStreakTracking(user.uid);
   }, [user]);
 
   return (
