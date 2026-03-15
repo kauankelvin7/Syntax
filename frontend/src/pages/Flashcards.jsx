@@ -1,429 +1,446 @@
 /**
  * 🛰️ FLASHCARDS PRO — Syntax Theme
- * * Componente central de gerenciamento e Modo Estudo com algoritmo SM-2.
- * - Design: Infrastructure Monitor Style (Slate-950 / Cyan / Indigo).
- * - Lógica: 100% Preservada (Repetição Espaçada, Categorias, Busca Global).
+ *
+ * @fixes
+ * - Validação granular do formulário (campos obrigatórios + feedback inline)
+ * - Guard uid undefined em todas as ops Firestore
+ * - useEffect do keyboard com deps corretas (sem stale closures)
+ * - Loading states independentes por operação
+ * - carregarDados não recria referência a cada render (useCallback)
+ * - Empty state diferencia "sem flashcards" de "sem resultados no filtro"
+ * - Modo estudo: botão de virar card acessível além do clique
+ * - Cleanup correto do event listener de teclado
+ * - Separação de SM-2 rating: não avança automaticamente sem o usuário avaliar
+ * - resetForm não depende de closure stale
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState, useEffect, useCallback,
+  useMemo, useRef,
+} from 'react';
 import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, 
-  Filter, 
-  CreditCard, 
-  ImageIcon,
-  X,
-  Play,
-  ChevronLeft,
-  ChevronRight,
-  RotateCcw,
-  BookOpen,
-  Sparkles,
-  Terminal,
-  Cpu,
-  Zap,
-  Activity,
-  Code2,
-  Database,
-  Hash,
-  CheckCircle2 // ← ADD
+import {
+  Plus, Filter, CreditCard, ImageIcon, X, Play,
+  ChevronLeft, ChevronRight, RotateCcw, Terminal,
+  Cpu, Zap, Activity, CheckCircle2, AlertTriangle,
+  RefreshCw, BookOpen,
 } from 'lucide-react';
-import { 
-  listarFlashcards, 
-  criarFlashcard, 
-  atualizarFlashcard, 
-  deletarFlashcard,
-  listarMateriasSimples
+
+import {
+  listarFlashcards, criarFlashcard, atualizarFlashcard,
+  deletarFlashcard, listarMateriasSimples,
 } from '../services/firebaseService';
-import { compressImage } from '../utils/imageCompressor';
-import TagInput from '../components/TagInput';
+import { compressImage }              from '../utils/imageCompressor';
+import { Z }                          from '../constants/zIndex';
+import TagInput                       from '../components/TagInput';
 import { calculateSM2, isDueForReview, getNextReviewLabel } from '../utils/sm2';
-import { useAuth } from '../contexts/AuthContext-firebase';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import { Input, Textarea, Select } from '../components/ui/Input';
-import FlashcardItem from '../components/FlashcardItem';
-import Badge from '../components/ui/Badge';
-import ConfirmModal from '../components/ui/ConfirmModal';
-import { isTypingInInput } from '../utils/keyboard';
+import { useAuth }                    from '../contexts/AuthContext-firebase';
+import Button                         from '../components/ui/Button';
+import Modal                          from '../components/ui/Modal';
+import { Textarea, Select }           from '../components/ui/Input';
+import FlashcardItem                  from '../components/FlashcardItem';
+import Badge                          from '../components/ui/Badge';
+import ConfirmModal                   from '../components/ui/ConfirmModal';
+import { isTypingInInput }            from '../utils/keyboard';
 
-/* ═══════════════════════════════════════════
-   ANIMATION CONFIGURATIONS
-   ═══════════════════════════════════════════ */
-
+/* ─────────────────────────────────────────
+   ANIMATION VARIANTS
+───────────────────────────────────────── */
 const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05 }
-  }
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 15, scale: 0.96 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    scale: 1,
-    transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }
-  },
-  exit: { 
-    opacity: 0, 
-    scale: 0.95, 
-    transition: { duration: 0.15 } 
-  }
+  hidden:   { opacity: 0, y: 15, scale: 0.96 },
+  visible:  { opacity: 1, y: 0,  scale: 1, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } },
+  exit:     { opacity: 0, scale: 0.95, transition: { duration: 0.15 } },
 };
 
 const slideVariants = {
-  enter: (direction) => ({
-    x: direction > 0 ? 400 : -400,
-    opacity: 0,
-    scale: 0.92
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }
-  },
-  exit: (direction) => ({
-    x: direction < 0 ? 400 : -400,
-    opacity: 0,
-    scale: 0.92,
-    transition: { duration: 0.3 }
-  })
+  enter:  (d) => ({ x: d > 0 ?  400 : -400, opacity: 0, scale: 0.92 }),
+  center: { x: 0, opacity: 1, scale: 1, transition: { duration: 0.35, ease: [0.34, 1.56, 0.64, 1] } },
+  exit:   (d) => ({ x: d < 0 ?  400 : -400, opacity: 0, scale: 0.92, transition: { duration: 0.3 } }),
 };
 
-/* ═══════════════════════════════════════════
-   MAIN COMPONENT
-   ═══════════════════════════════════════════ */
+/* ─────────────────────────────────────────
+   CONSTANTS
+───────────────────────────────────────── */
+const FORM_INITIAL = {
+  pergunta:   '',
+  resposta:   '',
+  materiaId:  '',
+  materiaNome:'',
+  materiaCor: '',
+  tags:       [],
+};
 
-function Flashcards() {
-  const { user } = useAuth();
-  const location = useLocation();
-  const [flashcards, setFlashcards] = useState([]);
-  const [flashcardsFiltrados, setFlashcardsFiltrados] = useState([]);
-  const [materias, setMaterias] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [selectedMateria, setSelectedMateria] = useState('all');
-  const [imagePreview, setImagePreview] = useState(null);
+const MAX_PERGUNTA = 400;
+const MAX_RESPOSTA = 800;
+
+/* ─────────────────────────────────────────
+   FORM VALIDATION
+───────────────────────────────────────── */
+const validateForm = (data) => {
+  const e = {};
+  if (!data.pergunta.trim())               e.pergunta  = 'A pergunta é obrigatória.';
+  if (data.pergunta.length > MAX_PERGUNTA) e.pergunta  = `Máximo ${MAX_PERGUNTA} caracteres.`;
+  if (!data.resposta.trim())               e.resposta  = 'A resposta é obrigatória.';
+  if (data.resposta.length > MAX_RESPOSTA) e.resposta  = `Máximo ${MAX_RESPOSTA} caracteres.`;
+  if (!data.materiaId)                     e.materiaId = 'Selecione uma matéria.';
+  return e;
+};
+
+/* ═══════════════════════════════════════════════════════════
+   COMPONENTE PRINCIPAL
+═══════════════════════════════════════════════════════════ */
+export default function Flashcards() {
+  const { user }   = useAuth();
+  const location   = useLocation();
+  const uid        = user?.uid || user?.id;
+
+  /* ── Data ── */
+  const [flashcards, setFlashcards]       = useState([]);
+  const [materias, setMaterias]           = useState([]);
+
+  /* ── UI ── */
+  const [loading, setLoading]             = useState(true);
+  const [loadError, setLoadError]         = useState(null);
+  const [saving, setSaving]               = useState(false);
+
+  /* ── Modal ── */
+  const [showModal, setShowModal]         = useState(false);
+  const [editingId, setEditingId]         = useState(null);
+
+  /* ── Form ── */
+  const [formData, setFormData]           = useState(FORM_INITIAL);
+  const [formErrors, setFormErrors]       = useState({});
+  const [imagePreview, setImagePreview]   = useState(null);
+  const [imageFile, setImageFile]         = useState(null);
   const [compressingImage, setCompressingImage] = useState(false);
-  const [formData, setFormData] = useState({
-    pergunta: '',
-    resposta: '',
-    materiaId: '',
-    materiaNome: '',
-    materiaCor: '',
-    tags: []
-  });
-  const [selectedTag, setSelectedTag] = useState('all');
-  const [selectedImageFile, setSelectedImageFile] = useState(null);
-  const [error, setError] = useState(null);
 
+  /* ── Filtros ── */
+  const [selectedMateria, setSelectedMateria] = useState('all');
+  const [selectedTag, setSelectedTag]         = useState('all');
+
+  /* ── Delete ── */
   const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, id: null, nome: '' });
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting]       = useState(false);
 
-  const [modoEstudo, setModoEstudo] = useState(false);
-  const [modoRevisao, setModoRevisao] = useState(false); 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isStudyFlipped, setIsStudyFlipped] = useState(false);
-  const [slideDirection, setSlideDirection] = useState(0);
-  const [studyCards, setStudyCards] = useState([]); 
-  const [reviewStats, setReviewStats] = useState({ easy: 0, medium: 0, hard: 0 });
+  /* ── Modo Estudo ── */
+  const [modoEstudo, setModoEstudo]       = useState(false);
+  const [modoRevisao, setModoRevisao]     = useState(false);
+  const [studyCards, setStudyCards]       = useState([]);
+  const [currentIndex, setCurrentIndex]  = useState(0);
+  const [isFlipped, setIsFlipped]        = useState(false);
+  const [slideDirection, setSlideDirection] = useState(1);
 
-  // Variáveis derivadas para o modo estudo
-  const currentFlashcard = studyCards[currentIndex] ?? null;
-  const progressPercent = studyCards.length > 0 
-    ? ((currentIndex + 1) / studyCards.length) * 100 
-    : 0;
+  /* Refs para o keyboard handler — evita closure stale */
+  const isFlippedRef    = useRef(isFlipped);
+  const currentIndexRef = useRef(currentIndex);
+  const studyCardsRef   = useRef(studyCards);
+  const modoEstudoRef   = useRef(modoEstudo);
 
-  useEffect(() => {
-    if (user) {
-      carregarDados();
+  useEffect(() => { isFlippedRef.current    = isFlipped;    }, [isFlipped]);
+  useEffect(() => { currentIndexRef.current = currentIndex; }, [currentIndex]);
+  useEffect(() => { studyCardsRef.current   = studyCards;   }, [studyCards]);
+  useEffect(() => { modoEstudoRef.current   = modoEstudo;   }, [modoEstudo]);
+
+  /* ════════════════════════════════════════
+     DATA
+  ════════════════════════════════════════ */
+  const carregarDados = useCallback(async () => {
+    if (!uid) return;
+    setLoadError(null);
+    setLoading(true);
+    try {
+      const [fcs, mats] = await Promise.all([
+        listarFlashcards(uid),
+        listarMateriasSimples(uid),
+      ]);
+      const enriched = (fcs ?? []).map(fc => {
+        if (fc.materiaNome && fc.materiaCor) return fc;
+        const m = (mats ?? []).find(x => x.id === fc.materiaId);
+        return { ...fc, materiaNome: fc.materiaNome || m?.nome || 'Sem Matéria', materiaCor: fc.materiaCor || m?.cor || '#6366f1' };
+      });
+      setFlashcards(enriched);
+      setMaterias(mats ?? []);
+    } catch (err) {
+      console.error('[Flashcards] carregarDados:', err);
+      setLoadError('Não foi possível carregar seus flashcards. Verifique sua conexão.');
+    } finally {
+      setLoading(false);
     }
-  }, [user]);
+  }, [uid]);
 
+  useEffect(() => { carregarDados(); }, [carregarDados]);
+
+  /* ── Location state ── */
   useEffect(() => {
     if (location.state?.filterMateria) {
       setSelectedMateria(location.state.filterMateria);
       window.history.replaceState({}, document.title);
     }
-    if (location.state?.reviewMode) {
-      setModoRevisao(true);
-    }
   }, [location.state]);
-
-  useEffect(() => {
-    let filtered = flashcards;
-    if (selectedMateria !== 'all') {
-      filtered = filtered.filter(fc => fc.materiaId === selectedMateria);
-    }
-    if (selectedTag !== 'all') {
-      filtered = filtered.filter(fc => fc.tags && fc.tags.includes(selectedTag));
-    }
-    setFlashcardsFiltrados(filtered);
-  }, [selectedMateria, selectedTag, flashcards]);
-
-  const carregarDados = async () => {
-    try {
-      setLoading(true);
-      const userId = user?.id || user?.uid;
-      const [flashcardsData, materiasData] = await Promise.all([
-        listarFlashcards(userId),
-        listarMateriasSimples(userId)
-      ]);
-      
-      const flashcardsEnriquecidos = flashcardsData.map(fc => {
-        if (fc.materiaNome && fc.materiaCor) return fc;
-        const materia = materiasData.find(m => m.id === fc.materiaId);
-        return {
-          ...fc,
-          materiaNome: fc.materiaNome || materia?.nome || 'Default_Node',
-          materiaCor: fc.materiaCor || materia?.cor || '#6366F1'
-        };
-      });
-      
-      setFlashcards(flashcardsEnriquecidos);
-      setFlashcardsFiltrados(flashcardsEnriquecidos);
-      setMaterias(materiasData);
-      setError(null);
-    } catch (err) {
-      setError('Telemetria_Error: Falha na ingestão de dados.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (location.state?.reviewMode && flashcards.length > 0 && !modoEstudo) {
       iniciarModoEstudo(true);
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, flashcards.length, modoEstudo]);
+  }, [location.state, flashcards.length]); // eslint-disable-line
+
+  /* ════════════════════════════════════════
+     FILTROS
+  ════════════════════════════════════════ */
+  const flashcardsFiltrados = useMemo(() => {
+    let list = [...flashcards];
+    if (selectedMateria !== 'all') list = list.filter(fc => fc.materiaId === selectedMateria);
+    if (selectedTag     !== 'all') list = list.filter(fc => fc.tags?.includes(selectedTag));
+    return list;
+  }, [flashcards, selectedMateria, selectedTag]);
+
+  const allTags = useMemo(() => {
+    const base = selectedMateria === 'all' ? flashcards : flashcards.filter(fc => fc.materiaId === selectedMateria);
+    return [...new Set(base.flatMap(fc => fc.tags ?? []))].sort();
+  }, [flashcards, selectedMateria]);
+
+  const pendingReviewCount = useMemo(
+    () => flashcards.filter(fc => isDueForReview(fc)).length,
+    [flashcards]
+  );
+
+  /* ════════════════════════════════════════
+     FORM HELPERS
+  ════════════════════════════════════════ */
+  const patchForm = (patch) => setFormData(p => ({ ...p, ...patch }));
+
+  const handleMateriaChange = (e) => {
+    const mat = materias.find(m => m.id === e.target.value);
+    patchForm({ materiaId: e.target.value, materiaNome: mat?.nome ?? '', materiaCor: mat?.cor ?? '#6366f1' });
+    if (formErrors.materiaId) setFormErrors(p => ({ ...p, materiaId: undefined }));
+  };
 
   const handleImageChange = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Image_Size_Overflow: Máximo 10MB.');
-      return;
-    }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Imagem muito grande. Máximo 10MB.'); return; }
+    setCompressingImage(true);
     try {
-      setCompressingImage(true);
-      const base64Data = await compressImage(file);
-      setSelectedImageFile(base64Data);
-      setImagePreview(base64Data);
-      setError(null);
-    } catch (err) {
-      setError('Compression_Fault.');
+      const b64 = await compressImage(file);
+      setImageFile(b64);
+      setImagePreview(b64);
+    } catch {
+      toast.error('Erro ao processar a imagem. Tente outro arquivo.');
     } finally {
       setCompressingImage(false);
     }
   };
 
-  const handleMateriaChange = (e) => {
-    const materiaId = e.target.value;
-    const materia = materias.find(m => m.id === materiaId);
-    setFormData(prev => ({
-      ...prev,
-      materiaId: materiaId,
-      materiaNome: materia?.nome || '',
-      materiaCor: materia?.cor || '#6366F1'
-    }));
-  };
+  const resetForm = useCallback(() => {
+    setFormData(FORM_INITIAL);
+    setFormErrors({});
+    setEditingId(null);
+    setImagePreview(null);
+    setImageFile(null);
+    setShowModal(false);
+  }, []);
 
+  /* ════════════════════════════════════════
+     CRUD
+  ════════════════════════════════════════ */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.pergunta.trim() || !formData.resposta.trim()) return;
-    try {
-      const userId = user?.id || user?.uid;
-      const dadosFlashcard = {
-        pergunta: formData.pergunta,
-        resposta: formData.resposta,
-        materiaId: formData.materiaId,
-        materiaNome: formData.materiaNome,
-        materiaCor: formData.materiaCor,
-        tags: formData.tags || []
-      };
+    if (!uid) { toast.error('Sessão expirada. Faça login novamente.'); return; }
 
-      if (editingId) {
-        await atualizarFlashcard(editingId, dadosFlashcard, selectedImageFile);
-      } else {
-        await criarFlashcard(dadosFlashcard, selectedImageFile, userId);
-      }
-      
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error('Corrija os campos antes de salvar.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload = {
+        pergunta:    formData.pergunta.trim(),
+        resposta:    formData.resposta.trim(),
+        materiaId:   formData.materiaId,
+        materiaNome: formData.materiaNome,
+        materiaCor:  formData.materiaCor,
+        tags:        formData.tags ?? [],
+      };
+      if (editingId) await atualizarFlashcard(editingId, payload, imageFile);
+      else           await criarFlashcard(payload, imageFile, uid);
+
       await carregarDados();
       resetForm();
-      toast.success('Flashcard salvo com sucesso.');
+      toast.success(editingId ? 'Flashcard atualizado!' : 'Flashcard criado!');
     } catch (err) {
-      toast.error('Erro ao salvar flashcard. Tente novamente.');
+      console.error('[Flashcards] handleSubmit:', err);
+      toast.error('Não foi possível salvar. Tente novamente.');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleEdit = (flashcard) => {
+  const handleEdit = (fc) => {
     setFormData({
-      pergunta: flashcard.pergunta,
-      resposta: flashcard.resposta,
-      materiaId: flashcard.materiaId || '',
-      materiaNome: flashcard.materiaNome || '',
-      materiaCor: flashcard.materiaCor || '#6366F1',
-      tags: flashcard.tags || []
+      pergunta:    fc.pergunta    ?? '',
+      resposta:    fc.resposta    ?? '',
+      materiaId:   fc.materiaId   ?? '',
+      materiaNome: fc.materiaNome ?? '',
+      materiaCor:  fc.materiaCor  ?? '#6366f1',
+      tags:        fc.tags        ?? [],
     });
-    setEditingId(flashcard.id);
-    setImagePreview(flashcard.imagemUrl || null);
-    setSelectedImageFile(flashcard.imagemUrl || null);
+    setFormErrors({});
+    setEditingId(fc.id);
+    setImagePreview(fc.imagemUrl ?? null);
+    setImageFile(fc.imagemUrl   ?? null);
     setShowModal(true);
   };
 
-  const handleDelete = (flashcard) => {
-    setConfirmDelete({
-      isOpen: true,
-      id: flashcard.id,
-      nome: flashcard.pergunta.substring(0, 50) + '...'
-    });
-  };
-
   const confirmarExclusao = async () => {
-    if (!confirmDelete.id) return;
+    if (!confirmDelete.id || !uid) return;
     setIsDeleting(true);
     try {
       await deletarFlashcard(confirmDelete.id);
       await carregarDados();
-      toast.success('Node_Removed: Logic_Unit deletada.');
+      toast.success('Flashcard excluído.');
     } catch {
-      toast.error('Erro na remoção do dado.');
+      toast.error('Erro ao excluir. Tente novamente.');
     } finally {
       setIsDeleting(false);
       setConfirmDelete({ isOpen: false, id: null, nome: '' });
     }
   };
 
-  const resetForm = useCallback(() => {
-    setFormData({ pergunta: '', resposta: '', materiaId: '', materiaNome: '', materiaCor: '', tags: [] });
-    setEditingId(null);
-    setImagePreview(null);
-    setSelectedImageFile(null);
-    setShowModal(false);
-  }, []);
+  /* ════════════════════════════════════════
+     MODO ESTUDO
+  ════════════════════════════════════════ */
+  const iniciarModoEstudo = useCallback((reviewOnly = false) => {
+    const base = reviewOnly
+      ? flashcardsFiltrados.filter(fc => isDueForReview(fc))
+      : flashcardsFiltrados;
 
-  /* ═══════════════════════════════════════════
-     SM-2 STUDY LOGIC
-     ═══════════════════════════════════════════ */
-  
-  const iniciarModoEstudo = (reviewOnly = false) => {
-    let cards = flashcardsFiltrados;
-    if (reviewOnly) {
-      cards = flashcardsFiltrados.filter(fc => isDueForReview(fc));
-      if (cards.length === 0) {
-        toast.info('System_Optimal: Nenhuma revisão pendente. 🎉');
-        return;
-      }
+    if (base.length === 0) {
+      toast.info(reviewOnly ? 'Nenhuma revisão pendente! 🎉' : 'Nenhum flashcard disponível.');
+      return;
     }
-    if (cards.length === 0) return;
-    setStudyCards(cards);
+    setStudyCards(base);
     setCurrentIndex(0);
-    setIsStudyFlipped(false);
-    setSlideDirection(0);
+    setIsFlipped(false);
+    setSlideDirection(1);
     setModoRevisao(reviewOnly);
     setModoEstudo(true);
-  };
+  }, [flashcardsFiltrados]);
 
-  const fecharModoEstudo = () => {
+  const fecharModoEstudo = useCallback(() => {
     setModoEstudo(false);
     setModoRevisao(false);
     setStudyCards([]);
-  };
+    setCurrentIndex(0);
+    setIsFlipped(false);
+  }, []);
 
-  const handleSM2Rating = async (quality) => {
-    const card = studyCards[currentIndex];
+  const proximoCard = useCallback(() => {
+    setSlideDirection(1);
+    setIsFlipped(false);
+    setCurrentIndex(p => Math.min(p + 1, studyCardsRef.current.length - 1));
+  }, []);
+
+  const cardAnterior = useCallback(() => {
+    setSlideDirection(-1);
+    setIsFlipped(false);
+    setCurrentIndex(p => Math.max(p - 1, 0));
+  }, []);
+
+  const flipCard = useCallback(() => setIsFlipped(p => !p), []);
+
+  /* SM-2 rating */
+  const handleSM2Rating = useCallback(async (quality) => {
+    const card = studyCardsRef.current[currentIndexRef.current];
     if (!card) return;
 
-    const result = calculateSM2(quality, card.repetitions || 0, card.interval || 0, card.easeFactor || 2.5);
+    const result = calculateSM2(
+      quality,
+      card.repetitions ?? 0,
+      card.interval    ?? 0,
+      card.easeFactor  ?? 2.5
+    );
 
     try {
       await atualizarFlashcard(card.id, {
-        interval: result.interval,
-        repetitions: result.repetitions,
-        easeFactor: result.easeFactor,
+        interval:       result.interval,
+        repetitions:    result.repetitions,
+        easeFactor:     result.easeFactor,
         nextReviewDate: result.nextReviewDate,
       });
-
       setFlashcards(prev => prev.map(fc => fc.id === card.id ? { ...fc, ...result } : fc));
     } catch {
-      toast.error('Erro ao salvar telemetria SM-2.');
+      toast.error('Erro ao salvar progresso de revisão.');
     }
 
-    if (currentIndex < studyCards.length - 1) {
-      setSlideDirection(1);
-      setIsStudyFlipped(false);
-      setCurrentIndex(prev => prev + 1);
+    const idx  = currentIndexRef.current;
+    const last = studyCardsRef.current.length - 1;
+
+    if (idx < last) {
+      proximoCard();
     } else {
-      toast.success('Sessão_Finalizada: Sync concluído.');
+      toast.success('Sessão de estudos concluída! 🎉');
       fecharModoEstudo();
       carregarDados();
     }
-  };
+  }, [proximoCard, fecharModoEstudo, carregarDados]);
 
-  const pendingReviewCount = useMemo(() => flashcards.filter(fc => isDueForReview(fc)).length, [flashcards]);
-
-  const proximoCard = () => {
-    if (currentIndex < studyCards.length - 1) {
-      setSlideDirection(1);
-      setIsStudyFlipped(false);
-      setCurrentIndex(prev => prev + 1);
-    }
-  };
-
-  const cardAnterior = () => {
-    if (currentIndex > 0) {
-      setSlideDirection(-1);
-      setIsStudyFlipped(false);
-      setCurrentIndex(prev => prev - 1);
-    }
-  };
-
-  const flipStudyCard = useCallback(() => setIsStudyFlipped(prev => !prev), []);
-
+  /* ── Keyboard handler — usa refs, zero stale closure ── */
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!modoEstudo || isTypingInInput()) return;
-      if (e.key === 'ArrowRight') proximoCard();
-      if (e.key === 'ArrowLeft') cardAnterior();
-      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipStudyCard(); }
-      if (isStudyFlipped) {
-        if (e.key === '1') handleSM2Rating(1);
-        if (e.key === '2') handleSM2Rating(3);
-        if (e.key === '3') handleSM2Rating(5);
+    const onKey = (e) => {
+      if (!modoEstudoRef.current || isTypingInInput()) return;
+
+      switch (e.key) {
+        case 'ArrowRight': proximoCard();  break;
+        case 'ArrowLeft':  cardAnterior(); break;
+        case ' ':
+        case 'Enter':
+          e.preventDefault();
+          flipCard();
+          break;
+        case 'Escape':
+          fecharModoEstudo();
+          break;
+        default:
+          if (isFlippedRef.current) {
+            if (e.key === '1') handleSM2Rating(1);
+            if (e.key === '2') handleSM2Rating(3);
+            if (e.key === '3') handleSM2Rating(5);
+          }
       }
-      if (e.key === 'Escape') fecharModoEstudo();
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [modoEstudo, currentIndex, isStudyFlipped, studyCards.length]);
 
-  /* ═══════════════════════════════════════════
-     SKELETON LOADING TECH STYLE
-     ═══════════════════════════════════════════ */
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [proximoCard, cardAnterior, flipCard, fecharModoEstudo, handleSM2Rating]);
 
+  /* ════════════════════════════════════════
+     DERIVED
+  ════════════════════════════════════════ */
+  const currentCard    = studyCards[currentIndex] ?? null;
+  const progressPercent = studyCards.length > 0 ? ((currentIndex + 1) / studyCards.length) * 100 : 0;
+
+  /* ════════════════════════════════════════
+     LOADING / ERROR
+  ════════════════════════════════════════ */
   if (loading) {
     return (
-      <div className="min-h-screen pb-32 pt-10 px-6 bg-slate-950">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center gap-6 mb-12 animate-pulse">
-            <div className="w-16 h-16 rounded-[22px] bg-slate-900 border border-white/5" />
-            <div className="flex-1 space-y-3">
-              <div className="h-8 w-64 bg-slate-900 rounded-xl" />
-              <div className="h-4 w-96 bg-slate-900/50 rounded-lg" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1,2,3,4,5,6].map(i => (
-              <div key={i} className="h-64 rounded-[32px] bg-slate-900/50 border border-white/5 animate-pulse" />
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 md:p-10">
+        <div className="max-w-7xl mx-auto animate-pulse">
+          <div className="h-10 w-48 bg-slate-200 dark:bg-slate-800 rounded-xl mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-64 bg-slate-200 dark:bg-slate-800 rounded-[32px]" />
             ))}
           </div>
         </div>
@@ -431,252 +448,573 @@ function Flashcards() {
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-6">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-10 max-w-sm w-full text-center shadow-sm">
+          <AlertTriangle size={40} className="text-amber-500 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Erro ao carregar</h3>
+          <p className="text-sm text-slate-500 mb-6 leading-relaxed">{loadError}</p>
+          <Button onClick={carregarDados} className="bg-indigo-600 w-full h-11 font-semibold !rounded-xl">
+            <RefreshCw size={16} className="mr-2" /> Tentar novamente
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════
+     RENDER
+  ════════════════════════════════════════ */
   return (
-    <div className="min-h-screen pb-32 pt-10 px-4 bg-slate-50/30 dark:bg-slate-950">
+    <div className="min-h-screen pb-32 pt-10 px-4 bg-slate-50 dark:bg-slate-950">
       <div className="max-w-7xl mx-auto">
-        
-        {/* ─── Header Tático ─── */}
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-10">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-10">
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 bg-slate-900 dark:bg-white rounded-[22px] flex items-center justify-center shadow-2xl shrink-0 border-2 border-white/10">
-                <CreditCard size={32} className="text-white dark:text-slate-900" strokeWidth={2.5} />
+
+        {/* ── Header ── */}
+        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-indigo-600 rounded-[18px] flex items-center justify-center shadow-lg shadow-indigo-500/25 shrink-0">
+                <CreditCard size={28} className="text-white" strokeWidth={2} />
               </div>
               <div>
-                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none mb-1">Flashcards</h1>
-                <p className="text-[12px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                  <Activity size={14} className="text-cyan-500" /> Sincronização de conhecimento ativa
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">Flashcards</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                  <Activity size={14} className="text-cyan-500" />
+                  Repetição espaçada com algoritmo SM-2
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               {pendingReviewCount > 0 && (
-                <Button onClick={() => iniciarModoEstudo(true)} className="bg-amber-500 hover:bg-amber-600 !rounded-xl px-6 h-14 font-black uppercase tracking-widest text-[11px] shadow-lg shadow-amber-500/20">
-                  <RotateCcw size={16} className="mr-2" /> Revisão Pendente ({pendingReviewCount})
+                <Button
+                  onClick={() => iniciarModoEstudo(true)}
+                  className="bg-amber-500 hover:bg-amber-600 !rounded-xl px-5 h-11 font-semibold text-sm shadow-lg shadow-amber-500/20"
+                >
+                  <RotateCcw size={16} className="mr-2" />
+                  Revisar ({pendingReviewCount})
                 </Button>
               )}
-              <Button onClick={() => iniciarModoEstudo(false)} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 !rounded-xl px-6 h-14 font-black uppercase tracking-widest text-[11px] shadow-xl">
+              <Button
+                onClick={() => iniciarModoEstudo(false)}
+                disabled={flashcardsFiltrados.length === 0}
+                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 !rounded-xl px-5 h-11 font-semibold text-sm shadow-md disabled:opacity-50"
+              >
                 <Play size={16} className="mr-2" /> Iniciar Estudo
               </Button>
-              <Button onClick={() => setShowModal(true)} className="bg-indigo-600 hover:bg-indigo-700 !rounded-xl px-6 h-14 font-black uppercase tracking-widest text-[11px] shadow-lg shadow-indigo-600/20">
-                <Plus size={20} className="mr-2" strokeWidth={3} /> Adicionar Flashcard
+              <Button
+                onClick={() => { setFormData(FORM_INITIAL); setFormErrors({}); setEditingId(null); setShowModal(true); }}
+                className="bg-indigo-600 hover:bg-indigo-700 !rounded-xl px-5 h-11 font-semibold text-sm shadow-md shadow-indigo-600/20"
+              >
+                <Plus size={18} className="mr-1.5" strokeWidth={2.5} /> Novo Flashcard
               </Button>
             </div>
           </div>
 
-          {/* Barra de Filtros Indexada */}
-          <motion.div className="flex flex-col lg:flex-row gap-4 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[24px] p-4 shadow-sm" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center gap-3 px-2 text-slate-400">
-              <Filter size={16} strokeWidth={3} />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Filtros:</span>
+          {/* Filtros */}
+          <div className="flex flex-col lg:flex-row gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[18px] p-3 shadow-sm">
+            <div className="flex items-center gap-2 px-2 text-slate-400 shrink-0">
+              <Filter size={15} strokeWidth={2.5} />
+              <span className="text-xs font-semibold text-slate-400">Filtrar:</span>
             </div>
-            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Select value={selectedMateria} onChange={(e) => { setSelectedMateria(e.target.value); setSelectedTag('all'); }} className="!rounded-[14px] bg-slate-50 dark:bg-slate-950 border-0 h-12 text-sm font-bold">
+            <div className="flex-1 flex flex-col sm:flex-row gap-3">
+              <Select
+                value={selectedMateria}
+                onChange={e => { setSelectedMateria(e.target.value); setSelectedTag('all'); }}
+                className="!rounded-[12px] bg-slate-50 dark:bg-slate-950 border-0 h-10 text-sm flex-1"
+              >
                 <option value="all">Todas as Matérias</option>
                 {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
               </Select>
-              {(() => {
-                const baseCards = selectedMateria === 'all' ? flashcards : flashcards.filter(fc => fc.materiaId === selectedMateria);
-                const allTags = [...new Set(baseCards.flatMap(fc => fc.tags || []))].sort();
-                return allTags.length > 0 && (
-                  <Select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)} className="!rounded-[14px] bg-slate-50 dark:bg-slate-950 border-0 h-12 text-sm font-bold">
-                    <option value="all">Todas as Tags</option>
-                    {allTags.map(tag => <option key={tag} value={tag}>#{tag}</option>)}
-                  </Select>
-                );
-              })()}
+
+              {allTags.length > 0 && (
+                <Select
+                  value={selectedTag}
+                  onChange={e => setSelectedTag(e.target.value)}
+                  className="!rounded-[12px] bg-slate-50 dark:bg-slate-950 border-0 h-10 text-sm flex-1"
+                >
+                  <option value="all">Todas as Tags</option>
+                  {allTags.map(t => <option key={t} value={t}>#{t}</option>)}
+                </Select>
+              )}
             </div>
-            <div className="flex items-center gap-2 px-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-[14px] border border-indigo-100 dark:border-indigo-800/50">
-              <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 font-mono">{flashcardsFiltrados.length} CARDS</span>
+
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-[12px] border border-indigo-100 dark:border-indigo-800/50 shrink-0">
+              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                {flashcardsFiltrados.length} cards
+              </span>
             </div>
-          </motion.div>
+          </div>
         </motion.div>
 
-        {/* ─── Grid de Units ─── */}
+        {/* ── Grid ── */}
         <AnimatePresence mode="popLayout">
-          <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" variants={containerVariants} initial="hidden" animate="visible">
-            {flashcardsFiltrados.map((fc) => (
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {flashcardsFiltrados.map(fc => (
               <motion.div key={fc.id} layout variants={cardVariants} exit="exit">
-                <FlashcardItem flashcard={fc} onEdit={handleEdit} onDelete={handleDelete} />
+                <FlashcardItem
+                  flashcard={fc}
+                  onEdit={handleEdit}
+                  onDelete={(fc) => setConfirmDelete({ isOpen: true, id: fc.id, nome: fc.pergunta.slice(0, 50) + '...' })}
+                />
               </motion.div>
             ))}
           </motion.div>
         </AnimatePresence>
 
+        {/* ── Empty states ── */}
         {flashcardsFiltrados.length === 0 && (
-          <div className="py-24 text-center opacity-40">
-            <Terminal size={48} className="mx-auto mb-6" strokeWidth={1.5} />
-            <h3 className="text-xl font-black uppercase tracking-tight">Nenhum flashcard encontrado</h3>
-            <p className="text-[14px] font-bold text-slate-500 uppercase tracking-widest mt-2">Crie seu primeiro flashcard para começar.</p>
+          <div className="py-20 text-center">
+            <BookOpen size={44} className="mx-auto mb-4 text-slate-300 dark:text-slate-700" strokeWidth={1.5} />
+            {flashcards.length === 0 ? (
+              <>
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">
+                  Nenhum flashcard ainda
+                </h3>
+                <p className="text-sm text-slate-400 mt-1 mb-6">
+                  Crie seu primeiro flashcard para começar a estudar.
+                </p>
+                <Button
+                  onClick={() => setShowModal(true)}
+                  className="bg-indigo-600 h-11 px-6 font-semibold !rounded-xl mx-auto"
+                >
+                  <Plus size={16} className="mr-2" /> Criar primeiro flashcard
+                </Button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">
+                  Nenhum resultado
+                </h3>
+                <p className="text-sm text-slate-400 mt-1">
+                  Tente ajustar os filtros de matéria ou tag.
+                </p>
+              </>
+            )}
           </div>
         )}
 
-        {/* ─── Modal de Escrita (Editor Syntax) ─── */}
-        <Modal isOpen={showModal} onClose={resetForm} title={editingId ? 'Edit_Logic_Unit' : 'New_Logic_Unit'} size="lg">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-6">
-                <Select label="System_Stack" value={formData.materiaId} onChange={handleMateriaChange} required className="!rounded-2xl h-14" >
-                  <option value="">Select Stack...</option>
-                  {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
-                </Select>
-                <Textarea label="Front_Side (Probe)" placeholder="Input question/prompt..." value={formData.pergunta} onChange={(e) => setFormData(p => ({ ...p, pergunta: e.target.value }))} required rows={4} className="!rounded-2xl" />
-              </div>
-              <div className="space-y-6">
-                <Textarea label="Back_Side (Buffer)" placeholder="Input answer/result..." value={formData.resposta} onChange={(e) => setFormData(p => ({ ...p, resposta: e.target.value }))} required rows={8} className="!rounded-2xl" />
-              </div>
-            </div>
+        {/* ── Modal de criação/edição ── */}
+        <Modal
+          isOpen={showModal}
+          onClose={resetForm}
+          title={editingId ? 'Editar Flashcard' : 'Novo Flashcard'}
+          size="lg"
+        >
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-               <div>
-                  <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-3">Resource_Asset</label>
-                  <div className="relative group rounded-3xl overflow-hidden border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-indigo-500 transition-all">
-                     <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                     <div className="p-8 flex flex-col items-center text-center">
-                        {imagePreview ? (
-                          <img src={imagePreview} className="h-32 w-full object-cover rounded-xl" alt="" />
-                        ) : (
-                          <>
-                            <ImageIcon size={32} className="text-slate-300 mb-2" />
-                            <span className="text-[11px] font-bold text-slate-400 uppercase">{compressingImage ? 'Compiling...' : 'Upload_Visual_Data'}</span>
-                          </>
-                        )}
-                     </div>
+              {/* Coluna esquerda */}
+              <div className="space-y-5">
+                {/* Matéria */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    Matéria <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={formData.materiaId}
+                    onChange={handleMateriaChange}
+                    className={`w-full h-12 px-4 rounded-xl border text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none transition-all ${
+                      formErrors.materiaId
+                        ? 'border-rose-400 focus:ring-2 focus:ring-rose-400/20'
+                        : 'border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
+                    }`}
+                  >
+                    <option value="">Selecione a matéria...</option>
+                    {materias.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+                  </select>
+                  {formErrors.materiaId && <p className="text-xs text-rose-500">{formErrors.materiaId}</p>}
+                </div>
+
+                {/* Pergunta */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    Pergunta <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    value={formData.pergunta}
+                    onChange={e => {
+                      patchForm({ pergunta: e.target.value });
+                      if (formErrors.pergunta) setFormErrors(p => ({ ...p, pergunta: undefined }));
+                    }}
+                    placeholder="O que você quer perguntar?"
+                    rows={5}
+                    maxLength={MAX_PERGUNTA}
+                    className={`w-full px-4 py-3 rounded-xl border text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none resize-none transition-all placeholder:text-slate-400 ${
+                      formErrors.pergunta
+                        ? 'border-rose-400 focus:ring-2 focus:ring-rose-400/20'
+                        : 'border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
+                    }`}
+                  />
+                  <div className="flex justify-between">
+                    {formErrors.pergunta
+                      ? <p className="text-xs text-rose-500">{formErrors.pergunta}</p>
+                      : <span />
+                    }
+                    <p className="text-xs text-slate-400 tabular-nums">{formData.pergunta.length}/{MAX_PERGUNTA}</p>
                   </div>
-               </div>
-               <div>
-                  <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-3">Data_Index_Tags</label>
-                  <TagInput tags={formData.tags} onChange={ts => setFormData(p => ({ ...p, tags: ts }))} suggestions={[...new Set(flashcards.flatMap(fc => fc.tags || []))]} />
-               </div>
+                </div>
+              </div>
+
+              {/* Coluna direita */}
+              <div className="space-y-5">
+                {/* Resposta */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    Resposta <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    value={formData.resposta}
+                    onChange={e => {
+                      patchForm({ resposta: e.target.value });
+                      if (formErrors.resposta) setFormErrors(p => ({ ...p, resposta: undefined }));
+                    }}
+                    placeholder="Qual é a resposta?"
+                    rows={9}
+                    maxLength={MAX_RESPOSTA}
+                    className={`w-full px-4 py-3 rounded-xl border text-sm bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none resize-none transition-all placeholder:text-slate-400 ${
+                      formErrors.resposta
+                        ? 'border-rose-400 focus:ring-2 focus:ring-rose-400/20'
+                        : 'border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'
+                    }`}
+                  />
+                  <div className="flex justify-between">
+                    {formErrors.resposta
+                      ? <p className="text-xs text-rose-500">{formErrors.resposta}</p>
+                      : <span />
+                    }
+                    <p className="text-xs text-slate-400 tabular-nums">{formData.resposta.length}/{MAX_RESPOSTA}</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex gap-4 pt-6">
-              <Button type="submit" className="flex-1 bg-indigo-600 h-16 !rounded-[18px] font-black uppercase tracking-widest text-[12px] shadow-xl">Commit_Changes</Button>
-              <Button type="button" onClick={resetForm} variant="secondary" className="px-10 h-16 !rounded-[18px] font-black uppercase tracking-widest text-[11px]">Abort</Button>
+            {/* Upload + Tags */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+              {/* Imagem */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Imagem (opcional)
+                </label>
+                <label className="relative group rounded-2xl overflow-hidden border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 transition-all cursor-pointer block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  />
+                  <div className="p-6 flex flex-col items-center text-center min-h-[120px] justify-center">
+                    {imagePreview ? (
+                      <>
+                        <img src={imagePreview} className="h-24 w-full object-cover rounded-xl mb-2" alt="Preview" />
+                        <span className="text-xs text-slate-400">Clique para trocar</span>
+                      </>
+                    ) : (
+                      <>
+                        <ImageIcon size={28} className="text-slate-300 dark:text-slate-600 mb-2" />
+                        <span className="text-xs font-medium text-slate-400">
+                          {compressingImage ? 'Processando...' : 'Clique para adicionar imagem'}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </label>
+                {imagePreview && (
+                  <button
+                    type="button"
+                    onClick={() => { setImagePreview(null); setImageFile(null); }}
+                    className="text-xs text-rose-500 hover:text-rose-600 font-medium transition-colors"
+                  >
+                    Remover imagem
+                  </button>
+                )}
+              </div>
+
+              {/* Tags */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Tags (opcional)
+                </label>
+                <TagInput
+                  tags={formData.tags}
+                  onChange={ts => patchForm({ tags: ts })}
+                  suggestions={[...new Set(flashcards.flatMap(fc => fc.tags ?? []))]}
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="submit"
+                loading={saving}
+                disabled={saving}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 h-12 !rounded-xl font-semibold shadow-md disabled:opacity-60"
+              >
+                {editingId ? 'Salvar Alterações' : 'Criar Flashcard'}
+              </Button>
+              <Button
+                type="button"
+                onClick={resetForm}
+                className="px-8 h-12 !rounded-xl font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
+              >
+                Cancelar
+              </Button>
             </div>
           </form>
         </Modal>
 
-        {/* ─── MODO ESTUDO IMERSIVO (The Syntax Chamber) ─── */}
+        {/* ── MODO ESTUDO ── */}
         <AnimatePresence>
-          {modoEstudo && currentFlashcard && (
-            <motion.div className="fixed inset-0 bg-slate-950 flex flex-col overflow-hidden" 
+          {modoEstudo && currentCard && (
+            <motion.div
+              className="fixed inset-0 bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden"
               style={{ zIndex: Z.onboarding }}
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }}>
-              <div className="absolute inset-0 pointer-events-none opacity-40">
-                <div className="absolute top-0 right-0 w-[80vw] h-[80vw] bg-indigo-600/10 rounded-full blur-[150px] -mr-40 -mt-40" />
-                <div className="absolute bottom-0 left-0 w-[60vw] h-[60vw] bg-cyan-400/5 rounded-full blur-[150px] -ml-40 -mb-40" />
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {/* Ambient glow */}
+              <div className="absolute inset-0 pointer-events-none opacity-30">
+                <div className="absolute top-0 right-0 w-[70vw] h-[70vw] bg-indigo-600/10 rounded-full blur-[120px] -mr-40 -mt-40" />
+                <div className="absolute bottom-0 left-0 w-[50vw] h-[50vw] bg-cyan-400/5 rounded-full blur-[100px] -ml-40 -mb-40" />
               </div>
 
-              <div className="relative z-10 flex items-center justify-between px-8 py-6 bg-slate-900/50 backdrop-blur-xl border-b border-white/5">
-                <div className="flex items-center gap-5">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg"><Cpu size={24} className="text-white" /></div>
+              {/* Top bar */}
+              <div className="relative z-10 flex items-center justify-between px-6 py-4 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 shrink-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 flex items-center justify-center shadow-md">
+                    <Cpu size={20} className="text-white" />
+                  </div>
                   <div>
-                    <h2 className="text-white font-black text-lg uppercase tracking-tighter">{modoRevisao ? 'Scheduled_Sync' : 'Deep_Simulation'}</h2>
-                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">Executing: Unit {currentIndex + 1} / {studyCards.length}</p>
+                    <h2 className="text-slate-900 dark:text-white font-bold text-base leading-tight">
+                      {modoRevisao ? 'Revisão Espaçada' : 'Modo Estudo'}
+                    </h2>
+                    <p className="text-slate-500 text-xs mt-0.5">
+                      Card {currentIndex + 1} de {studyCards.length}
+                      {currentCard.materiaNome && <span className="ml-2 text-slate-600">· {currentCard.materiaNome}</span>}
+                    </p>
                   </div>
                 </div>
-                <button onClick={fecharModoEstudo} className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 text-white flex items-center justify-center border border-white/10 transition-all active:scale-90"><X size={24} /></button>
+
+                <div className="flex items-center gap-3">
+                  {/* Atalhos de teclado — hint desktop */}
+                  <div className="hidden md:flex items-center gap-2 text-xs text-slate-600">
+                    <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono">Space</kbd>
+                    <span>virar</span>
+                    <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono">←→</kbd>
+                    <span>navegar</span>
+                    <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono">Esc</kbd>
+                    <span>sair</span>
+                  </div>
+                  <button
+                    onClick={fecharModoEstudo}
+                    className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white flex items-center justify-center border border-slate-200 dark:border-white/10 transition-all active:scale-90"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
 
-              <div className="w-full h-1.5 bg-slate-900 relative z-10"><motion.div className="h-full bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.8)]" initial={{ width: 0 }} animate={{ width: `${progressPercent}%` }} /></div>
+              {/* Progress bar */}
+              <div className="w-full h-1 bg-slate-100 dark:bg-slate-900 relative z-10">
+                <motion.div
+                  className="h-full bg-cyan-500"
+                  style={{ boxShadow: '0 0 10px rgba(6,182,212,0.6)' }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ duration: 0.4 }}
+                />
+              </div>
 
-              <div className="flex-1 flex items-center justify-center p-6 relative z-10">
+              {/* Card área */}
+              <div className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
                 <AnimatePresence mode="wait" custom={slideDirection}>
-                  <motion.div key={currentIndex} custom={slideDirection} variants={slideVariants} initial="enter" animate="center" exit="exit" className="w-full max-w-4xl h-[550px] perspective-1000" onClick={flipStudyCard}>
-                    <motion.div className="relative w-full h-full transform-style-3d" animate={{ rotateY: isStudyFlipped ? 180 : 0 }} transition={{ duration: 0.5, ease: "circOut" }}>
-                      
-                      {/* FRONT (The Probe) */}
-                      <div className="absolute inset-0 backface-hidden rounded-[42px] bg-slate-900 border-2 border-white/5 p-12 flex flex-col justify-between shadow-2xl">
-                        <div>
-                          <div className="flex items-center gap-3 mb-10">
-                            <Badge color={currentFlashcard.materiaCor} className="!rounded-lg uppercase font-black text-[10px] tracking-widest">{currentFlashcard.materiaNome}</Badge>
-                            {currentFlashcard.tags?.slice(0,2).map(t => <span key={t} className="text-[10px] font-black text-slate-500 uppercase tracking-widest">#{t}</span>)}
+                  <motion.div
+                    key={currentIndex}
+                    custom={slideDirection}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    className="w-full max-w-3xl"
+                    style={{ perspective: 1500 }}
+                  >
+                    <div
+                      onClick={flipCard}
+                      className="relative w-full cursor-pointer select-none"
+                      style={{
+                        height: 'clamp(320px, 50vh, 520px)',
+                        transformStyle: 'preserve-3d',
+                      }}
+                    >
+                      <motion.div
+                        className="absolute inset-0"
+                        style={{ transformStyle: 'preserve-3d' }}
+                        animate={{ rotateY: isFlipped ? 180 : 0 }}
+                        transition={{ duration: 0.45, ease: 'circOut' }}
+                      >
+                        {/* FRENTE */}
+                        <div
+                          className="absolute inset-0 rounded-[32px] bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-white/5 p-8 sm:p-12 flex flex-col justify-between shadow-2xl overflow-auto"
+                          style={{ backfaceVisibility: 'hidden' }}
+                        >
+                          <div>
+                            <div className="flex items-center gap-2 mb-6 flex-wrap">
+                              <Badge color={currentCard.materiaCor} className="!rounded-lg text-xs font-semibold">
+                                {currentCard.materiaNome}
+                              </Badge>
+                              {currentCard.tags?.slice(0, 3).map(t => (
+                                <span key={t} className="text-[10px] font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+                                  #{t}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-2 mb-4">
+                              <Zap size={12} className="text-cyan-500 shrink-0" />
+                              <span className="text-cyan-500 text-xs font-semibold uppercase tracking-wider">Pergunta</span>
+                            </div>
+                            <h3 className="text-2xl sm:text-4xl font-bold text-slate-900 dark:text-white leading-snug tracking-tight">
+                              {currentCard.pergunta}
+                            </h3>
                           </div>
-                          <div className="space-y-6">
-                            <span className="flex items-center gap-2 text-cyan-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4"><Zap size={14} /> System_Query</span>
-                            <h3 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tighter">{currentFlashcard.pergunta}</h3>
+                          <div className="text-center pt-4">
+                            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-slate-500 text-xs font-medium border border-slate-100 dark:border-white/5 animate-pulse">
+                              Toque para ver a resposta
+                            </span>
                           </div>
                         </div>
-                        <div className="text-center"><span className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 text-slate-400 text-xs font-black uppercase tracking-widest border border-white/5 animate-pulse">Tap to Reveal Buffer</span></div>
-                      </div>
 
-                      {/* BACK (The Result) */}
-                      <div className="absolute inset-0 backface-hidden rounded-[42px] bg-indigo-600 p-12 flex flex-col justify-between shadow-2xl rotate-y-180 border-4 border-white/20 overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-700 to-cyan-600 opacity-90" />
-                        <div className="relative z-10 flex-1 overflow-y-auto custom-scrollbar-study pr-4">
-                           <span className="flex items-center gap-2 text-white/50 text-[10px] font-black uppercase tracking-[0.3em] mb-6"><CheckCircle2 size={14} /> Output_Success</span>
-                           <p className="text-2xl md:text-4xl font-bold text-white leading-relaxed tracking-tight mb-8">{currentFlashcard.resposta}</p>
-                           {currentFlashcard.imagemUrl && <img src={currentFlashcard.imagemUrl} className="w-full rounded-2xl border-4 border-white/10 shadow-2xl" alt="" />}
+                        {/* VERSO */}
+                        <div
+                          className="absolute inset-0 rounded-[32px] p-8 sm:p-12 flex flex-col justify-between shadow-2xl overflow-auto"
+                          style={{
+                            backfaceVisibility: 'hidden',
+                            transform: 'rotateY(180deg)',
+                            background: 'linear-gradient(135deg, #4f46e5 0%, #0891b2 100%)',
+                          }}
+                        >
+                          <div className="flex-1 overflow-y-auto">
+                            <div className="flex items-center gap-2 mb-6">
+                              <CheckCircle2 size={14} className="text-white/60" />
+                              <span className="text-white/60 text-xs font-semibold uppercase tracking-wider">Resposta</span>
+                            </div>
+                            <p className="text-xl sm:text-3xl font-semibold text-white leading-relaxed">
+                              {currentCard.resposta}
+                            </p>
+                            {currentCard.imagemUrl && (
+                              <img
+                                src={currentCard.imagemUrl}
+                                className="w-full rounded-xl mt-6 border-2 border-white/10 shadow-xl"
+                                alt="Imagem do flashcard"
+                              />
+                            )}
+                          </div>
                         </div>
-                        <div className="relative z-10 text-center pt-8 border-t border-white/10"><span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Logic_Verified</span></div>
-                      </div>
-
-                    </motion.div>
+                      </motion.div>
+                    </div>
                   </motion.div>
                 </AnimatePresence>
               </div>
 
-              {/* SM-2 RATING CONTROLS (Tático) */}
-              <div className="px-6 pb-12 relative z-10">
-                <AnimatePresence>
-                  {isStudyFlipped && (
-                    <motion.div className="max-w-3xl mx-auto space-y-6" initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }}>
-                      <p className="text-center text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">Quality_Assessment (Keys: 1, 2, 3)</p>
-                      <div className="grid grid-cols-3 gap-4">
+              {/* Controles SM-2 / Navegação */}
+              <div className="px-4 pb-8 sm:pb-10 relative z-10 shrink-0">
+                <AnimatePresence mode="wait">
+                  {isFlipped ? (
+                    /* SM-2 rating */
+                    <motion.div
+                      key="rating"
+                      className="max-w-2xl mx-auto"
+                      initial={{ y: 30, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 30, opacity: 0 }}
+                    >
+                      <p className="text-center text-slate-500 text-xs font-medium uppercase tracking-widest mb-4">
+                        Como foi? <span className="hidden sm:inline">(teclas 1, 2, 3)</span>
+                      </p>
+                      <div className="grid grid-cols-3 gap-3">
                         {[
-                          { q: 1, l: 'Hard', c: 'bg-rose-500', icon: '❌' },
-                          { q: 3, l: 'Medium', c: 'bg-amber-500', icon: '⚠️' },
-                          { q: 5, l: 'Optimal', c: 'bg-emerald-500', icon: '✅' }
-                        ].map((btn) => (
-                          <motion.button key={btn.q} onClick={() => handleSM2Rating(btn.q)} className={`group relative py-6 rounded-[24px] flex flex-col items-center gap-3 border-2 border-transparent transition-all ${btn.c}/10 hover:border-white/20`} whileHover={{ y: -5 }}>
-                            <span className="text-2xl mb-1">{btn.icon}</span>
-                            <span className="text-[11px] font-black uppercase text-white tracking-widest">{btn.l}</span>
-                            <span className="text-[9px] font-bold text-white/40">{getNextReviewLabel(btn.q, currentFlashcard?.repetitions || 0, currentFlashcard?.interval || 0, currentFlashcard?.easeFactor || 2.5)}</span>
+                          { q: 1, label: 'Difícil',  emoji: '😓', color: 'from-rose-600   to-rose-500',   ring: 'hover:ring-rose-500/40'    },
+                          { q: 3, label: 'Ok',        emoji: '🤔', color: 'from-amber-600  to-amber-500',  ring: 'hover:ring-amber-500/40'   },
+                          { q: 5, label: 'Fácil',    emoji: '😊', color: 'from-emerald-600 to-emerald-500', ring: 'hover:ring-emerald-500/40' },
+                        ].map(btn => (
+                          <motion.button
+                            key={btn.q}
+                            onClick={() => handleSM2Rating(btn.q)}
+                            className={`py-4 sm:py-5 rounded-2xl bg-gradient-to-br ${btn.color} flex flex-col items-center gap-1.5 ring-2 ring-transparent ${btn.ring} transition-all active:scale-95`}
+                            whileHover={{ y: -3 }}
+                            whileTap={{ scale: 0.97 }}
+                          >
+                            <span className="text-xl">{btn.emoji}</span>
+                            <span className="text-sm font-bold text-white">{btn.label}</span>
+                            <span className="text-[10px] text-white/60">
+                              {getNextReviewLabel(btn.q, currentCard?.repetitions ?? 0, currentCard?.interval ?? 0, currentCard?.easeFactor ?? 2.5)}
+                            </span>
                           </motion.button>
                         ))}
                       </div>
                     </motion.div>
+                  ) : (
+                    /* Navegação */
+                    <motion.div
+                      key="nav"
+                      className="flex justify-center gap-4 max-w-sm mx-auto"
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 20, opacity: 0 }}
+                    >
+                      <button
+                        onClick={cardAnterior}
+                        disabled={currentIndex === 0}
+                        className="flex-1 h-14 rounded-2xl bg-white/5 border border-white/10 text-white font-medium text-sm disabled:opacity-30 hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        <ChevronLeft size={18} /> Anterior
+                      </button>
+                      <button
+                        onClick={flipCard}
+                        className="flex-1 h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-xl transition-all active:scale-95"
+                      >
+                        Ver Resposta
+                      </button>
+                      <button
+                        onClick={proximoCard}
+                        disabled={currentIndex === studyCards.length - 1}
+                        className="flex-1 h-14 rounded-2xl bg-white/5 border border-white/10 text-white font-medium text-sm disabled:opacity-30 hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        Próximo <ChevronRight size={18} />
+                      </button>
+                    </motion.div>
                   )}
                 </AnimatePresence>
-                {!isStudyFlipped && (
-                  <div className="flex justify-center gap-4 max-w-xl mx-auto">
-                    <button onClick={cardAnterior} disabled={currentIndex === 0} className="flex-1 h-16 rounded-[22px] bg-white/5 border border-white/5 text-white font-black uppercase tracking-widest text-[11px] disabled:opacity-20">Prev_Unit</button>
-                    <button onClick={proximoCard} disabled={currentIndex === studyCards.length - 1} className="flex-1 h-16 rounded-[22px] bg-indigo-600 text-white font-black uppercase tracking-widest text-[11px] shadow-2xl disabled:opacity-20">Next_Unit</button>
-                  </div>
-                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <style>{`
-          .perspective-1000 { perspective: 1500px; }
-          .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-          .transform-style-3d { transform-style: preserve-3d; }
-          .rotate-y-180 { transform: rotateY(180deg); }
-          .custom-scrollbar-study::-webkit-scrollbar { width: 5px; }
-          .custom-scrollbar-study::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
-          @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-          .animate-spin-slow { animation: spin-slow 15s linear infinite; }
-        `}</style>
-
+        {/* ── Confirm Delete ── */}
         <ConfirmModal
           isOpen={confirmDelete.isOpen}
           onClose={() => setConfirmDelete({ isOpen: false, id: null, nome: '' })}
           onConfirm={confirmarExclusao}
-          title="Unit_Termination_Request"
+          title="Excluir Flashcard?"
           itemName={confirmDelete.nome}
-          confirmText="Execute_Delete"
+          confirmText="Sim, excluir"
           isLoading={isDeleting}
           type="danger"
         />
       </div>
+
+      <style>{`
+        .custom-scrollbar-study::-webkit-scrollbar       { width: 4px; }
+        .custom-scrollbar-study::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+      `}</style>
     </div>
   );
 }
-
-export default Flashcards;

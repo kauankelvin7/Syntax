@@ -99,7 +99,6 @@ const UserMenu = ({ onOpenProfile, className = '', collapsed }) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
-  const triggerRef = useRef(null);
 
   // Fecha o dropdown automaticamente ao colapsar a sidebar
   useEffect(() => {
@@ -110,8 +109,7 @@ const UserMenu = ({ onOpenProfile, className = '', collapsed }) => {
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
-      if (menuRef.current?.contains(e.target) || triggerRef.current?.contains(e.target)) return;
-      setOpen(false);
+      if (!menuRef.current?.contains(e.target)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -120,11 +118,10 @@ const UserMenu = ({ onOpenProfile, className = '', collapsed }) => {
   const initial = user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
 
   return (
-    <div className={`relative ${className}`}>
+    <div ref={menuRef} className={`relative ${className}`}>
 
       {/* Trigger Button — desabilitado quando collapsed */}
       <button
-        ref={triggerRef}
         onClick={() => !collapsed && setOpen((v) => !v)}
         className={`
           w-full transition-all duration-300 group border rounded-[16px]
@@ -177,15 +174,14 @@ const UserMenu = ({ onOpenProfile, className = '', collapsed }) => {
       {/* Dropdown Menu */}
       <AnimatePresence>
         {open && !collapsed && (
-          <div ref={menuRef}>
-            <motion.div
-              className={`absolute bottom-full mb-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/60 rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.2)] overflow-hidden ${collapsed ? 'left-0 w-64' : 'left-0 right-0'}`}
-              style={{ zIndex: Z.modal - 10 }}
-              initial={{ opacity: 0, y: 15, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 15, scale: 0.95 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-            >
+          <motion.div
+            className={`absolute bottom-full mb-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/60 rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.2)] overflow-hidden ${collapsed ? 'left-0 w-64' : 'left-0 right-0'}`}
+            style={{ zIndex: Z.modal - 10 }}
+            initial={{ opacity: 0, y: 15, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 15, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+          >
               {/* User Info Header */}
               <div className="px-6 py-5 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2 mb-1.5">
@@ -219,7 +215,6 @@ const UserMenu = ({ onOpenProfile, className = '', collapsed }) => {
                 <MenuItem icon={LogOut} label="Encerrar Sessão" danger onClick={() => { setOpen(false); logout(); }} />
               </div>
             </motion.div>
-          </div>
         )}
       </AnimatePresence>
     </div>

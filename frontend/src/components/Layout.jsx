@@ -50,14 +50,14 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-center p-8">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 text-center p-8">
           <div className="w-20 h-20 rounded-[24px] bg-rose-500/10 flex items-center justify-center mb-6 border-2 border-rose-500/20 shadow-[0_0_30px_rgba(244,63,94,0.1)]">
             <ShieldAlert size={36} className="text-rose-500" strokeWidth={2.5} />
           </div>
-          <h2 className="text-2xl font-black text-white mb-2 tracking-tighter uppercase italic">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tighter uppercase italic">
             System_Failure
           </h2>
-          <p className="text-slate-500 text-[14px] font-medium mb-8 max-w-sm mx-auto font-mono">
+          <p className="text-slate-500 dark:text-slate-400 text-[14px] font-medium mb-8 max-w-sm mx-auto font-mono">
             Ocorreu uma exceção crítica no kernel da interface.
           </p>
           <button
@@ -81,11 +81,31 @@ const AdaBot        = lazy(() => import('./AdaBot'));
 const ChatPanel     = lazy(() => import('../features/social/components/chat/ChatPanel'));
 const ChallengeRoom = lazy(() => import('../features/social/components/challenges/ChallengeRoom'));
 
+const PAGE_TITLES = {
+  '/':               'Overview',
+  '/flashcards':     'Flashcards',
+  '/resumos':        'Documentação',
+  '/simulado':       'Simulados',
+  '/materias':       'Matérias',
+  '/analytics':      'Analytics',
+  '/conquistas':     'Conquistas',
+  '/ide':            'Code IDE',
+  '/feed':           'Dev Feed',
+  '/mock-interview': 'Mock Interview',
+  '/knowledge-map':  'Mapa de Conhecimento',
+  '/roadmaps':       'Trilhas',
+  '/study-rooms':    'Study Rooms',
+  '/community':      'Biblioteca',
+  '/peer-review':    'Peer Review',
+  '/github':         'GitHub',
+};
+
 /* ─────────────────────────────────────────
    NAVBAR
 ───────────────────────────────────────── */
 const Navbar = memo(({ onOpenDrawer, isDesktop, sidebarVisible, toggleSidebar }) => {
   const { user } = useAuth();
+  const location = useLocation();
   const [imgError, setImgError] = useState(false);
   const initials = (user?.displayName || user?.email || 'U')
     .split(' ')
@@ -94,10 +114,13 @@ const Navbar = memo(({ onOpenDrawer, isDesktop, sidebarVisible, toggleSidebar })
     .slice(0, 2)
     .toUpperCase();
 
+  const isMobile = window.innerWidth < 768;
+  const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+
   return (
     <header
       style={{ zIndex: Z.navbar }}
-      className="fixed top-0 left-0 right-0 flex items-center justify-between backdrop-blur-2xl bg-[#0B1120]/85 border-b border-slate-800/80 transition-all duration-300 h-16 px-4 md:px-6 shadow-[0_4px_30px_rgba(0,0,0,0.2)]"
+      className="fixed top-0 left-0 right-0 flex items-center justify-between backdrop-blur-2xl bg-white/90 dark:bg-[#0B1120]/85 border-b border-slate-200 dark:border-slate-800/80 transition-all duration-300 h-16 px-4 md:px-6 shadow-sm dark:shadow-[0_4px_30px_rgba(0,0,0,0.2)]"
     >
       {/* ── Esquerda ── */}
       <div className="flex items-center gap-4 sm:gap-6 h-full">
@@ -106,7 +129,7 @@ const Navbar = memo(({ onOpenDrawer, isDesktop, sidebarVisible, toggleSidebar })
             <button
               onClick={onOpenDrawer}
               aria-label="Abrir menu"
-              className="group relative w-10 h-10 rounded-xl flex items-center justify-center bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700/50 transition-all shadow-sm"
+              className="group relative w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800/40 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700/50 transition-all shadow-sm"
             >
               <Menu size={20} strokeWidth={2.5} className="group-active:scale-90 transition-transform" />
             </button>
@@ -114,7 +137,7 @@ const Navbar = memo(({ onOpenDrawer, isDesktop, sidebarVisible, toggleSidebar })
             <button
               onClick={toggleSidebar}
               aria-label={sidebarVisible ? 'Colapsar menu' : 'Expandir menu'}
-              className="group relative w-10 h-10 rounded-xl flex items-center justify-center bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700/50 transition-all shadow-sm"
+              className="group relative w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-800/40 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700/50 transition-all shadow-sm"
             >
               {sidebarVisible ? (
                 <ChevronLeft size={20} strokeWidth={2.5} className="group-hover:-translate-x-0.5 transition-transform" />
@@ -130,62 +153,69 @@ const Navbar = memo(({ onOpenDrawer, isDesktop, sidebarVisible, toggleSidebar })
               <Logo size="small" iconOnly />
               <div className="absolute inset-0 bg-cyan-500/20 blur-md rounded-full" />
             </div>
-            <span className="font-black text-[17px] sm:text-[18px] tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 uppercase italic">
+            <span className="hidden sm:block font-black text-[17px] sm:text-[18px] tracking-[0.15em] text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-white dark:to-slate-400 uppercase italic">
               Syntax
             </span>
           </div>
         </div>
 
-        {isDesktop && <div className="hidden md:block w-px h-6 bg-slate-800" />}
+        {/* Nome da página em Mobile */}
+        {isMobile && (
+          <span className="absolute left-1/2 -translate-x-1/2 text-xs font-bold text-slate-600 dark:text-slate-400 truncate max-w-[140px]">
+            {PAGE_TITLES[location.pathname] ?? 'Syntax'}
+          </span>
+        )}
 
-        {/* Nav links */}
-        <nav className="hidden md:flex items-center gap-1.5 ml-2 translate-y-[2px]">
+        {isDesktop && <div className="hidden md:block w-px h-6 bg-slate-200 dark:bg-slate-800" />}
+
+        {/* Nav links com visibilidade responsiva */}
+        <nav className="hidden sm:flex items-center gap-1.5 ml-2 translate-y-[2px]">
           {[
             { to: '/',         label: 'Overview',  end: true },
             { to: '/materias', label: 'Módulos' },
-            { to: '/resumos',  label: 'Docs',      desktop: true },
-            { to: '/simulado', label: 'Simulados', desktop: true },
-          ].map(({ to, label, end, desktop }) =>
-            desktop && !isDesktop ? null : (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }) =>
-                  `flex items-center justify-center px-3.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    isActive
-                      ? 'text-cyan-400 bg-cyan-500/10 shadow-[inset_0_1px_0_rgba(6,182,212,0.2)]'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                  }`
-                }
-              >
-                {label}
-              </NavLink>
-            )
-          )}
+            { to: '/resumos',  label: 'Docs',      desktopOnly: true },
+            { to: '/simulado', label: 'Simulados', desktopOnly: true },
+          ].map(({ to, label, end, desktopOnly }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `items-center justify-center px-3.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                  desktopOnly ? 'hidden lg:flex' : 'flex'
+                } ${
+                  isActive
+                    ? 'text-indigo-600 dark:text-cyan-400 bg-indigo-500/10 dark:bg-cyan-500/10 shadow-[inset_0_1px_0_rgba(6,182,212,0.2)]'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'
+                }`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
         </nav>
       </div>
 
       {/* ── Direita ── */}
       <div className="flex items-center gap-4 sm:gap-5">
-        {/* Indicador online */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/50 border border-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+        {/* Indicador online - apenas SM+ */}
+        <div className="hidden sm:flex lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-[1px]">
+          <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mt-[1px]">
             Online
           </span>
         </div>
 
         {/* Perfil */}
-        <div className="flex items-center gap-3 sm:pl-5 sm:border-l border-slate-800/80">
+        <div className="flex items-center gap-3 sm:pl-5 sm:border-l border-slate-200 dark:border-slate-800/80">
           <div className="hidden sm:flex flex-col items-end justify-center">
-            <span className="text-[12px] font-extrabold text-slate-200 uppercase tracking-tight leading-none mb-1">
+            <span className="text-[12px] font-extrabold text-slate-900 dark:text-slate-200 uppercase tracking-tight leading-none mb-1">
               {user?.displayName?.split(' ')[0] || 'Developer'}
             </span>
-            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] leading-none">
+            <span className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] leading-none">
               Active_Session
             </span>
           </div>
@@ -193,7 +223,7 @@ const Navbar = memo(({ onOpenDrawer, isDesktop, sidebarVisible, toggleSidebar })
           <div className="relative group cursor-pointer">
             <div className="absolute inset-0 bg-indigo-500/30 rounded-xl blur-md group-hover:bg-cyan-500/40 transition-colors duration-300" />
             <div
-              className="relative w-9 h-9 md:w-10 md:h-10 rounded-xl overflow-hidden border border-slate-700 bg-slate-800 flex items-center justify-center shadow-xl"
+              className="relative w-9 h-9 md:w-10 md:h-10 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm dark:shadow-xl"
               style={{ zIndex: Z.base + 1 }}
             >
               {user?.photoURL && !imgError ? (
@@ -205,7 +235,7 @@ const Navbar = memo(({ onOpenDrawer, isDesktop, sidebarVisible, toggleSidebar })
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <span className="text-[11px] font-black text-indigo-400 group-hover:text-cyan-400 transition-colors">
+                <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                   {initials}
                 </span>
               )}
@@ -317,7 +347,7 @@ const Layout = memo(({ children }) => {
                   exit={{ x: '-100%' }}
                   transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                   style={{ zIndex: Z.sidebar, top: 0, bottom: 0 }}
-                  className="fixed left-0 w-[280px] border-r border-white/5 shadow-2xl overflow-hidden"
+                  className="fixed left-0 w-[280px] border-r border-slate-200 dark:border-white/5 shadow-2xl overflow-hidden"
                 >
                   <Sidebar isMobileOpen={mobileDrawerOpen} />
                 </motion.div>
@@ -333,7 +363,7 @@ const Layout = memo(({ children }) => {
             animate={{ width: sidebarVisible ? 240 : 64 }}
             transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
             style={{ zIndex: Z.raised, top: navbarTopOffset }}
-            className="fixed left-0 bottom-0 border-r border-white/5 shadow-2xl bg-slate-900 overflow-hidden"
+            className="fixed left-0 bottom-0 border-r border-slate-200 dark:border-white/5 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden"
           >
             <Sidebar collapsed={!sidebarVisible} isMobileOpen={false} />
           </motion.div>

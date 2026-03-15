@@ -92,6 +92,10 @@ export const getDashboardStats = async (userId) => {
       eventosSnapshot,
       resumosSnapshot,
       flashcardsSnapshot,
+      roomsSnapshot,
+      communitySnapshot,
+      snippetsSnapshot,
+      githubSnapshot,
     ] = await Promise.all([
       // Streak — isolado, nunca bloqueia os demais
       updateStreak(userId)
@@ -115,11 +119,27 @@ export const getDashboardStats = async (userId) => {
       // Flashcards — busca todos (contagem total + mensal feita no cliente)
       getDocs(query(collection(db, 'flashcards'), where('uid', '==', userId)))
         .catch(err => { console.warn('[dashboard] Flashcards:', err?.message); return { docs: [] }; }),
+      // Rooms ativas (para o KPI da Home)
+      getDocs(query(collection(db, 'rooms'), where('expiresAt', '>', new Date()), limit(50)))
+        .catch(() => ({ docs: [] })),
+      // Community resources count (para o KPI da Home)
+      getDocs(query(collection(db, 'community'), limit(1)))
+        .catch(() => ({ docs: [] })),
+      // Snippets count (para o KPI da Home)
+      getDocs(query(collection(db, `users/${userId}/snippets`), limit(100)))
+        .catch(() => ({ docs: [] })),
+      // GitHub Integration status
+      getDoc(doc(db, 'users', userId, 'integrations', 'github'))
+        .catch(() => ({ exists: () => false, data: () => ({}) })),
     ]);
 
     // ── 2. Contagens calculadas no cliente ────────────────────────────────────
     const totalResumos    = resumosSnapshot.docs.length;
     const totalFlashcards = flashcardsSnapshot.docs.length;
+    const totalSnippets   = snippetsSnapshot.docs.length;
+    const activeRooms     = roomsSnapshot.docs.filter(d => d.data().status !== 'finished').length;
+    const communityCount  = communitySnapshot.size || 0; // Se usar o query normal sem count()
+    const githubConnected = githubSnapshot.exists() && !!githubSnapshot.data()?.accessToken;
 
     // Filtro mensal: verifica se createdAt está dentro do mês atual
     const resumosDoMes = resumosSnapshot.docs.filter(d => {
@@ -192,6 +212,10 @@ export const getDashboardStats = async (userId) => {
       concluidas:      materiasConcluidas.length,
       totalResumos,
       totalFlashcards,
+      totalSnippets,
+      activeRooms,
+      communityCount,
+      githubConnected,
       offensiveStreak: streakStats?.currentStreak  || 0,
       longestStreak:   streakStats?.longestStreak  || 0,
       totalLoginDays:  streakStats?.totalLoginDays || 0,

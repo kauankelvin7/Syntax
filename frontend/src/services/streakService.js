@@ -27,6 +27,29 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase-config';
 import { checkStreakMilestones } from './notificationService';
+import { getGitHubConnection } from './githubService';
+
+/**
+ * Verifica se o usuário teve commits no GitHub em uma determinada data.
+ */
+async function verificarCommitDia(uid, data) {
+  const conn = await getGitHubConnection(uid);
+  if (!conn?.token || !conn?.username) return false;
+
+  try {
+    const dateStr = data.toISOString().split('T')[0];
+    const res = await fetch(
+      `https://api.github.com/search/commits?q=author:${conn.username}+committer-date:${dateStr}`,
+      { headers: { 
+        Authorization: `token ${conn.token}`, 
+        Accept: 'application/vnd.github.cloak-preview+json' 
+      }}
+    );
+    if (!res.ok) return false;
+    const data2 = await res.json();
+    return (data2.total_count || 0) > 0;
+  } catch { return false; }
+}
 
 
 /**
@@ -116,11 +139,21 @@ export const getStreakData = async (userId) => {
  * 2. Dia seguinte = incrementa streak
  * 3. Pulou dias = ZERA streak e começa do 1
  */
-export const updateStreak = async (userId) => {
+export const updateStreak = async (userId, hasStudiedToday = true) => {
   try {
     const streakData = await getStreakData(userId);
     const today = new Date();
     const lastLogin = streakData.lastLoginDate;
+
+    // Se o usuário não estudou (via pomodoro/simulado) nem teve commit hoje,
+    // vamos verificar o commit antes de prosseguir.
+    let activeToday = hasStudiedToday;
+    if (!activeToday) {
+      activeToday = await verificarCommitDia(userId, today);
+    }
+
+    // Se não teve atividade hoje, não atualizamos o streak (não conta dia positivo)
+    if (!activeToday) return streakData;
 
     // Se é o primeiro login ou não tem data anterior
     if (!lastLogin) {

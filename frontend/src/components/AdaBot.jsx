@@ -28,15 +28,17 @@ import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Mic, MicOff, X, Zap, FileCode2, Lightbulb, BarChart2, CheckCircle2,
-  Cpu, User, Loader, Sparkles, RefreshCw, Terminal, SquarePen, ChevronUp,
-  History, MessageSquare, ChevronRight, Volume2, Square, ArrowUp,
-  ThumbsUp, Repeat2, Bookmark, Code2, Database, GitBranch, Bug,
-  Layers, Shield, Rocket, Hash, MapPin,
+  Cpu, User, Users, Globe, Loader, Sparkles, RefreshCw, Terminal,
+  SquarePen, ChevronUp, History, MessageSquare, ChevronRight,
+  Volume2, Square, ArrowUp, ThumbsUp, Repeat2, Bookmark,
+  Code2, Database, GitBranch, Bug, Layers, Shield, Rocket,
+  Hash, MapPin, Network, Map, BookOpen, Github,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase-config';
 import { useAuth } from '../contexts/AuthContext-firebase';
+import { useTheme } from '../contexts/ThemeContext';
 import useAdaContext from '../hooks/useSyntaxContext';
 import useSpeechRecognition from '../hooks/useSpeechRecognition';
 import useAdaSessoes from '../hooks/useSyntaxSessoes';
@@ -55,11 +57,8 @@ const MAX_MESSAGES_PER_MINUTE = 15;
 const MEMORY_MAX_MESSAGES     = 20;
 const MAX_HISTORICO_GEMINI    = 10;
 
-// ✅ CORRIGIDO v6.1: gemini-1.5-pro descontinuado → substituído por gemini-2.0-flash-lite
 const GEMINI_MODELS = [
-  { name: 'gemini-2.5-flash-preview-04-17', description: 'Latest'   },
-  { name: 'gemini-2.0-flash',               description: 'Stable'   },
-  { name: 'gemini-2.0-flash-lite',          description: 'Fallback' },
+  { name: 'gemini-2.5-flash', description: 'Latest'   },
 ];
 
 const sanitizarTexto = (t) =>
@@ -118,6 +117,15 @@ const PAGE_LABELS = {
   '/conquistas': 'Conquistas',
   '/quadro':     'Quadro',
   '/tarefas':    'Tarefas',
+  '/ide':        'Code IDE',
+  '/feed':       'Dev Feed',
+  '/mock-interview': 'Mock Interview',
+  '/knowledge-map': 'Mapa de Conhecimento',
+  '/roadmaps': 'Trilhas de Carreira',
+  '/rooms': 'Study Rooms',
+  '/library': 'Biblioteca Comunitária',
+  '/peer-review': 'Peer Code Review',
+  '/github': 'GitHub Integration',
 };
 
 const PAGE_CONTEXTS = {
@@ -129,6 +137,15 @@ const PAGE_CONTEXTS = {
   '/analytics':  'Dev está em Analytics. Pode querer interpretar métricas de performance.',
   '/quadro':     'Dev está no Quadro Branco. Pode querer ajuda com diagramação de arquitetura.',
   '/tarefas':    'Dev está nas Tarefas. Pode querer priorizar backlog ou estruturar sprints.',
+  '/ide':        'Dev está na IDE. Pode querer review de código, ajuda com erros ou novos desafios.',
+  '/feed':       'Dev está no Feed Tech. Pode querer resumos de artigos ou tendências.',
+  '/mock-interview': 'Dev está no Mock Interview. Pode querer dicas ou simular perguntas.',
+  '/knowledge-map': 'Dev está no Mapa de Conhecimento. Pode querer saber o próximo conceito ou ponto fraco.',
+  '/roadmaps': 'Dev está nos Roadmaps. Pode querer saber o próximo passo ou estimativa.',
+  '/rooms': 'Dev está nas Study Rooms. Pode querer ajuda com Pomodoro ou discussões em grupo.',
+  '/library': 'Dev está na Biblioteca. Pode querer recomendações de materiais da comunidade.',
+  '/peer-review': 'Dev está no Peer Review. Pode querer feedback técnico ou revisar código alheio.',
+  '/github': 'Dev está na integração GitHub. Pode querer análise de repositório ou métricas de código.',
 };
 
 const QUICK_ACTIONS = {
@@ -136,6 +153,42 @@ const QUICK_ACTIONS = {
     { icon: <Code2 size={12} />,     label: 'Review código', prompt: 'Faça um review do meu código mais recente' },
     { icon: <Lightbulb size={12} />, label: 'Arquitetura',   prompt: 'Me ajude a pensar na arquitetura do projeto' },
     { icon: <Zap size={12} />,       label: 'Priorizar',     prompt: 'O que devo priorizar no desenvolvimento hoje?' },
+  ],
+  '/rooms': [
+    { icon: <Zap size={12}/>,      label: 'Dica de foco',   prompt: 'Me dê uma dica de produtividade para minha sessão de estudo' },
+    { icon: <Users size={12}/>,    label: 'Dinâmica',       prompt: 'Sugira uma dinâmica de grupo para estudarmos juntos' },
+  ],
+  '/library': [
+    { icon: <Sparkles size={12}/>, label: 'Recomendar',     prompt: 'Recomende os melhores flashcards da comunidade para iniciantes' },
+  ],
+  '/github': [
+    { icon: <Github size={12}/>,   label: 'Analisar repo',  prompt: 'Como a Ada analisa a qualidade de um repositório GitHub?' },
+  ],
+  '/knowledge-map': [
+    { icon: <Network size={12}/>,  label: 'Próx. conceito', prompt: 'Qual conceito devo estudar agora com base no meu mapa?' },
+    { icon: <Zap size={12}/>,      label: 'Ponto fraco',    prompt: 'Qual é meu maior ponto fraco no mapa de conhecimento?' },
+  ],
+  '/roadmaps': [
+    { icon: <Map size={12}/>,      label: 'Próx. passo',    prompt: 'Qual é o meu próximo passo no roadmap atual?' },
+    { icon: <Zap size={12}/>,      label: 'Estimativa',     prompt: 'Quanto tempo falta para concluir minha trilha?' },
+  ],
+  '/analytics': [
+    { icon: <BarChart2 size={12}/>, label: 'Insight',        prompt: 'O que os meus analytics dizem sobre meu aprendizado?' },
+    { icon: <Zap size={12}/>,       label: 'Melhorar score', prompt: 'Como posso aumentar meu score de prontidão?' },
+    { icon: <BarChart2 size={12} />, label: 'Interpretar',    prompt: 'Me ajude a interpretar minhas métricas de estudo' },
+  ],
+  '/ide': [
+    { icon: <Code2 size={12}/>,    label: 'Review código',  prompt: 'Revise o código que estou escrevendo na IDE' },
+    { icon: <Zap size={12}/>,      label: 'Gerar desafio',  prompt: 'Gere um desafio de código para eu praticar agora' },
+    { icon: <BookOpen size={12}/>, label: 'Explicar erro',  prompt: 'Me ajude a entender o erro no meu código' },
+  ],
+  '/mock-interview': [
+    { icon: <MessageSquare size={12}/>, label: 'Dicas',     prompt: 'Quais dicas você dá para eu me sair bem em entrevistas técnicas?' },
+    { icon: <Zap size={12}/>,           label: 'Simular',   prompt: 'Vamos simular uma pergunta técnica rápida de entrevista' },
+  ],
+  '/feed': [
+    { icon: <BookOpen size={12}/>, label: 'Resumir artigo', prompt: 'Resuma o artigo tech mais relevante para mim hoje' },
+    { icon: <Zap size={12}/>,      label: 'Tendências',     prompt: 'Quais são as principais tendências tech desta semana?' },
   ],
   '/flashcards': [
     { icon: <Zap size={12} />,       label: 'Gerar cards',    prompt: 'Gere 5 flashcards sobre o tema técnico que estou estudando' },
@@ -160,10 +213,6 @@ const QUICK_ACTIONS = {
   '/materias': [
     { icon: <Layers size={12} />,    label: 'Nova matéria', prompt: 'Quero criar uma nova matéria, me ajude a organizar' },
     { icon: <BarChart2 size={12} />, label: 'Progresso',    prompt: 'Como está meu progresso de estudos?' },
-  ],
-  '/analytics': [
-    { icon: <BarChart2 size={12} />, label: 'Interpretar', prompt: 'Me ajude a interpretar minhas métricas de estudo' },
-    { icon: <Zap size={12} />,       label: 'Melhorar',    prompt: 'Como posso melhorar meu desempenho?' },
   ],
 };
 
@@ -354,22 +403,22 @@ const DEFAULT_MEMORY = {
    MARKDOWN COMPONENTS
 ───────────────────────────────────────────────────── */
 const MD = {
-  p:          ({ children }) => <p className="text-[13.5px] leading-[1.7] my-1.5 first:mt-0 last:mb-0 text-slate-300">{children}</p>,
-  strong:     ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
-  em:         ({ children }) => <em className="text-cyan-400 not-italic font-medium">{children}</em>,
-  ul:         ({ children }) => <ul className="my-2 space-y-1 text-slate-300 text-[13.5px] pl-4">{children}</ul>,
-  ol:         ({ children }) => <ol className="my-2 space-y-1 text-slate-300 text-[13.5px] pl-4 list-decimal">{children}</ol>,
-  li:         ({ children }) => <li className="leading-relaxed list-disc marker:text-slate-600">{children}</li>,
-  h1:         ({ children }) => <h1 className="text-[14px] font-bold text-white mt-4 mb-1.5 first:mt-0">{children}</h1>,
-  h2:         ({ children }) => <h2 className="text-[12px] font-semibold text-slate-400 uppercase tracking-wider mt-3 mb-1 first:mt-0">{children}</h2>,
-  h3:         ({ children }) => <h3 className="text-[13px] font-semibold text-slate-300 mt-2 mb-0.5 first:mt-0">{children}</h3>,
+  p:          ({ children }) => <p className="text-[13.5px] leading-[1.7] my-1.5 first:mt-0 last:mb-0 text-slate-600 dark:text-slate-300">{children}</p>,
+  strong:     ({ children }) => <strong className="font-semibold text-slate-900 dark:text-white">{children}</strong>,
+  em:         ({ children }) => <em className="text-indigo-600 dark:text-cyan-400 not-italic font-medium">{children}</em>,
+  ul:         ({ children }) => <ul className="my-2 space-y-1 text-slate-600 dark:text-slate-300 text-[13.5px] pl-4">{children}</ul>,
+  ol:         ({ children }) => <ol className="my-2 space-y-1 text-slate-600 dark:text-slate-300 text-[13.5px] pl-4 list-decimal">{children}</ol>,
+  li:         ({ children }) => <li className="leading-relaxed list-disc marker:text-slate-400 dark:marker:text-slate-600">{children}</li>,
+  h1:         ({ children }) => <h1 className="text-[14px] font-bold text-slate-900 dark:text-white mt-4 mb-1.5 first:mt-0">{children}</h1>,
+  h2:         ({ children }) => <h2 className="text-[12px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-3 mb-1 first:mt-0">{children}</h2>,
+  h3:         ({ children }) => <h3 className="text-[13px] font-semibold text-slate-800 dark:text-slate-300 mt-2 mb-0.5 first:mt-0">{children}</h3>,
   code: ({ inline, children }) => inline
-    ? <code className="px-1.5 py-0.5 rounded-md text-[12px] font-mono text-cyan-300 bg-cyan-950/50 border border-cyan-900/40">{children}</code>
-    : <div className="my-3 rounded-xl overflow-hidden border border-white/[0.06]">
-        <div className="flex items-center px-3 py-1.5 bg-slate-800/60 border-b border-white/[0.04]">
+    ? <code className="px-1.5 py-0.5 rounded-md text-[12px] font-mono text-indigo-600 dark:text-cyan-300 bg-indigo-50 dark:bg-cyan-950/50 border border-indigo-100 dark:border-cyan-900/40">{children}</code>
+    : <div className="my-3 rounded-xl overflow-hidden border border-slate-200 dark:border-white/[0.06]">
+        <div className="flex items-center px-3 py-1.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-white/[0.04]">
           <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">code</span>
         </div>
-        <pre className="bg-[#0d1117] text-emerald-300 p-4 text-[12px] font-mono overflow-x-auto leading-relaxed"><code>{children}</code></pre>
+        <pre className="bg-slate-50 dark:bg-[#0d1117] text-indigo-600 dark:text-emerald-300 p-4 text-[12px] font-mono overflow-x-auto leading-relaxed"><code>{children}</code></pre>
       </div>,
   a:          ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline underline-offset-2 hover:text-indigo-300">{children}</a>,
   blockquote: ({ children }) => <blockquote className="border-l-2 border-indigo-500/40 pl-3 my-2 text-slate-400 text-[13px] italic">{children}</blockquote>,
@@ -439,6 +488,7 @@ Ao final de respostas técnicas: [PROXPASSO: texto curto acionável] (máx 5 pal
 const AdaBot = () => {
   const location = useLocation();
   const { user }  = useAuth();
+  const { isDarkMode } = useTheme();
   const uid       = user?.id || user?.uid;
 
   const { dadosSistema, materiasLista, isLoadingContext } = useAdaContext(uid);
@@ -1064,13 +1114,28 @@ const AdaBot = () => {
             <div className="absolute inset-0 rounded-[18px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
               style={{ background:'radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%)', filter:'blur(14px)', transform:'scale(1.5)' }} />
             <div className="w-14 h-14 flex items-center justify-center relative overflow-hidden"
-              style={{ borderRadius:18, background:'linear-gradient(145deg,#1e1b4b 0%,#0f172a 55%,#0c1a2e 100%)', boxShadow:'0 8px 28px rgba(99,102,241,0.22), inset 0 1px 0 rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.07)' }}>
+              style={{ 
+                borderRadius: 18, 
+                background: isDarkMode 
+                  ? 'linear-gradient(145deg,#1e1b4b 0%,#0f172a 55%,#0c1a2e 100%)' 
+                  : 'linear-gradient(145deg,#f8fafc 0%,#f1f5f9 55%,#e2e8f0 100%)', 
+                boxShadow: isDarkMode 
+                  ? '0 8px 28px rgba(99,102,241,0.22), inset 0 1px 0 rgba(255,255,255,0.08)' 
+                  : '0 8px 28px rgba(99,102,241,0.1), inset 0 1px 0 rgba(255,255,255,0.8)', 
+                border: isDarkMode 
+                  ? '1px solid rgba(255,255,255,0.07)' 
+                  : '1px solid #e2e8f0' 
+              }}>
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{ background:'linear-gradient(135deg, transparent 20%, rgba(255,255,255,0.05) 50%, transparent 80%)' }} />
               <Cpu size={22} strokeWidth={1.8} style={{ color:'#818cf8' }} />
             </div>
             <motion.div className="absolute -top-1 -right-1 w-[18px] h-[18px] rounded-full flex items-center justify-center"
-              style={{ background:'linear-gradient(135deg,#6366f1,#06b6d4)', boxShadow:'0 2px 8px rgba(99,102,241,0.5)', border:'2px solid #0f172a' }}
+              style={{ 
+                background:'linear-gradient(135deg,#6366f1,#06b6d4)', 
+                boxShadow:'0 2px 8px rgba(99,102,241,0.5)', 
+                border: isDarkMode ? '2px solid #0f172a' : '2px solid #ffffff' 
+              }}
               animate={{ scale:[1,1.2,1] }} transition={{ duration:2.5, repeat:Infinity }}>
               <Sparkles size={8} color="#fff" strokeWidth={3} />
             </motion.div>
@@ -1095,9 +1160,11 @@ const AdaBot = () => {
                          sm:h-[680px] sm:max-h-[calc(100vh-80px)] sm:rounded-[24px]"
               style={{
                 zIndex:      Z.modal,
-                background:  '#0d1117',
-                border:      '1px solid rgba(255,255,255,0.07)',
-                boxShadow:   '0 32px 80px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.05)',
+                background:  isDarkMode ? '#0d1117' : '#ffffff',
+                border:      isDarkMode ? '1px solid rgba(255,255,255,0.07)' : '1px solid #e2e8f0',
+                boxShadow:   isDarkMode 
+                  ? '0 32px 80px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.05)' 
+                  : '0 20px 50px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9)',
               }}
               initial={{ opacity:0, y:40, scale:0.97 }}
               animate={{ opacity:1, y:0,  scale:1    }}
@@ -1106,24 +1173,38 @@ const AdaBot = () => {
 
               {/* ── HEADER ── */}
               <div className="relative px-4 py-3.5 flex items-center justify-between shrink-0"
-                style={{ background:'linear-gradient(180deg,#161b27 0%,#0d1117 100%)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+                style={{ 
+                  background: isDarkMode 
+                    ? 'linear-gradient(180deg,#161b27 0%,#0d1117 100%)' 
+                    : 'linear-gradient(180deg,#f8fafc 0%,#ffffff 100%)', 
+                  borderBottom: isDarkMode 
+                    ? '1px solid rgba(255,255,255,0.06)' 
+                    : '1px solid #f1f5f9' 
+                }}>
                 <div className="absolute top-0 left-8 right-8 h-px pointer-events-none"
-                  style={{ background:'linear-gradient(90deg,transparent,rgba(99,102,241,0.45) 35%,rgba(6,182,212,0.45) 65%,transparent)' }} />
+                  style={{ background: isDarkMode 
+                    ? 'linear-gradient(90deg,transparent,rgba(99,102,241,0.45) 35%,rgba(6,182,212,0.45) 65%,transparent)'
+                    : 'linear-gradient(90deg,transparent,rgba(99,102,241,0.1) 35%,rgba(6,182,212,0.1) 65%,transparent)'
+                  }} />
 
                 <div className="flex items-center gap-3">
                   <AdaAvatar size="md" speaking={isLoading} showStatus />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-white font-semibold text-[15px] tracking-tight leading-none">Ada</span>
+                      <span className="text-slate-900 dark:text-white font-semibold text-[15px] tracking-tight leading-none">Ada</span>
                       <span className="text-[10px] font-medium px-1.5 py-[3px] rounded-md leading-none"
-                        style={{ background:'rgba(99,102,241,0.14)', border:'1px solid rgba(99,102,241,0.22)', color:'#a5b4fc' }}>
+                        style={{ 
+                          background: isDarkMode ? 'rgba(99,102,241,0.14)' : 'rgba(99,102,241,0.08)', 
+                          border: isDarkMode ? '1px solid rgba(99,102,241,0.22)' : '1px solid rgba(99,102,241,0.15)', 
+                          color: isDarkMode ? '#a5b4fc' : '#4f46e5' 
+                        }}>
                         Copilot
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 mt-1">
                       {connectionStatus === 'connected' && <>
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"
-                          style={{ boxShadow:'0 0 5px rgba(52,211,153,0.7)' }} />
+                          style={{ boxShadow: isDarkMode ? '0 0 5px rgba(52,211,153,0.7)' : 'none' }} />
                         <span className="text-slate-500 text-[11px]">{formatModel(activeModelName)}</span>
                       </>}
                       {connectionStatus === 'connecting' && <>
@@ -1137,7 +1218,7 @@ const AdaBot = () => {
                       {connectionStatus === 'disconnected' &&
                         <span className="text-slate-600 text-[11px]">Engenheira de Software IA</span>}
                     </div>
-                    <span className="text-slate-700 text-[10px] flex items-center gap-1 mt-0.5">
+                    <span className="text-slate-500 dark:text-slate-700 text-[10px] flex items-center gap-1 mt-0.5">
                       <MapPin size={8} />
                       {PAGE_LABELS[location.pathname] || 'App'}
                     </span>
@@ -1147,7 +1228,7 @@ const AdaBot = () => {
                 <div className="flex items-center gap-1">
                   {isSpeaking && (
                     <motion.button onClick={stopTTS}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-red-400 border border-red-500/20 bg-red-500/8"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-red-500 border border-red-500/20 bg-red-500/8"
                       initial={{ opacity:0, scale:0.9 }} animate={{ opacity:1, scale:1 }} whileTap={{ scale:0.95 }}>
                       <Square size={8} fill="currentColor" strokeWidth={0} /> Stop
                     </motion.button>
@@ -1158,8 +1239,11 @@ const AdaBot = () => {
                     { icon:<X size={14} strokeWidth={2.5}/>, fn:handleFechar,                 tip:'Fechar'      },
                   ].map((b, i) => (
                     <button key={i} onClick={b.fn} aria-label={b.tip}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-300 transition-colors"
-                      style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)' }}>
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors"
+                      style={{ 
+                        background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', 
+                        border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)' 
+                      }}>
                       {b.icon}
                     </button>
                   ))}
@@ -1217,15 +1301,25 @@ const AdaBot = () => {
                         <div key={index} className="flex items-end justify-end gap-2.5 mb-5"
                           style={{ animation:isNew ? 'adaFadeUp .18s ease' : 'none' }}>
                           <div className="flex flex-col items-end gap-1 max-w-[80%]">
-                            <div className="px-4 py-2.5 text-[13.5px] leading-relaxed text-white rounded-2xl rounded-br-[6px]"
-                              style={{ background:'linear-gradient(135deg,#3730a3 0%,#1d4ed8 100%)', boxShadow:'0 4px 16px rgba(55,48,163,0.3)' }}>
+                            <div className={`px-4 py-2.5 text-[13.5px] leading-relaxed text-white rounded-2xl rounded-br-[6px] shadow-sm`}
+                              style={{ 
+                                background: isDarkMode 
+                                  ? 'linear-gradient(135deg,#3730a3 0%,#1d4ed8 100%)' 
+                                  : 'linear-gradient(135deg,#4f46e5 0%,#3b82f6 100%)', 
+                                boxShadow: isDarkMode 
+                                  ? '0 4px 16px rgba(55,48,163,0.3)' 
+                                  : '0 4px 12px rgba(79,70,229,0.2)' 
+                              }}>
                               {message.content}
                             </div>
-                            {message.time && <span className="text-[10px] text-slate-700 mr-0.5">{message.time}</span>}
+                            {message.time && <span className="text-[10px] text-slate-500 dark:text-slate-700 mr-0.5">{message.time}</span>}
                           </div>
                           <div className="w-7 h-7 rounded-[10px] shrink-0 flex items-center justify-center mb-5"
-                            style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)' }}>
-                            <User size={13} color="#475569" strokeWidth={2} />
+                            style={{ 
+                              background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', 
+                              border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)' 
+                            }}>
+                            <User size={13} className="text-slate-600 dark:text-slate-500" strokeWidth={2} />
                           </div>
                         </div>
                       );
@@ -1237,17 +1331,17 @@ const AdaBot = () => {
                           onMouseLeave={() => setHoveredId(null)}>
                           <div className="mb-5 shrink-0"><AdaAvatar size="sm" /></div>
                           <div className="flex flex-col gap-1 max-w-[84%] relative">
-                            <span className="text-[10px] font-medium text-indigo-400/50 ml-0.5 tracking-wide">Ada</span>
-                            <div className={`px-4 py-3 text-[13.5px] leading-relaxed rounded-2xl rounded-tl-[6px] ${
-                              message.isSystem && message.systemType === 'error'   ? 'bg-red-950/25 border border-red-800/25 text-red-300'
-                            : message.isSystem && message.systemType === 'success' ? 'bg-emerald-950/25 border border-emerald-800/25 text-emerald-300'
-                            : message.isSystem && message.systemType === 'info'    ? 'bg-indigo-950/25 border border-indigo-800/25 text-indigo-300'
-                            : 'border border-white/[0.06] bg-white/[0.03]'
+                            <span className="text-[10px] font-medium text-indigo-500/50 dark:text-indigo-400/50 ml-0.5 tracking-wide">Ada</span>
+                            <div className={`px-4 py-3 text-[13.5px] leading-relaxed rounded-2xl rounded-tl-[6px] border ${
+                              message.isSystem && message.systemType === 'error'   ? 'bg-red-950/25 border-red-800/25 text-red-600 dark:text-red-300'
+                            : message.isSystem && message.systemType === 'success' ? 'bg-emerald-950/25 border-emerald-800/25 text-emerald-600 dark:text-emerald-300'
+                            : message.isSystem && message.systemType === 'info'    ? 'bg-indigo-950/25 border-indigo-800/25 text-indigo-600 dark:text-indigo-300'
+                            : 'border-slate-100 dark:border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.03] text-slate-700 dark:text-slate-300'
                             }`}
                               style={{ backdropFilter:'blur(8px)' }}>
                               <ReactMarkdown components={MD}>{message.content}</ReactMarkdown>
                               {message.isStreaming && (
-                                <motion.span className="inline-block w-0.5 h-[14px] bg-indigo-400/80 ml-0.5 rounded-full align-middle"
+                                <motion.span className="inline-block w-0.5 h-[14px] bg-indigo-500 dark:bg-indigo-400/80 ml-0.5 rounded-full align-middle"
                                   animate={{ opacity:[1,0] }} transition={{ duration:0.5, repeat:Infinity }} />
                               )}
                               {message.acaoLabel && <AcaoBadge label={message.acaoLabel} />}
@@ -1258,14 +1352,14 @@ const AdaBot = () => {
                                   <motion.button onClick={() => speak(message.content, `msg-${index}`)}
                                     className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium transition-all ${
                                       ttsActiveId === `msg-${index}`
-                                        ? 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20'
-                                        : 'text-slate-700 hover:text-slate-500'
+                                        ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/20'
+                                        : 'text-slate-400 dark:text-slate-700 hover:text-slate-600 dark:hover:text-slate-500'
                                     }`}
                                     whileTap={{ scale:0.95 }}>
                                     {ttsActiveId === `msg-${index}` ? (
                                       <div className="flex items-center gap-0.5">
                                         {[0,1,2].map(i => (
-                                          <motion.div key={i} className="w-0.5 rounded-full bg-indigo-400"
+                                          <motion.div key={i} className="w-0.5 rounded-full bg-indigo-500 dark:bg-indigo-400"
                                             animate={{ scaleY:[0.4,1,0.4] }} transition={{ duration:0.7, repeat:Infinity, delay:i*0.15 }}
                                             style={{ height:8 }} />
                                         ))}
@@ -1280,7 +1374,11 @@ const AdaBot = () => {
                             {message.proximoPasso && !message.isStreaming && (
                               <motion.button onClick={() => sendMessage(message.proximoPasso)}
                                 className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium self-start border transition-all hover:bg-indigo-500/10"
-                                style={{ background:'rgba(99,102,241,0.05)', borderColor:'rgba(99,102,241,0.2)', color:'#a5b4fc' }}
+                                style={{ 
+                                  background: isDarkMode ? 'rgba(99,102,241,0.05)' : 'rgba(99,102,241,0.03)', 
+                                  borderColor: isDarkMode ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.15)', 
+                                  color: isDarkMode ? '#a5b4fc' : '#4f46e5' 
+                                }}
                                 whileTap={{ scale:0.97 }}
                                 initial={{ opacity:0, y:4 }} animate={{ opacity:1, y:0 }}>
                                 <Zap size={10} strokeWidth={2.5} />
@@ -1295,7 +1393,7 @@ const AdaBot = () => {
                               )}
                             </AnimatePresence>
 
-                            {message.time && <span className="text-[10px] text-slate-700 ml-0.5">{message.time}</span>}
+                            {message.time && <span className="text-[10px] text-slate-400 dark:text-slate-700 ml-0.5">{message.time}</span>}
                           </div>
                         </div>
                       );
@@ -1305,15 +1403,15 @@ const AdaBot = () => {
                     {isLoading && (
                       <div className="flex items-end gap-2.5 mb-5">
                         <AdaAvatar size="sm" speaking />
-                        <div className="px-4 py-3 rounded-2xl rounded-tl-[6px] flex items-center gap-3 border border-white/[0.05]"
-                          style={{ background:'rgba(255,255,255,0.025)', backdropFilter:'blur(8px)' }}>
+                        <div className="px-4 py-3 rounded-2xl rounded-tl-[6px] flex items-center gap-3 border border-slate-100 dark:border-white/[0.05]"
+                          style={{ background: isDarkMode ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.02)', backdropFilter:'blur(8px)' }}>
                           <div className="flex items-center gap-0.5">
                             {[0,1,2,3,4].map(i => (
-                              <div key={i} className="w-[3px] rounded-full bg-indigo-400/50"
+                              <div key={i} className="w-[3px] rounded-full bg-indigo-500 dark:bg-indigo-400/50"
                                 style={{ height:12, animation:`adaWave .9s ${i*0.1}s infinite ease-in-out` }} />
                             ))}
                           </div>
-                          <span className="text-[11px] text-slate-600">Ada está pensando...</span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-600">Ada está pensando...</span>
                         </div>
                       </div>
                     )}
@@ -1367,19 +1465,26 @@ const AdaBot = () => {
                 <AnimatePresence>
                   {acaoPendente && (
                     <motion.div className="absolute inset-0 z-20 flex items-end sm:items-center justify-center p-4"
-                      style={{ backdropFilter:'blur(12px)', background:'rgba(0,0,0,0.65)' }}
+                      style={{ backdropFilter:'blur(12px)', background: isDarkMode ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.6)' }}
                       initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
                       <motion.div className="w-full max-w-[300px] rounded-2xl overflow-hidden"
-                        style={{ background:'#161b27', border:'1px solid rgba(255,255,255,0.08)', boxShadow:'0 32px 80px rgba(0,0,0,0.8)' }}
+                        style={{ 
+                          background: isDarkMode ? '#161b27' : '#ffffff', 
+                          border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', 
+                          boxShadow: isDarkMode ? '0 32px 80px rgba(0,0,0,0.8)' : '0 20px 50px rgba(0,0,0,0.1)' 
+                        }}
                         initial={{ y:20, scale:0.96 }} animate={{ y:0, scale:1 }} exit={{ y:20, scale:0.96 }}>
                         <div className="px-5 pt-5 pb-3">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                              style={{ background:'rgba(99,102,241,0.12)', border:'1px solid rgba(99,102,241,0.2)' }}>
-                              <Zap size={16} color="#818cf8" strokeWidth={2} />
+                              style={{ 
+                                background: isDarkMode ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.08)', 
+                                border: isDarkMode ? '1px solid rgba(99,102,241,0.2)' : '1px solid rgba(99,102,241,0.15)' 
+                              }}>
+                              <Zap size={16} className="text-indigo-400 dark:text-[#818cf8]" strokeWidth={2} />
                             </div>
                             <div>
-                              <p className="text-[13px] font-semibold text-white">
+                              <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
                                 {acaoPendente.acoes.length > 1 ? `${acaoPendente.acoes.length} ações pendentes` : '1 ação pendente'}
                               </p>
                               <p className="text-[11px] text-slate-500 mt-0.5">Confirme para executar</p>
@@ -1388,17 +1493,23 @@ const AdaBot = () => {
                           <div className="space-y-2">
                             {acaoPendente.descricoes.map((desc, i) => (
                               <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg"
-                                style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.05)' }}>
-                                <CheckCircle2 size={12} color="#818cf8" strokeWidth={2} />
-                                <span className="text-[12px] text-slate-400">{desc}</span>
+                                style={{ 
+                                  background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', 
+                                  border: isDarkMode ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' 
+                                }}>
+                                <CheckCircle2 size={12} className="text-indigo-500 dark:text-[#818cf8]" strokeWidth={2} />
+                                <span className="text-[12px] text-slate-600 dark:text-slate-400">{desc}</span>
                               </div>
                             ))}
                           </div>
                         </div>
                         <div className="flex gap-2 px-5 pb-5 pt-2">
                           <button onClick={() => setAcaoPendente(null)}
-                            className="flex-1 py-2.5 rounded-xl text-[12px] font-medium text-slate-500 hover:text-slate-300 transition-colors"
-                            style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)' }}>
+                            className="flex-1 py-2.5 rounded-xl text-[12px] font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors"
+                            style={{ 
+                              background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', 
+                              border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)' 
+                            }}>
                             Cancelar
                           </button>
                           <button onClick={() => executarAcoesConfirmadas(acaoPendente.acoes)}
@@ -1416,15 +1527,21 @@ const AdaBot = () => {
                 <AnimatePresence>
                   {showHistorico && (
                     <motion.div className="absolute inset-0 z-10 flex flex-col"
-                      style={{ background:'#0d1117' }}
+                      style={{ background: isDarkMode ? '#0d1117' : '#ffffff' }}
                       initial={{ x:'100%' }} animate={{ x:0 }} exit={{ x:'100%' }}
                       transition={{ type:'spring', stiffness:300, damping:30 }}>
                       <div className="flex items-center justify-between px-4 py-3.5 shrink-0"
-                        style={{ borderBottom:'1px solid rgba(255,255,255,0.06)', background:'#161b27' }}>
-                        <span className="text-[13px] font-semibold text-slate-200">Conversas anteriores</span>
+                        style={{ 
+                          borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid #f1f5f9', 
+                          background: isDarkMode ? '#161b27' : '#f8fafc' 
+                        }}>
+                        <span className="text-[13px] font-semibold text-slate-700 dark:text-slate-200">Conversas anteriores</span>
                         <button onClick={() => setShowHistorico(false)}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-300 transition-colors"
-                          style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)' }}>
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors"
+                          style={{ 
+                            background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', 
+                            border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)' 
+                          }}>
                           <X size={13} strokeWidth={2.5} />
                         </button>
                       </div>
@@ -1432,31 +1549,37 @@ const AdaBot = () => {
                         {sessoes.length === 0 ? (
                           <div className="flex flex-col items-center justify-center py-16 text-center px-6">
                             <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                              style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)' }}>
-                              <Terminal size={20} color="#1e293b" strokeWidth={1.5} />
+                              style={{ 
+                                background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', 
+                                border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.05)' 
+                              }}>
+                              <Terminal size={20} className="text-slate-200 dark:text-slate-800" strokeWidth={1.5} />
                             </div>
-                            <p className="text-[12px] font-medium text-slate-600">Nenhuma conversa salva</p>
-                            <p className="text-[11px] text-slate-700 mt-1">Suas conversas aparecerão aqui</p>
+                            <p className="text-[12px] font-medium text-slate-500 dark:text-slate-600">Nenhuma conversa salva</p>
+                            <p className="text-[11px] text-slate-400 dark:text-slate-700 mt-1">Suas conversas aparecerão aqui</p>
                           </div>
                         ) : sessoes.map(s => (
                           <button key={s.id}
                             onClick={() => handleCarregarSessao(s.id)}
-                            className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors"
-                            style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                            className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors"
+                            style={{ borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.04)' : '1px solid #f1f5f9' }}>
                             <div className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center mt-0.5"
-                              style={{ background:'rgba(99,102,241,0.08)', border:'1px solid rgba(99,102,241,0.15)' }}>
-                              <MessageSquare size={13} color="#818cf8" strokeWidth={2} />
+                              style={{ 
+                                background: isDarkMode ? 'rgba(99,102,241,0.08)' : 'rgba(99,102,241,0.05)', 
+                                border: isDarkMode ? '1px solid rgba(99,102,241,0.15)' : '1px solid rgba(99,102,241,0.1)' 
+                              }}>
+                              <MessageSquare size={13} className="text-indigo-600 dark:text-[#818cf8]" strokeWidth={2} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[12.5px] font-medium text-slate-300 truncate">{s.titulo}</p>
-                              <p className="text-[10.5px] text-slate-600 mt-0.5">
+                              <p className="text-[12.5px] font-medium text-slate-700 dark:text-slate-300 truncate">{s.titulo}</p>
+                              <p className="text-[10.5px] text-slate-400 dark:text-slate-600 mt-0.5">
                                 {s.totalMensagens} msgs · {new Date(s.ultimaAtualizacao).toLocaleDateString('pt-BR', { day:'2-digit', month:'short' })}
                               </p>
                               {s.resumoAutoGerado && (
-                                <p className="text-[11px] text-slate-600 mt-1 line-clamp-2 leading-relaxed">{s.resumoAutoGerado}</p>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-600 mt-1 line-clamp-2 leading-relaxed">{s.resumoAutoGerado}</p>
                               )}
                             </div>
-                            <ChevronRight size={12} color="#1e293b" strokeWidth={2} className="mt-1 shrink-0" />
+                            <ChevronRight size={12} className="text-slate-200 dark:text-slate-800 mt-1 shrink-0" strokeWidth={2} />
                           </button>
                         ))}
                       </div>
@@ -1468,20 +1591,27 @@ const AdaBot = () => {
                 <AnimatePresence>
                   {showConfirmNovaSessao && (
                     <motion.div className="absolute inset-0 z-20 flex items-end sm:items-center justify-center p-4"
-                      style={{ backdropFilter:'blur(12px)', background:'rgba(0,0,0,0.65)' }}
+                      style={{ backdropFilter:'blur(12px)', background: isDarkMode ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.6)' }}
                       initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
                       onClick={() => setShowConfirmNovaSessao(false)}>
                       <motion.div className="w-full max-w-[300px] rounded-2xl p-5"
-                        style={{ background:'#161b27', border:'1px solid rgba(255,255,255,0.08)', boxShadow:'0 32px 80px rgba(0,0,0,0.8)' }}
+                        style={{ 
+                          background: isDarkMode ? '#161b27' : '#ffffff', 
+                          border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0', 
+                          boxShadow: isDarkMode ? '0 32px 80px rgba(0,0,0,0.8)' : '0 20px 50px rgba(0,0,0,0.1)' 
+                        }}
                         initial={{ y:20, scale:0.97 }} animate={{ y:0, scale:1 }} exit={{ y:20, scale:0.97 }}
                         onClick={e => e.stopPropagation()}>
                         <div className="flex items-center gap-3 mb-4">
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                            style={{ background:'rgba(99,102,241,0.12)', border:'1px solid rgba(99,102,241,0.2)' }}>
-                            <SquarePen size={16} color="#818cf8" strokeWidth={2} />
+                            style={{ 
+                              background: isDarkMode ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.08)', 
+                              border: isDarkMode ? '1px solid rgba(99,102,241,0.2)' : '1px solid rgba(99,102,241,0.15)' 
+                            }}>
+                            <SquarePen size={16} className="text-indigo-600 dark:text-[#818cf8]" strokeWidth={2} />
                           </div>
                           <div>
-                            <p className="text-[13px] font-semibold text-white">Nova conversa</p>
+                            <p className="text-[13px] font-semibold text-slate-900 dark:text-white">Nova conversa</p>
                             <p className="text-[11px] text-slate-500 mt-0.5">A atual será salva no histórico.</p>
                           </div>
                         </div>
@@ -1490,8 +1620,11 @@ const AdaBot = () => {
                         </p>
                         <div className="flex gap-2">
                           <button onClick={() => setShowConfirmNovaSessao(false)}
-                            className="flex-1 py-2.5 rounded-xl text-[12px] font-medium text-slate-500 hover:text-slate-300 transition-colors"
-                            style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)' }}>
+                            className="flex-1 py-2.5 rounded-xl text-[12px] font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 transition-colors"
+                            style={{ 
+                              background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', 
+                              border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)' 
+                            }}>
                             Cancelar
                           </button>
                           <button onClick={confirmarNovaSessao}
@@ -1508,9 +1641,9 @@ const AdaBot = () => {
                 {/* Reconnect */}
                 {connectionStatus === 'error' && (
                   <div className="px-4 py-3 shrink-0"
-                    style={{ borderTop:'1px solid rgba(239,68,68,0.1)', background:'rgba(239,68,68,0.04)' }}>
+                    style={{ borderTop: isDarkMode ? '1px solid rgba(239,68,68,0.1)' : '1px solid rgba(239,68,68,0.2)', background: isDarkMode ? 'rgba(239,68,68,0.04)' : 'rgba(239,68,68,0.02)' }}>
                     <button onClick={handleRetryConnection}
-                      className="w-full py-2.5 px-4 rounded-xl text-[12px] font-medium text-red-400/80 flex items-center justify-center gap-2 hover:text-red-300 transition-colors border border-red-500/15"
+                      className="w-full py-2.5 px-4 rounded-xl text-[12px] font-medium text-red-600 dark:text-red-400/80 flex items-center justify-center gap-2 hover:text-red-700 dark:hover:text-red-300 transition-colors border border-red-500/15"
                       style={{ background:'rgba(239,68,68,0.06)' }}>
                       <RefreshCw size={13} />
                       Tentar reconectar
@@ -1521,14 +1654,24 @@ const AdaBot = () => {
                 {/* ── QUICK ACTIONS ── */}
                 {!isLoading && !isExecutingAction && connectionStatus === 'connected' && quickActions.length > 0 && (
                   <div className="flex gap-1.5 px-3.5 pt-2 pb-1 overflow-x-auto shrink-0"
-                    style={{ scrollbarWidth:'none', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+                    style={{ 
+                      scrollbarWidth:'none', 
+                      borderTop: isDarkMode ? '1px solid rgba(255,255,255,0.04)' : '1px solid #f1f5f9' 
+                    }}>
                     {quickActions.map((a, i) => (
                       <motion.button key={i}
                         onClick={() => { setInputValue(a.prompt); inputRef.current?.focus(); }}
                         disabled={isLoading}
-                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-500 hover:text-slate-300 disabled:opacity-40 transition-all"
-                        style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.05)', whiteSpace:'nowrap' }}
-                        whileHover={{ borderColor:'rgba(99,102,241,0.25)', background:'rgba(99,102,241,0.06)' }}
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-500 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 disabled:opacity-40 transition-all"
+                        style={{ 
+                          background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', 
+                          border: isDarkMode ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.08)', 
+                          whiteSpace:'nowrap' 
+                        }}
+                        whileHover={{ 
+                          borderColor: isDarkMode ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.3)', 
+                          background: isDarkMode ? 'rgba(99,102,241,0.06)' : 'rgba(99,102,241,0.04)' 
+                        }}
                         whileTap={{ scale:0.97 }}>
                         {a.icon}<span>{a.label}</span>
                       </motion.button>
@@ -1538,14 +1681,18 @@ const AdaBot = () => {
 
                 {/* ── INPUT ── */}
                 <div className="px-3 pb-3 pt-2 shrink-0"
-                  style={{ borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+                  style={{ borderTop: isDarkMode ? '1px solid rgba(255,255,255,0.04)' : '1px solid #f1f5f9' }}>
                   <div className="relative rounded-2xl transition-all duration-200"
                     style={{
-                      background: isListening ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.04)',
-                      border:     isListening ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                      background: isListening 
+                        ? (isDarkMode ? 'rgba(239,68,68,0.05)' : 'rgba(239,68,68,0.03)') 
+                        : (isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
+                      border: isListening 
+                        ? (isDarkMode ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(239,68,68,0.4)') 
+                        : (isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.1)'),
                     }}>
                     <div className="absolute inset-0 rounded-2xl opacity-0 focus-within:opacity-100 pointer-events-none transition-opacity duration-200"
-                      style={{ boxShadow:'inset 0 0 0 1px rgba(99,102,241,0.28)' }} />
+                      style={{ boxShadow: isDarkMode ? 'inset 0 0 0 1px rgba(99,102,241,0.28)' : 'inset 0 0 0 1px rgba(99,102,241,0.4)' }} />
 
                     <div className="flex items-center gap-1 px-2 py-2">
                       {/* Mic */}
@@ -1556,10 +1703,10 @@ const AdaBot = () => {
                             onClick={isListening ? stopListening : startListening}
                             className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors shrink-0"
                             style={{
-                              color:      isListening ? '#f87171' : '#4b5563',
+                              color:      isListening ? '#f87171' : (isDarkMode ? '#4b5563' : '#94a3b8'),
                               background: isListening ? 'rgba(239,68,68,0.1)' : 'transparent',
                             }}
-                            whileHover={{ color: isListening ? '#fca5a5' : '#94a3b8', background:'rgba(255,255,255,0.05)' }}
+                            whileHover={{ color: isListening ? '#fca5a5' : (isDarkMode ? '#94a3b8' : '#64748b'), background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}
                             whileTap={{ scale:0.88 }}
                             disabled={isLoading || isExecutingAction}
                             aria-label={isListening ? 'Parar gravação' : 'Falar'}>
@@ -1581,12 +1728,11 @@ const AdaBot = () => {
                         }
                         disabled={isLoading || isExecutingAction || connectionStatus !== 'connected'}
                         rows={1}
-                        className="flex-1 bg-transparent border-none text-[13.5px] outline-none resize-none disabled:opacity-40 disabled:cursor-not-allowed py-1.5"
+                        className={`flex-1 bg-transparent border-none text-[13.5px] outline-none resize-none disabled:opacity-40 disabled:cursor-not-allowed py-1.5 ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}
                         style={{
                           minHeight:    36,
                           maxHeight:    120,
                           lineHeight:   1.65,
-                          color:        '#e2e8f0',
                           caretColor:   '#818cf8',
                           fontFamily:   'inherit',
                           paddingTop:   '7px',
@@ -1603,7 +1749,7 @@ const AdaBot = () => {
                           style={{
                             background: inputValue.trim() && !isLoading && connectionStatus === 'connected'
                               ? 'linear-gradient(135deg, #4f46e5, #0891b2)'
-                              : 'rgba(255,255,255,0.05)',
+                              : (isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'),
                             boxShadow: inputValue.trim() && connectionStatus === 'connected'
                               ? '0 2px 10px rgba(79,70,229,0.35)' : 'none',
                           }}
@@ -1611,16 +1757,16 @@ const AdaBot = () => {
                           aria-label="Enviar">
                           {isLoading || isExecutingAction
                             ? <Loader size={14} className="animate-spin text-slate-500" strokeWidth={2} />
-                            : <ArrowUp size={14} strokeWidth={2.5} color={inputValue.trim() ? '#fff' : '#374151'} />}
+                            : <ArrowUp size={14} strokeWidth={2.5} color={inputValue.trim() ? '#fff' : (isDarkMode ? '#374151' : '#94a3b8')} />}
                         </motion.button>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between mt-1.5 px-1">
-                    <span className="text-[10px] text-slate-700">Enter para enviar · Shift+Enter nova linha</span>
-                    <span className="text-[10px] text-slate-700 flex items-center gap-1">
-                      <Sparkles size={9} color="#1e1b4b" />
+                    <span className="text-[10px] text-slate-500 dark:text-slate-700">Enter para enviar · Shift+Enter nova linha</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-700 flex items-center gap-1">
+                      <Sparkles size={9} className="text-indigo-600 dark:text-[#1e1b4b]" />
                       {formatModel(activeModelName) || 'Gemini'}
                     </span>
                   </div>

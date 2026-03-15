@@ -13,7 +13,7 @@
 import React, { Suspense, lazy, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext-firebase';
 import { DashboardDataProvider, useDashboardData } from './contexts/DashboardDataContext';
 import { FocusModeProvider } from './contexts/FocusModeContext';
@@ -45,6 +45,15 @@ const HistoricoSimulados = lazy(() => import('./pages/HistoricoSimulados'));
 const Conquistas = lazy(() => import('./pages/Conquistas'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const Amigos = lazy(() => import('./pages/Amigos'));
+const IDE = lazy(() => import('./pages/IDE'));
+const FeedTech = lazy(() => import('./pages/FeedTech'));
+const MockInterview = lazy(() => import('./pages/MockInterview'));
+const KnowledgeMap = lazy(() => import('./pages/KnowledgeMap'));
+const Roadmaps = lazy(() => import('./pages/Roadmaps'));
+const StudyRooms = lazy(() => import('./pages/StudyRooms'));
+const CommunityLibrary = lazy(() => import('./pages/CommunityLibrary'));
+const PeerCodeReview = lazy(() => import('./pages/PeerCodeReview'));
+const GitHubIntegration = lazy(() => import('./pages/GitHubIntegration'));
 
 // ⚡ PREFETCH - Pré-carrega todos os chunks no idle para navegação instantânea
 const PAGE_IMPORTS = [
@@ -62,6 +71,15 @@ const PAGE_IMPORTS = [
   () => import('./pages/Conquistas'),
   () => import('./pages/Analytics'),
   () => import('./pages/Amigos'),
+  () => import('./pages/IDE'),
+  () => import('./pages/FeedTech'),
+  () => import('./pages/MockInterview'),
+  () => import('./pages/KnowledgeMap'),
+  () => import('./pages/Roadmaps'),
+  () => import('./pages/StudyRooms'),
+  () => import('./pages/CommunityLibrary'),
+  () => import('./pages/PeerCodeReview'),
+  () => import('./pages/GitHubIntegration'),
 ];
 
 function usePrefetchRoutes() {
@@ -160,6 +178,15 @@ function AppContent() {
                     <Route path="/conquistas" element={<Conquistas />} />
                     <Route path="/analytics" element={<Analytics />} />
                     <Route path="/amigos" element={<Amigos />} />
+                    <Route path="/ide" element={<IDE />} />
+                    <Route path="/feed" element={<FeedTech />} />
+                    <Route path="/mock-interview" element={<MockInterview />} />
+                    <Route path="/knowledge-map" element={<KnowledgeMap />} />
+                    <Route path="/roadmaps" element={<Roadmaps />} />
+                    <Route path="/study-rooms" element={<StudyRooms />} />
+                    <Route path="/community" element={<CommunityLibrary />} />
+                    <Route path="/peer-review" element={<PeerCodeReview />} />
+                    <Route path="/github" element={<GitHubIntegration />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Suspense>
@@ -172,6 +199,23 @@ function AppContent() {
         />
       </Routes>
     </Suspense>
+  );
+}
+
+// Toaster dinâmico que reage ao tema do app
+function DynamicToaster() {
+  const { isDarkMode } = useTheme();
+  return (
+    <Toaster
+      theme={isDarkMode ? 'dark' : 'light'}
+      position="top-right"
+      richColors
+      toastOptions={{
+        style: {
+          fontFamily: 'inherit',
+        },
+      }}
+    />
   );
 }
 
@@ -190,22 +234,7 @@ function App() {
           {/* Banner de instalação PWA */}
           <PWAInstallBanner />
           {/* Toast notifications */}
-          <Toaster
-            position="bottom-right"
-            expand={false}
-            richColors={false}
-            closeButton
-            toastOptions={{
-              duration: 5000,
-              classNames: {
-                toast:   'syntax-toast',
-                success: 'syntax-toast--success',
-                error:   'syntax-toast--error',
-                warning: 'syntax-toast--warning',
-                info:    'syntax-toast--info',
-              },
-            }}
-          />
+          <DynamicToaster />
         </AuthProvider>
       </ThemeProvider>
     </Router>

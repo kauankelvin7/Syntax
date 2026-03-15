@@ -28,6 +28,11 @@ import {
   History,
   Users,
   Sparkles,
+  Newspaper,
+  MessageSquare,
+  Map,
+  Library,
+  Github,
 } from 'lucide-react';
 import Logo from './Logo';
 import ProfileModal from './ProfileModal';
@@ -53,17 +58,26 @@ const Sidebar = memo(({ collapsed, isMobileOpen }) => {
     {
       title: 'Knowledge Base',
       links: [
-        { to: '/materias',   icon: BookOpen,  label: 'Módulos' },
-        { to: '/resumos',    icon: FileCode2, label: 'Documentação' },
-        { to: '/flashcards', icon: Layers,    label: 'Code Flashcards' },
+        { to: '/materias',      icon: BookOpen,  label: 'Módulos' },
+        { to: '/resumos',       icon: FileCode2, label: 'Documentação' },
+        { to: '/flashcards',    icon: Layers,    label: 'Code Flashcards' },
+        { to: '/knowledge-map', icon: Network,   label: 'Mapa de Conhecimento' },
+        { to: '/roadmaps',      icon: Map,       label: 'Trilhas de Carreira' },
+        { to: '/feed',          icon: Newspaper, label: 'Dev Feed' },
+        { to: '/community',     icon: Library,   label: 'Biblioteca Comunitária' },
       ],
     },
     {
       title: 'Dev Tools',
       links: [
-        { to: '/simulado',       icon: Cpu,     label: 'Testes Técnicos & IA' },
-        { to: '/atlas-3d',       icon: Network, label: 'System Design' },
-        { to: '/consulta-rapida',icon: Code2,   label: 'Snippets Rápidos' },
+        { to: '/ide',            icon: Code2,         label: 'Code IDE' },
+        { to: '/mock-interview', icon: MessageSquare, label: 'Mock Interview' },
+        { to: '/peer-review',    icon: Code2,         label: 'Peer Code Review' },
+        { to: '/github',         icon: Github,        label: 'GitHub Integration' },
+        { to: '/study-rooms',    icon: Users,         label: 'Study Rooms' },
+        { to: '/simulado',       icon: Cpu,           label: 'Testes Técnicos & IA' },
+        { to: '/atlas-3d',       icon: Sparkles,      label: 'System Design' },
+        { to: '/consulta-rapida',icon: History,       label: 'Snippets Rápidos' },
       ],
     },
     {
@@ -106,7 +120,7 @@ const Sidebar = memo(({ collapsed, isMobileOpen }) => {
           {menuGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-2">
               {!collapsed && (
-                <h3 className="px-3 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500/80">
+                <h3 className="px-3 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-500/80">
                   {group.title}
                 </h3>
               )}
@@ -126,7 +140,7 @@ const Sidebar = memo(({ collapsed, isMobileOpen }) => {
                       } ${
                         isActive
                           ? 'bg-indigo-50/80 dark:bg-indigo-900/30 text-indigo-700 dark:text-cyan-400 border-indigo-100/50 dark:border-indigo-800/50 shadow-sm'
-                          : 'border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
+                          : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'
                       }`
                     }
                   >
@@ -178,11 +192,11 @@ const Sidebar = memo(({ collapsed, isMobileOpen }) => {
 
         {/* ── Bottom: Perfil ── */}
         <div
-          className={`mt-auto border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50 ${
+          className={`mt-auto border-t border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/50 ${
             collapsed ? 'p-2' : 'p-4'
           }`}
         >
-          <div className="bg-white dark:bg-slate-800/80 rounded-[18px] p-1 shadow-sm border border-slate-200/50 dark:border-slate-700/50 hover:border-indigo-200 dark:hover:border-indigo-800/50 transition-colors">
+          <div className="bg-white dark:bg-slate-800/80 rounded-[18px] p-1 shadow-sm border border-slate-200 dark:border-slate-700/50 hover:border-indigo-200 dark:hover:border-indigo-800/50 transition-colors">
             <UserMenu
               onOpenProfile={() => setIsProfileOpen(true)}
               collapsed={collapsed}
@@ -190,7 +204,7 @@ const Sidebar = memo(({ collapsed, isMobileOpen }) => {
           </div>
 
           {!collapsed && (
-            <div className="mt-4 flex items-center justify-center gap-1.5 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+            <div className="mt-4 flex items-center justify-center gap-1.5 text-[9px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-[0.2em]">
               <Sparkles size={10} className="text-cyan-500" />
               Syntax OS v2.0
             </div>

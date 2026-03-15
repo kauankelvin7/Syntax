@@ -31,6 +31,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase-config';
 import { getStreakStats } from '../services/streakService';
+import { getGitHubConnection } from '../services/githubService';
 
 // ─── CONSTANTES ────────────────────────────────────────────────────────────────
 
@@ -210,6 +211,25 @@ const useSyntaxContext = (uid) => {
         maiorSequencia:  streakStats?.longestStreak  ?? 0,
         projetoRecente,
       };
+
+      // Integrar contexto do GitHub se conectado
+      try {
+        const githubConn = await getGitHubConnection(uid);
+        if (githubConn?.token) {
+          const res = await fetch(`https://api.github.com/user/repos?per_page=10&sort=updated`, {
+            headers: { Authorization: `token ${githubConn.token}` }
+          });
+          if (res.ok) {
+            const repos = await res.json();
+            novoDado.githubRepos = repos
+              .slice(0, 5)
+              .map(r => ({ name: r.name, language: r.language, stars: r.stargazers_count }));
+            novoDado.githubUsername = githubConn.username;
+          }
+        }
+      } catch (err) {
+        console.warn('[useSyntaxContext] Erro ao carregar contexto GitHub:', err);
+      }
 
       // Atualiza cache
       cache.uid       = uid;

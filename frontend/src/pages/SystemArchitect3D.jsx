@@ -21,6 +21,7 @@ import {
   TrendingUp, Clock, Hash, Wifi
 } from 'lucide-react';
 
+import { useTheme } from '../contexts/ThemeContext';
 import { Z } from '../constants/zIndex';
 
 /* ═══════════════════════════════════════════════════════
@@ -28,11 +29,28 @@ import { Z } from '../constants/zIndex';
 ═══════════════════════════════════════════════════════ */
 
 const TOKEN = {
-  bg: '#020617', // slate-950
-  bgPanel: 'rgba(2, 6, 23, 0.95)',
-  bgCard: 'rgba(15, 23, 42, 0.92)',
-  border: 'rgba(30, 41, 59, 0.7)',
-  borderAccent: 'rgba(99, 102, 241, 0.4)',
+  // Dark (Original)
+  dark: {
+    bg: '#020617', // slate-950
+    bgPanel: 'rgba(2, 6, 23, 0.95)',
+    bgCard: 'rgba(15, 23, 42, 0.92)',
+    border: 'rgba(30, 41, 59, 0.7)',
+    borderAccent: 'rgba(99, 102, 241, 0.4)',
+    textPrimary: '#F1F5F9',
+    textSecondary: '#94A3B8',
+    textMuted: '#475569',
+  },
+  // Light (New)
+  light: {
+    bg: '#f8fafc', // slate-50
+    bgPanel: 'rgba(255, 255, 255, 0.95)',
+    bgCard: 'rgba(241, 245, 249, 0.92)',
+    border: 'rgba(226, 232, 240, 0.8)',
+    borderAccent: 'rgba(99, 102, 241, 0.2)',
+    textPrimary: '#0f172a', // slate-900
+    textSecondary: '#475569', // slate-600
+    textMuted: '#64748b', // slate-500
+  },
   cyan: '#06B6D4',
   cyanDim: '#0891B2',
   indigo: '#6366F1',
@@ -40,9 +58,6 @@ const TOKEN = {
   emerald: '#10B981',
   rose: '#F43F5E',
   amber: '#F59E0B',
-  textPrimary: '#F1F5F9',
-  textSecondary: '#94A3B8',
-  textMuted: '#475569',
   fontMono: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
   fontSans: "'DM Sans', 'Inter', system-ui, sans-serif",
 };
@@ -608,6 +623,9 @@ function DataParticles({ position, color, count = 8 }) {
 ═══════════════════════════════════════════════════════ */
 
 function TechGrid() {
+  const { isDarkMode } = useTheme();
+  const gridColor = isDarkMode ? '#1E293B' : '#e2e8f0';
+
   const lines = useMemo(() => {
     const pts = [];
     const size = 12;
@@ -625,7 +643,7 @@ function TechGrid() {
         <Line
           key={i}
           points={pts.map(p => new THREE.Vector3(...p))}
-          color="#1E293B"
+          color={gridColor}
           lineWidth={0.5}
           transparent
           opacity={0.6}
@@ -738,6 +756,11 @@ function ModuleMesh({ mod, isSelected, isHovered, onSelect, onHover }) {
 ═══════════════════════════════════════════════════════ */
 
 function Scene({ selectedId, hoveredId, onSelect, onHover, visLayers }) {
+  const { isDarkMode } = useTheme();
+  const bgColor = isDarkMode ? '#020617' : '#f8fafc';
+  const fogColor = isDarkMode ? '#020617' : '#f1f5f9';
+  const ambientColor = isDarkMode ? '#0F172A' : '#e2e8f0';
+
   const visibleModules = useMemo(
     () => MODULES.filter(m => visLayers.includes(m.layer)),
     [visLayers]
@@ -763,17 +786,17 @@ function Scene({ selectedId, hoveredId, onSelect, onHover, visLayers }) {
 
   return (
     <>
-      <color attach="background" args={['#020617']} />
-      <fog attach="fog" args={['#020617', 20, 55]} />
+      <color attach="background" args={[bgColor]} />
+      <fog attach="fog" args={[fogColor, 20, 55]} />
 
-      <ambientLight intensity={0.2} color="#0F172A" />
-      <directionalLight position={[10, 15, 8]} intensity={0.8} color="#E0E7FF" />
+      <ambientLight intensity={isDarkMode ? 0.2 : 0.6} color={ambientColor} />
+      <directionalLight position={[10, 15, 8]} intensity={isDarkMode ? 0.8 : 1.2} color="#E0E7FF" />
       <pointLight position={[-5, 8, 5]} intensity={1.2} color="#06B6D4" distance={30} decay={2} />
       <pointLight position={[5, 4, -5]} intensity={0.8} color="#6366F1" distance={25} decay={2} />
       <pointLight position={[0, -3, 0]} intensity={0.5} color="#10B981" distance={20} decay={2} />
 
       <TechGrid />
-      <DreiSparkles count={60} scale={20} size={0.4} speed={0.2} color="#06B6D4" opacity={0.4} />
+      <DreiSparkles count={60} scale={20} size={0.4} speed={0.2} color="#06B6D4" opacity={isDarkMode ? 0.4 : 0.2} />
 
       {visibleModules.map(mod => (
         <ModuleMesh
@@ -818,22 +841,25 @@ function Scene({ selectedId, hoveredId, onSelect, onHover, visLayers }) {
 ═══════════════════════════════════════════════════════ */
 
 function TelemetryBar({ label, value, color }) {
+  const { isDarkMode } = useTheme();
+  const tokens = isDarkMode ? TOKEN.dark : TOKEN.light;
+
   return (
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span style={{ fontSize: 10, fontFamily: TOKEN.fontMono, color: TOKEN.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        <span style={{ fontSize: 10, fontFamily: TOKEN.fontMono, color: tokens.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           {label}
         </span>
         <span style={{ fontSize: 11, fontFamily: TOKEN.fontMono, color, fontWeight: 700 }}>
           {value}%
         </span>
       </div>
-      <div style={{ height: 4, background: 'rgba(51,65,85,0.5)', borderRadius: 4, overflow: 'hidden' }}>
+      <div style={{ height: 4, background: isDarkMode ? 'rgba(51,65,85,0.5)' : 'rgba(203,213,225,0.5)', borderRadius: 4, overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          style={{ height: '100%', background: color, borderRadius: 4, boxShadow: `0 0 6px ${color}` }}
+          style={{ height: '100%', background: color, borderRadius: 4, boxShadow: isDarkMode ? `0 0 6px ${color}` : 'none' }}
         />
       </div>
     </div>
@@ -846,6 +872,8 @@ function TelemetryBar({ label, value, color }) {
 
 function DetailPanel({ selected, onClose }) {
   if (!selected) return null;
+  const { isDarkMode } = useTheme();
+  const tokens = isDarkMode ? TOKEN.dark : TOKEN.light;
   const cfg = LAYER_CONFIG[selected.layer];
   const LayerIcon = cfg?.icon ?? Box;
   const statusCol = STATUS_COLOR[selected.status];
@@ -864,12 +892,12 @@ function DetailPanel({ selected, onClose }) {
         maxHeight: '80vh',
         display: 'flex',
         flexDirection: 'column',
-        background: TOKEN.bgCard,
+        background: tokens.bgCard,
         backdropFilter: 'blur(24px)',
         border: `2px solid ${cfg?.color ?? TOKEN.indigo}30`,
         borderRadius: 24,
         overflow: 'hidden',
-        boxShadow: `0 0 40px ${cfg?.color ?? TOKEN.indigo}15, 0 20px 40px rgba(0,0,0,0.4)`,
+        boxShadow: isDarkMode ? `0 0 40px ${cfg?.color ?? TOKEN.indigo}15, 0 20px 40px rgba(0,0,0,0.4)` : '0 20px 50px rgba(0,0,0,0.1)',
         fontFamily: TOKEN.fontSans,
         zIndex: Z.raised,
       }}
@@ -878,7 +906,7 @@ function DetailPanel({ selected, onClose }) {
 
       <div style={{
         padding: '24px 24px 20px',
-        borderBottom: `1px solid ${TOKEN.border}`,
+        borderBottom: `1px solid ${tokens.border}`,
         display: 'flex',
         alignItems: 'flex-start',
         gap: 16,
@@ -899,7 +927,7 @@ function DetailPanel({ selected, onClose }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 900, color: TOKEN.textPrimary, margin: 0, letterSpacing: '-0.02em' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 900, color: tokens.textPrimary, margin: 0, letterSpacing: '-0.02em' }}>
               {selected.name}
             </h3>
             <span style={{
@@ -921,8 +949,8 @@ function DetailPanel({ selected, onClose }) {
           onClick={onClose}
           style={{
             width: 32, height: 32, borderRadius: 10, border: 'none', cursor: 'pointer',
-            background: 'rgba(51,65,85,0.5)', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', color: TOKEN.textSecondary, flexShrink: 0,
+            background: isDarkMode ? 'rgba(51,65,85,0.5)' : 'rgba(226,232,240,0.8)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', color: tokens.textSecondary, flexShrink: 0,
           }}
         >
           <X size={18} />
@@ -930,7 +958,7 @@ function DetailPanel({ selected, onClose }) {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 24 }} className="custom-scrollbar">
-        <p style={{ fontSize: 14, lineHeight: 1.7, color: TOKEN.textSecondary, marginBottom: 20 }}>
+        <p style={{ fontSize: 14, lineHeight: 1.7, color: tokens.textSecondary, marginBottom: 20 }}>
           {selected.description}
         </p>
 
@@ -948,8 +976,8 @@ function DetailPanel({ selected, onClose }) {
         </div>
 
         <div style={{
-          background: 'rgba(15,23,42,0.6)', borderRadius: 20, padding: 20,
-          marginBottom: 20, border: `1px solid ${TOKEN.border}`,
+          background: isDarkMode ? 'rgba(15,23,42,0.6)' : 'rgba(255,255,255,0.8)', borderRadius: 20, padding: 20,
+          marginBottom: 20, border: `1px solid ${tokens.border}`,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <Activity size={14} color={TOKEN.cyan} />
@@ -964,21 +992,21 @@ function DetailPanel({ selected, onClose }) {
 
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <TrendingUp size={14} color={TOKEN.textMuted} />
-            <span style={{ fontSize: 10, fontWeight: 900, color: TOKEN.textMuted, fontFamily: TOKEN.fontMono, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <TrendingUp size={14} color={tokens.textMuted} />
+            <span style={{ fontSize: 10, fontWeight: 900, color: tokens.textMuted, fontFamily: TOKEN.fontMono, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               Performance Metrics
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {Object.entries(selected.metrics).map(([k, v]) => (
               <div key={k} style={{
-                background: 'rgba(15,23,42,0.5)', borderRadius: 14, padding: '12px 14px',
-                border: `1px solid ${TOKEN.border}`,
+                background: isDarkMode ? 'rgba(15,23,42,0.5)' : 'rgba(255,255,255,0.6)', borderRadius: 14, padding: '12px 14px',
+                border: `1px solid ${tokens.border}`,
               }}>
-                <div style={{ fontSize: 9, fontFamily: TOKEN.fontMono, color: TOKEN.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+                <div style={{ fontSize: 9, fontFamily: TOKEN.fontMono, color: tokens.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
                   {k}
                 </div>
-                <div style={{ fontSize: 15, fontFamily: TOKEN.fontMono, fontWeight: 900, color: TOKEN.textPrimary }}>
+                <div style={{ fontSize: 15, fontFamily: TOKEN.fontMono, fontWeight: 900, color: tokens.textPrimary }}>
                   {v}
                 </div>
               </div>
@@ -988,21 +1016,21 @@ function DetailPanel({ selected, onClose }) {
 
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Hash size={14} color={TOKEN.textMuted} />
-            <span style={{ fontSize: 10, fontWeight: 900, color: TOKEN.textMuted, fontFamily: TOKEN.fontMono, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <Hash size={14} color={tokens.textMuted} />
+            <span style={{ fontSize: 10, fontWeight: 900, color: tokens.textMuted, fontFamily: TOKEN.fontMono, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               System Details
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {Object.entries(selected.details).map(([k, v]) => (
               <div key={k} style={{
-                background: 'rgba(15,23,42,0.4)', borderRadius: 14, padding: '14px 16px',
-                border: `1px solid ${TOKEN.border}`,
+                background: isDarkMode ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.4)', borderRadius: 14, padding: '14px 16px',
+                border: `1px solid ${tokens.border}`,
               }}>
                 <div style={{ fontSize: 10, fontFamily: TOKEN.fontMono, fontWeight: 900, marginBottom: 5, color: cfg?.color, textTransform: 'uppercase' }}>
                   {k}
                 </div>
-                <div style={{ fontSize: 13, lineHeight: 1.6, color: TOKEN.textSecondary, fontWeight: 500 }}>
+                <div style={{ fontSize: 13, lineHeight: 1.6, color: tokens.textSecondary, fontWeight: 500 }}>
                   {v}
                 </div>
               </div>
@@ -1013,8 +1041,8 @@ function DetailPanel({ selected, onClose }) {
         {selected.connections.length > 0 && (
           <div style={{ marginTop: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <Wifi size={14} color={TOKEN.textMuted} />
-              <span style={{ fontSize: 10, fontWeight: 900, color: TOKEN.textMuted, fontFamily: TOKEN.fontMono, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <Wifi size={14} color={tokens.textMuted} />
+              <span style={{ fontSize: 10, fontWeight: 900, color: tokens.textMuted, fontFamily: TOKEN.fontMono, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 Active Connections
               </span>
             </div>
@@ -1049,6 +1077,9 @@ function DetailPanel({ selected, onClose }) {
 ═══════════════════════════════════════════════════════ */
 
 function SidePanel({ visible, selectedId, onSelect, searchTerm, setSearchTerm, visLayers, toggleLayer, filtered, onClose }) {
+  const { isDarkMode } = useTheme();
+  const tokens = isDarkMode ? TOKEN.dark : TOKEN.light;
+
   return (
     <div style={{
       position: 'absolute',
@@ -1056,9 +1087,9 @@ function SidePanel({ visible, selectedId, onSelect, searchTerm, setSearchTerm, v
       top: 0,
       width: 320,
       height: '100%',
-      background: TOKEN.bgPanel,
+      background: tokens.bgPanel,
       backdropFilter: 'blur(32px)',
-      borderRight: `2px solid ${TOKEN.border}`,
+      borderRight: `2px solid ${tokens.border}`,
       display: 'flex',
       flexDirection: 'column',
       fontFamily: TOKEN.fontSans,
@@ -1066,28 +1097,28 @@ function SidePanel({ visible, selectedId, onSelect, searchTerm, setSearchTerm, v
       transform: visible ? 'translateX(0)' : 'translateX(-100%)',
       transition: 'transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
     }}>
-      <div style={{ padding: '32px 24px 20px', borderBottom: `1px solid ${TOKEN.border}` }}>
+      <div style={{ padding: '32px 24px 20px', borderBottom: `1px solid ${tokens.border}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
           <div style={{
             width: 44, height: 44, borderRadius: 12, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'linear-gradient(135deg, #4F46E5, #06B6D4)',
-            boxShadow: '0 10px 25px rgba(99,102,241,0.4)',
+            boxShadow: isDarkMode ? '0 10px 25px rgba(99,102,241,0.4)' : '0 10px 20px rgba(99,102,241,0.2)',
           }}>
             <GitBranch size={22} color="#fff" strokeWidth={2.5} />
           </div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 900, color: TOKEN.textPrimary, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 18, fontWeight: 900, color: tokens.textPrimary, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
               Syntax_Arch
             </div>
-            <div style={{ fontSize: 10, color: TOKEN.textMuted, fontFamily: TOKEN.fontMono, fontWeight: 900 }}>
+            <div style={{ fontSize: 10, color: tokens.textMuted, fontFamily: TOKEN.fontMono, fontWeight: 900 }}>
               {filtered.length} NODES ACTIVE
             </div>
           </div>
         </div>
 
         <div style={{ position: 'relative', marginBottom: 20 }}>
-          <Search size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: TOKEN.textMuted }} />
+          <Search size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: tokens.textMuted }} />
           <input
             type="text"
             placeholder="Filter infrastructure..."
@@ -1096,10 +1127,10 @@ function SidePanel({ visible, selectedId, onSelect, searchTerm, setSearchTerm, v
             style={{
               width: '100%',
               padding: '12px 14px 12px 42px',
-              background: 'rgba(30,41,59,0.5)',
-              border: `2px solid ${TOKEN.border}`,
+              background: isDarkMode ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.8)',
+              border: `2px solid ${tokens.border}`,
               borderRadius: 14,
-              color: TOKEN.textPrimary,
+              color: tokens.textPrimary,
               fontSize: 13,
               fontFamily: TOKEN.fontMono,
               fontWeight: 700,
@@ -1119,9 +1150,9 @@ function SidePanel({ visible, selectedId, onSelect, searchTerm, setSearchTerm, v
                 onClick={() => toggleLayer(layer)}
                 style={{
                   fontSize: 9, fontWeight: 900, padding: '5px 10px', borderRadius: 8,
-                  border: `1px solid ${active ? cfg?.color + '50' : 'rgba(51,65,85,0.4)'}`,
+                  border: `1px solid ${active ? cfg?.color + '50' : isDarkMode ? 'rgba(51,65,85,0.4)' : 'rgba(203,213,225,0.8)'}`,
                   background: active ? `${cfg?.color}15` : 'transparent',
-                  color: active ? cfg?.color : TOKEN.textMuted,
+                  color: active ? cfg?.color : tokens.textMuted,
                   cursor: 'pointer',
                   fontFamily: TOKEN.fontMono,
                   textTransform: 'uppercase',
@@ -1173,19 +1204,19 @@ function SidePanel({ visible, selectedId, onSelect, searchTerm, setSearchTerm, v
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontSize: 13, fontWeight: 900,
-                  color: isActive ? TOKEN.textPrimary : TOKEN.textSecondary,
+                  color: isActive ? tokens.textPrimary : tokens.textSecondary,
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                   marginBottom: 2,
                 }}>
                   {mod.name}
                 </div>
-                <div style={{ fontSize: 9, fontFamily: TOKEN.fontMono, color: TOKEN.textMuted, textTransform: 'uppercase', fontWeight: 900 }}>
+                <div style={{ fontSize: 9, fontFamily: TOKEN.fontMono, color: tokens.textMuted, textTransform: 'uppercase', fontWeight: 900 }}>
                   {mod.layer}
                 </div>
               </div>
               <div style={{
                 width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                background: statusCol, boxShadow: `0 0 6px ${statusCol}`,
+                background: statusCol, boxShadow: isDarkMode ? `0 0 6px ${statusCol}` : 'none',
               }} />
             </button>
           );
@@ -1200,6 +1231,9 @@ function SidePanel({ visible, selectedId, onSelect, searchTerm, setSearchTerm, v
 ═══════════════════════════════════════════════════════ */
 
 export default function SystemArchitect3D() {
+  const { isDarkMode } = useTheme();
+  const tokens = isDarkMode ? TOKEN.dark : TOKEN.light;
+
   const [selectedId, setSelectedId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1210,7 +1244,11 @@ export default function SystemArchitect3D() {
 
   useEffect(() => {
     return () => {
-      if (roRef.current) { roRef.current.disconnect(); roRef.current = null; }
+      if (roRef.current) {
+        if (roRef.current.ro) roRef.current.ro.disconnect();
+        if (roRef.current.cleanup) roRef.current.cleanup();
+        roRef.current = null;
+      }
     };
   }, []);
 
@@ -1239,7 +1277,7 @@ export default function SystemArchitect3D() {
       height: '100vh',
       overflow: 'hidden',
       fontFamily: TOKEN.fontSans,
-      background: TOKEN.bg,
+      background: tokens.bg,
     }}>
       <SidePanel
         visible={panelOpen}
@@ -1266,6 +1304,13 @@ export default function SystemArchitect3D() {
           }}
           dpr={[1, 1.5]}
           onCreated={({ gl, camera }) => {
+            // ✅ Cleanup handler for WebGLRenderer to avoid Context Lost
+            const cleanup = () => {
+              gl.dispose();
+              gl.forceContextLoss();
+              gl.domElement = null;
+            };
+
             if (canvasRef.current) {
               let rafId;
               const ro = new ResizeObserver(entries => {
@@ -1282,7 +1327,7 @@ export default function SystemArchitect3D() {
                 });
               });
               ro.observe(canvasRef.current);
-              roRef.current = ro;
+              roRef.current = { ro, cleanup };
             }
           }}
         >
@@ -1295,7 +1340,7 @@ export default function SystemArchitect3D() {
           <AnimatePresence mode="wait">
             <motion.div
               key={hoveredModule.id} initial={{ opacity: 0, y: 12, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.96 }}
-              style={{ position: 'absolute', bottom: 30, left: 30, width: 280, background: TOKEN.bgCard, backdropFilter: 'blur(20px)', border: `2px solid ${LAYER_CONFIG[hoveredModule.layer].color}40`, borderRadius: 20, overflow: 'hidden', boxShadow: `0 0 30px ${TOKEN.indigo}15`, pointerEvents: 'none', zIndex: Z.tooltip }}
+              style={{ position: 'absolute', bottom: 30, left: 30, width: 280, background: tokens.bgCard, backdropFilter: 'blur(20px)', border: `2px solid ${LAYER_CONFIG[hoveredModule.layer].color}40`, borderRadius: 20, overflow: 'hidden', boxShadow: isDarkMode ? `0 0 30px ${TOKEN.indigo}15` : '0 10px 30px rgba(0,0,0,0.1)', pointerEvents: 'none', zIndex: Z.tooltip }}
             >
               <div style={{ height: 3, background: `linear-gradient(90deg, ${LAYER_CONFIG[hoveredModule.layer].color}, transparent)` }} />
               <div style={{ padding: '16px 20px' }}>
@@ -1304,14 +1349,14 @@ export default function SystemArchitect3D() {
                     {React.createElement(LAYER_CONFIG[hoveredModule.layer].icon, { size: 18, color: LAYER_CONFIG[hoveredModule.layer].color, strokeWidth: 2.5 })}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: TOKEN.textPrimary, marginBottom: 2 }}>{hoveredModule.name}</div>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: tokens.textPrimary, marginBottom: 2 }}>{hoveredModule.name}</div>
                     <div style={{ fontSize: 9, color: LAYER_CONFIG[hoveredModule.layer].color, fontFamily: TOKEN.fontMono, fontWeight: 900, textTransform: 'uppercase' }}>{hoveredModule.layer}</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {['CPU', 'MEM', 'TRAFFIC'].map((label, i) => (
-                    <div key={label} style={{ flex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: 8, padding: '8px', border: `1px solid ${TOKEN.border}`, textAlign: 'center' }}>
-                      <div style={{ fontSize: 8, color: TOKEN.textMuted, fontWeight: 900, marginBottom: 4 }}>{label}</div>
+                    <div key={label} style={{ flex: 1, background: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.4)', borderRadius: 8, padding: '8px', border: `1px solid ${tokens.border}`, textAlign: 'center' }}>
+                      <div style={{ fontSize: 8, color: tokens.textMuted, fontWeight: 900, marginBottom: 4 }}>{label}</div>
                       <div style={{ fontSize: 11, fontWeight: 900, color: i === 0 ? TOKEN.indigo : i === 1 ? TOKEN.cyan : TOKEN.emerald, fontFamily: TOKEN.fontMono }}>{Object.values(hoveredModule.telemetry)[i]}%</div>
                     </div>
                   ))}
@@ -1326,17 +1371,17 @@ export default function SystemArchitect3D() {
         </AnimatePresence>
 
         <div style={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 10, zIndex: Z.modal }}>
-          <button onClick={() => setSelectedId(null)} title="Reset Viewport" style={{ width: 44, height: 44, borderRadius: 14, border: `2px solid ${TOKEN.border}`, background: TOKEN.bgCard, backdropFilter: 'blur(12px)', cursor: 'pointer', color: TOKEN.textSecondary }}><RotateCcw size={18} /></button>
-          <button onClick={() => setVisLayers([...LAYERS])} title="Show All Nodes" style={{ width: 44, height: 44, borderRadius: 14, border: `2px solid ${TOKEN.border}`, background: TOKEN.bgCard, backdropFilter: 'blur(12px)', cursor: 'pointer', color: TOKEN.textSecondary }}><Layers size={18} /></button>
+          <button onClick={() => setSelectedId(null)} title="Reset Viewport" style={{ width: 44, height: 44, borderRadius: 14, border: `2px solid ${tokens.border}`, background: tokens.bgCard, backdropFilter: 'blur(12px)', cursor: 'pointer', color: tokens.textSecondary }}><RotateCcw size={18} /></button>
+          <button onClick={() => setVisLayers([...LAYERS])} title="Show All Nodes" style={{ width: 44, height: 44, borderRadius: 14, border: `2px solid ${tokens.border}`, background: tokens.bgCard, backdropFilter: 'blur(12px)', cursor: 'pointer', color: tokens.textSecondary }}><Layers size={18} /></button>
         </div>
 
-        <button onClick={() => setPanelOpen(p => !p)} style={{ position: 'absolute', bottom: 30, left: panelOpen ? 340 : 30, height: 48, padding: '0 20px', borderRadius: 14, border: `2px solid ${TOKEN.border}`, background: TOKEN.bgCard, backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', color: TOKEN.textSecondary, fontSize: 13, fontFamily: TOKEN.fontMono, fontWeight: 900, textTransform: 'uppercase', transition: 'left 0.4s cubic-bezier(0.23, 1, 0.32, 1)', zIndex: Z.modal }}>
+        <button onClick={() => setPanelOpen(p => !p)} style={{ position: 'absolute', bottom: 30, left: panelOpen ? 340 : 30, height: 48, padding: '0 20px', borderRadius: 14, border: `2px solid ${tokens.border}`, background: tokens.bgCard, backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', color: tokens.textSecondary, fontSize: 13, fontFamily: TOKEN.fontMono, fontWeight: 900, textTransform: 'uppercase', transition: 'left 0.4s cubic-bezier(0.23, 1, 0.32, 1)', zIndex: Z.modal }}>
           {panelOpen ? <ChevronLeft size={18} strokeWidth={3} /> : <Layers size={18} strokeWidth={3} />}
           {panelOpen ? 'Collapse_Arch' : 'Expand_Modules'}
         </button>
 
         {!selectedId && !hoveredId && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 2.5 }} style={{ position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', background: TOKEN.bgCard, backdropFilter: 'blur(20px)', border: `2px solid ${TOKEN.border}`, borderRadius: 24, fontSize: 12, fontFamily: TOKEN.fontMono, color: TOKEN.textSecondary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 2.5 }} style={{ position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', background: tokens.bgCard, backdropFilter: 'blur(20px)', border: `2px solid ${tokens.border}`, borderRadius: 24, fontSize: 12, fontFamily: TOKEN.fontMono, color: tokens.textSecondary, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             <Cpu size={14} color={TOKEN.cyan} /> <span>Probe a Node to Inspect Metrics</span>
           </motion.div>
         )}

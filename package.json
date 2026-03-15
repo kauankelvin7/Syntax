@@ -1,9 +1,17 @@
 {
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@tldraw/tlschema": "^4.4.1",
+    "@xyflow/react": "^12.10.1",
+    "d3": "^7.9.0",
+    "dagre": "^0.8.5",
+    "date-fns": "^4.1.0",
+    "dompurify": "^3.3.3",
     "hls.js": "^1.6.15",
     "html2canvas": "^1.4.1",
     "pdfjs-dist": "^5.5.207",
+    "react-resizable-panels": "^4.7.3",
+    "recharts": "^3.8.0",
     "sharp": "^0.34.5",
     "three-stdlib": "^2.8.0",
     "tldraw": "^4.4.1"

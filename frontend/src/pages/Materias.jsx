@@ -196,10 +196,10 @@ function Materias() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center">
-          <div className="w-20 h-20 border-[3px] border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-6" />
-          <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] animate-pulse">Mapping_Inventory_Nodes...</p>
+          <div className="w-16 h-16 border-[3px] border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-6" />
+          <p className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] animate-pulse">Mapping_Inventory_Nodes...</p>
         </motion.div>
       </div>
     );
@@ -235,7 +235,7 @@ function Materias() {
               { label: 'Em Andamento', val: materias.filter(m => !m.concluida).length, sub: 'Módulos ativos', icon: Cpu, col: 'text-indigo-500', bg: 'bg-indigo-500/10' },
               { label: 'Revisões Pendentes', val: Object.values(reviewsByMateria).reduce((s, r) => s + r.pending, 0), sub: 'Sincronizações necessárias', icon: RotateCcw, col: 'text-amber-500', bg: 'bg-amber-500/10' },
             ].map((s, i) => (
-              <motion.div key={i} className="bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[28px] p-6 shadow-sm flex flex-col" whileHover={{ y: -4 }}>
+              <motion.div key={i} className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-[28px] p-6 shadow-sm flex flex-col" whileHover={{ y: -4 }}>
                 <div className={`w-10 h-10 rounded-[12px] ${s.bg} flex items-center justify-center mb-4 ${s.col}`}><s.icon size={20} strokeWidth={2.5} /></div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{s.label}</p>
                 <p className="text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tighter">{s.val}</p>
@@ -245,7 +245,7 @@ function Materias() {
           </div>
 
           {/* BARRA DE PROBE (BUSCA) */}
-          <motion.div className="flex flex-col sm:flex-row gap-3 mt-10 bg-white dark:bg-slate-900 p-3 rounded-[24px] border-2 border-slate-100 dark:border-slate-800 shadow-sm" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div className="flex flex-col sm:flex-row gap-3 mt-10 bg-white dark:bg-slate-900 p-3 rounded-[24px] border-2 border-slate-200 dark:border-slate-800 shadow-sm" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div className="relative flex-1">
               <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input type="text" placeholder="Pesquisar matérias..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 h-14 rounded-[16px] bg-slate-50 dark:bg-slate-950 border-0 text-slate-900 dark:text-white font-bold" />

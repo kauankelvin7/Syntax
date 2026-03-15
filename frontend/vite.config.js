@@ -189,6 +189,7 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     rollupOptions: {
+      external: ['stackframe', 'error-stack-parser'],
       output: {
         manualChunks: {
           firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
