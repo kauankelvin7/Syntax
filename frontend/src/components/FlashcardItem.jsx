@@ -48,6 +48,25 @@ const FlashcardItem = memo(({
 
   const materiaColor = flashcard.materiaCor || '#0EA5E9';
 
+  // Validações para lidar com Decks importados (Arrays) vs Flashcards simples (Strings)
+  const renderPergunta = () => {
+    if (typeof flashcard.pergunta === 'string') return flashcard.pergunta;
+    if (flashcard.title) return flashcard.title;
+    return 'Deck de Flashcards';
+  };
+
+  const renderResposta = () => {
+    // Se a resposta ou o conteúdo for um Array, significa que é um Deck importado
+    if (Array.isArray(flashcard.resposta) || Array.isArray(flashcard.content)) {
+      const qtd = Array.isArray(flashcard.resposta) ? flashcard.resposta.length : flashcard.content.length;
+      return `${qtd} cartões neste deck. Abra o "Modo Estudo" para revisá-los!`;
+    }
+    // Se for texto normal
+    if (typeof flashcard.resposta === 'string') return flashcard.resposta;
+    
+    return 'Conteúdo indisponível';
+  };
+
   return (
     <div 
       className="group perspective-1000 h-[280px] w-full cursor-pointer"
@@ -117,7 +136,7 @@ const FlashcardItem = memo(({
             </div>
 
             <h3 className="text-[17px] sm:text-[18px] font-extrabold text-slate-900 dark:text-white leading-snug line-clamp-4 relative z-10 tracking-tight">
-              {flashcard.pergunta}
+              {renderPergunta()}
             </h3>
 
             {flashcard.tags && flashcard.tags.length > 0 && (
@@ -160,7 +179,7 @@ const FlashcardItem = memo(({
             </h3>
             
             <p className="text-[15px] sm:text-[16px] text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
-              {flashcard.resposta}
+              {renderResposta()}
             </p>
 
             {flashcard.imagemUrl && (

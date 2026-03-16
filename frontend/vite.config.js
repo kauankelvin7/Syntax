@@ -172,45 +172,24 @@ export default defineConfig({
     dedupe: ['react', 'react-dom', 'three', '@react-three/fiber'],
   },
 
-  server: {
+server: {
+  port: 3000,
+  hmr: {
+    protocol: 'ws',
+    host: 'localhost',
     port: 3000,
-    headers: {
-      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
-      'Cross-Origin-Embedder-Policy': 'unsafe-none'
-    },
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: true
-      }
+  },
+  headers: {
+    'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+    'Cross-Origin-Embedder-Policy': 'unsafe-none'
+  },
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8080',
+      changeOrigin: true
     }
-  },
-
-  build: {
-    emptyOutDir: true,
-    rollupOptions: {
-      external: ['stackframe', 'error-stack-parser'],
-      output: {
-        manualChunks: {
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          motion: ['framer-motion'],
-          icons: ['lucide-react', 'react-icons'],
-          editor: ['react-quill', 'quill'],
-          charts: ['recharts']
-        }
-      }
-    },
-    target: 'es2015',
-    minify: 'esbuild',
-    cssCodeSplit: true,
-    sourcemap: false,
-    chunkSizeWarningLimit: 500,
-    commonjsOptions: {
-      include: [/lodash/, /node_modules/],
-      transformMixedEsModules: true,
-    },
-  },
+  }
+},
 
 
   test: {

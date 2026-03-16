@@ -1,18 +1,20 @@
-// Detecta se é um celular (mobile) ou tablet/desktop
-export function setDeviceLayoutClass() {
-  const isMobile =
-    /Mobi|Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) &&
-    window.innerWidth < 768;
+/**
+ * deviceLayout.js — Ajustes de layout por tipo de dispositivo.
+ * Detecta mobile/tablet/desktop e aplica data-attributes no <html>.
+ */
 
-  if (isMobile) {
-    document.body.classList.add('mobile-layout');
-    document.body.classList.remove('desktop-layout');
+const applyDeviceLayout = () => {
+  const w = window.innerWidth;
+  const html = document.documentElement;
+
+  if (w < 640) {
+    html.setAttribute('data-device', 'mobile');
+  } else if (w < 1024) {
+    html.setAttribute('data-device', 'tablet');
   } else {
-    document.body.classList.add('desktop-layout');
-    document.body.classList.remove('mobile-layout');
+    html.setAttribute('data-device', 'desktop');
   }
-}
+};
 
-// Chama na inicialização e no resize
-window.addEventListener('resize', setDeviceLayoutClass);
-setDeviceLayoutClass();
+applyDeviceLayout();
+window.addEventListener('resize', applyDeviceLayout);

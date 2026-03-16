@@ -1,12 +1,12 @@
 /**
  * 🚀 SYNTAX APP - Performance Optimized + PWA
- * 
+ *
  * Otimizações aplicadas:
  * - Route-based Code Splitting (React.lazy)
  * - Suspense com LoadingScreen elegante
  * - Transições suaves entre páginas
  * - PWA com suporte offline
- * 
+ *
  * Resultado: Bundle inicial menor, navegação 60fps, instalável
  */
 
@@ -27,35 +27,33 @@ import { initPWA } from './utils/pwaUtils';
 import { useFontSize } from './utils/useFontSize';
 import { initializeStreakTracking } from './services/streakService';
 
-
 // 🔥 LAZY LOADING - Páginas carregadas sob demanda
-// Cada página vira um chunk separado no build
-const LoginMinimal = lazy(() => import('./pages/LoginMinimal'));
-const Home = lazy(() => import('./pages/Home'));
-const Materias = lazy(() => import('./pages/Materias'));
-const Resumos = lazy(() => import('./pages/Resumos'));
-const Flashcards = lazy(() => import('./pages/Flashcards'));
-const Simulado = lazy(() => import('./pages/Simulado'));
-const ConsultaRapida = lazy(() => import('./pages/ConsultaRapida'));
-const SystemArchitect = lazy(() => import('./pages/SystemArchitect3D'));
-const Notificacoes = lazy(() => import('./pages/Notificacoes'));
-const Configuracoes = lazy(() => import('./pages/Configuracoes'));
-const MeuPerfil = lazy(() => import('./pages/MeuPerfil'));
+const LoginMinimal      = lazy(() => import('./pages/LoginMinimal'));
+const Home              = lazy(() => import('./pages/Home'));
+const Materias          = lazy(() => import('./pages/Materias'));
+const Resumos           = lazy(() => import('./pages/Resumos'));
+const Flashcards        = lazy(() => import('./pages/Flashcards'));
+const Simulado          = lazy(() => import('./pages/Simulado'));
+const ConsultaRapida    = lazy(() => import('./pages/ConsultaRapida'));
+const SystemArchitect   = lazy(() => import('./pages/SystemArchitect3D'));
+const Notificacoes      = lazy(() => import('./pages/Notificacoes'));
+const Configuracoes     = lazy(() => import('./pages/Configuracoes'));
+const MeuPerfil         = lazy(() => import('./pages/MeuPerfil'));
 const HistoricoSimulados = lazy(() => import('./pages/HistoricoSimulados'));
-const Conquistas = lazy(() => import('./pages/Conquistas'));
-const Analytics = lazy(() => import('./pages/Analytics'));
-const Amigos = lazy(() => import('./pages/Amigos'));
-const IDE = lazy(() => import('./pages/IDE'));
-const FeedTech = lazy(() => import('./pages/FeedTech'));
-const MockInterview = lazy(() => import('./pages/MockInterview'));
-const KnowledgeMap = lazy(() => import('./pages/KnowledgeMap'));
-const Roadmaps = lazy(() => import('./pages/Roadmaps'));
-const StudyRooms = lazy(() => import('./pages/StudyRooms'));
-const CommunityLibrary = lazy(() => import('./pages/CommunityLibrary'));
-const PeerCodeReview = lazy(() => import('./pages/PeerCodeReview'));
+const Conquistas        = lazy(() => import('./pages/Conquistas'));
+const Analytics         = lazy(() => import('./pages/Analytics'));
+const Amigos            = lazy(() => import('./pages/Amigos'));
+const IDE               = lazy(() => import('./pages/IDE'));
+const FeedTech          = lazy(() => import('./pages/FeedTech'));
+const MockInterview     = lazy(() => import('./pages/MockInterview'));
+const KnowledgeMap      = lazy(() => import('./pages/KnowledgeMap'));
+const Roadmaps          = lazy(() => import('./pages/Roadmaps'));
+const StudyRooms        = lazy(() => import('./pages/StudyRooms'));
+const CommunityLibrary  = lazy(() => import('./pages/CommunityLibrary'));
+const PeerCodeReview    = lazy(() => import('./pages/PeerCodeReview'));
 const GitHubIntegration = lazy(() => import('./pages/GitHubIntegration'));
 
-// ⚡ PREFETCH - Pré-carrega todos os chunks no idle para navegação instantânea
+// ⚡ PREFETCH - Pré-carrega todos os chunks no idle
 const PAGE_IMPORTS = [
   () => import('./pages/Home'),
   () => import('./pages/Materias'),
@@ -93,32 +91,30 @@ function usePrefetchRoutes() {
   }, []);
 }
 
-// FIX-003: Clear dashboard cache on logout to prevent cross-user data leaks
+// FIX-003: Limpa cache ao fazer logout para evitar vazamento de dados
 function CacheCleaner() {
   const { user } = useAuth();
   const { clearCache } = useDashboardData();
   const prevUserRef = useRef(null);
+
   useEffect(() => {
     if (prevUserRef.current !== null && user === null) {
       clearCache();
     }
     prevUserRef.current = user;
   }, [user, clearCache]);
+
   return null;
 }
 
-// Componente de rota protegida
+// Rota protegida
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
+  if (loading) return <LoadingScreen />;
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
-// Spinner leve para transições entre páginas (não bloqueia o layout)
+// Spinner leve para transições entre páginas
 function PageSpinner() {
   return (
     <div className="flex items-center justify-center w-full h-64">
@@ -130,11 +126,7 @@ function PageSpinner() {
 function AppContent() {
   const { isAuthenticated, user } = useAuth();
 
-  // ⚡ Pré-carrega todos os chunks de rota no idle após o app montar
   usePrefetchRoutes();
-
-  // 🔍 Hook de Acessibilidade - Controle de tamanho de fonte
-  // Inicializa o hook para aplicar font-size no <html> element
   useFontSize();
 
   useEffect(() => {
@@ -146,63 +138,64 @@ function AppContent() {
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
-        <Route 
-          path="/login" 
-          element={isAuthenticated ? <Navigate to="/" replace /> : <LoginMinimal />} 
+        {/* Rota pública */}
+        <Route
+          path="/login"
+          element={isAuthenticated ? <Navigate to="/" replace /> : <LoginMinimal />}
         />
-        
-        <Route 
-          path="/*" 
+
+        {/* Rotas protegidas */}
+        <Route
+          path="/*"
           element={
             <ProtectedRoute>
               <DashboardDataProvider>
-              <FocusModeProvider>
-              <SocialProvider>
-              <CacheCleaner />
-              <OnboardingFlow />
-              <Layout>
-                {/* Suspense interno para transições entre páginas protegidas */}
-                <Suspense fallback={<PageSpinner />}>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/materias" element={<Materias />} />
-                    <Route path="/resumos" element={<Resumos />} />
-                    <Route path="/flashcards" element={<Flashcards />} />
-                    <Route path="/simulado" element={<Simulado />} />
-                    <Route path="/consulta-rapida" element={<ConsultaRapida />} />
-                    <Route path="/atlas-3d" element={<SystemArchitect />} />
-                    <Route path="/notificacoes" element={<Notificacoes />} />
-                    <Route path="/configuracoes" element={<Configuracoes />} />
-                    <Route path="/meu-perfil" element={<MeuPerfil />} />
-                    <Route path="/historico-simulados" element={<HistoricoSimulados />} />
-                    <Route path="/conquistas" element={<Conquistas />} />
-                    <Route path="/analytics" element={<Analytics />} />
-                    <Route path="/amigos" element={<Amigos />} />
-                    <Route path="/ide" element={<IDE />} />
-                    <Route path="/feed" element={<FeedTech />} />
-                    <Route path="/mock-interview" element={<MockInterview />} />
-                    <Route path="/knowledge-map" element={<KnowledgeMap />} />
-                    <Route path="/roadmaps" element={<Roadmaps />} />
-                    <Route path="/study-rooms" element={<StudyRooms />} />
-                    <Route path="/community" element={<CommunityLibrary />} />
-                    <Route path="/peer-review" element={<PeerCodeReview />} />
-                    <Route path="/github" element={<GitHubIntegration />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </Suspense>
-              </Layout>
-              </SocialProvider>
-              </FocusModeProvider>
+                <FocusModeProvider>
+                  <SocialProvider>
+                    <CacheCleaner />
+                    <OnboardingFlow />
+                    <Layout>
+                      <Suspense fallback={<PageSpinner />}>
+                        <Routes>
+                          <Route path="/"                   element={<Home />} />
+                          <Route path="/materias"           element={<Materias />} />
+                          <Route path="/resumos"            element={<Resumos />} />
+                          <Route path="/flashcards"         element={<Flashcards />} />
+                          <Route path="/simulado"           element={<Simulado />} />
+                          <Route path="/consulta-rapida"    element={<ConsultaRapida />} />
+                          <Route path="/atlas-3d"           element={<SystemArchitect />} />
+                          <Route path="/notificacoes"       element={<Notificacoes />} />
+                          <Route path="/configuracoes"      element={<Configuracoes />} />
+                          <Route path="/meu-perfil"         element={<MeuPerfil />} />
+                          <Route path="/historico-simulados" element={<HistoricoSimulados />} />
+                          <Route path="/conquistas"         element={<Conquistas />} />
+                          <Route path="/analytics"          element={<Analytics />} />
+                          <Route path="/amigos"             element={<Amigos />} />
+                          <Route path="/ide"                element={<IDE />} />
+                          <Route path="/feed"               element={<FeedTech />} />
+                          <Route path="/mock-interview"     element={<MockInterview />} />
+                          <Route path="/knowledge-map"      element={<KnowledgeMap />} />
+                          <Route path="/roadmaps"           element={<Roadmaps />} />
+                          <Route path="/study-rooms"        element={<StudyRooms />} />
+                          <Route path="/community"          element={<CommunityLibrary />} />
+                          <Route path="/peer-review"        element={<PeerCodeReview />} />
+                          <Route path="/github"             element={<GitHubIntegration />} />
+                          <Route path="*"                   element={<Navigate to="/" replace />} />
+                        </Routes>
+                      </Suspense>
+                    </Layout>
+                  </SocialProvider>
+                </FocusModeProvider>
               </DashboardDataProvider>
             </ProtectedRoute>
-          } 
+          }
         />
       </Routes>
     </Suspense>
   );
 }
 
-// Toaster dinâmico que reage ao tema do app
+// Toaster que reage ao tema
 function DynamicToaster() {
   const { isDarkMode } = useTheme();
   return (
@@ -210,30 +203,22 @@ function DynamicToaster() {
       theme={isDarkMode ? 'dark' : 'light'}
       position="top-right"
       richColors
-      toastOptions={{
-        style: {
-          fontFamily: 'inherit',
-        },
-      }}
+      toastOptions={{ style: { fontFamily: 'inherit' } }}
     />
   );
 }
 
 function App() {
-  // Inicializar PWA (listeners de instalação e status)
   useEffect(() => {
     initPWA();
   }, []);
-
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ThemeProvider>
         <AuthProvider>
           <AppContent />
-          {/* Banner de instalação PWA */}
           <PWAInstallBanner />
-          {/* Toast notifications */}
           <DynamicToaster />
         </AuthProvider>
       </ThemeProvider>

@@ -1,29 +1,11 @@
-let currentVersion = null;
+/**
+ * checkForUpdate.js — Verifica se há uma nova versão do Service Worker disponível.
+ */
 
-export async function checkForUpdate() {
-  try {
-    const response = await fetch('/index.html', {
-      method: 'GET',
-      cache: 'no-store'
+export const checkForUpdate = () => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((reg) => reg.update().catch(() => {}));
     });
-
-    const text = await response.text();
-    const version = text.match(/<meta name="build-version" content="(.+?)"/);
-
-    if (!version) return;
-
-    const newVersion = version[1];
-
-    if (currentVersion === null) {
-      currentVersion = newVersion;
-      return;
-    }
-
-    if (currentVersion !== newVersion) {
-      console.log("Nova versão detectada. Atualizando...");
-      window.location.reload(true);
-    }
-  } catch (err) {
-    console.warn("Erro ao verificar atualização:", err);
   }
-}
+};

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { Users, Lock, ChevronRight, Clock } from 'lucide-react';
 
@@ -47,11 +47,12 @@ const ParticipantAvatars = ({ participants, max = 4 }) => {
   );
 };
 
-const RoomCard = ({ room, onJoin }) => {
+const RoomCard = memo(forwardRef(({ room, onJoin }, ref) => {
   const participantCount = Object.keys(room.participants ?? {}).length;
 
   return (
     <motion.div
+      ref={ref}
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={() => onJoin(room)}
@@ -116,8 +117,8 @@ const RoomCard = ({ room, onJoin }) => {
       </div>
     </motion.div>
   );
-};
+}));
 
 RoomCard.displayName = 'RoomCard';
 
-export default memo(RoomCard);
+export default RoomCard;

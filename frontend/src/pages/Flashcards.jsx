@@ -562,7 +562,7 @@ export default function Flashcards() {
                 <FlashcardItem
                   flashcard={fc}
                   onEdit={handleEdit}
-                  onDelete={(fc) => setConfirmDelete({ isOpen: true, id: fc.id, nome: fc.pergunta.slice(0, 50) + '...' })}
+                  onDelete={(fc) => setConfirmDelete({ isOpen: true, id: fc.id, nome: (fc?.pergunta || fc?.frente || 'Flashcard').slice(0, 50) + '...' })}
                 />
               </motion.div>
             ))}

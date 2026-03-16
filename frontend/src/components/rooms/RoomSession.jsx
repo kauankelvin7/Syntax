@@ -3,21 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Users, MessageSquare, LogOut, Settings, 
   ChevronRight, Info, ShieldCheck, Zap,
-  Layers, Clock, Trophy
+  Layers, Clock, Trophy, Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Z } from '../../constants/zIndex';
-import { sendMessage, updatePomodoro, updateParticipant } from '../../services/roomService';
+import { sendMessage, updatePomodoro } from '../../services/roomService';
 import RoomPomodoro from './RoomPomodoro';
 import RoomChat from './RoomChat';
 import RoomParticipants from './RoomParticipants';
 
-const RoomSession = ({ room, messages, user, onLeave }) => {
+const RoomSession = ({ room, messages, user, onLeave, onDeleteRoom }) => {
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const isOwner = room?.ownerId === user?.uid;
 
-  // Gerenciar unread messages quando chat fechado
   useEffect(() => {
     if (!isChatOpen && messages.length > 0) {
       setUnreadCount(prev => prev + 1);
@@ -57,10 +56,7 @@ const RoomSession = ({ room, messages, user, onLeave }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-slate-50 dark:bg-slate-950 flex flex-col overflow-hidden"
-      style={{ 
-        zIndex: Z.onboarding,
-        paddingBottom: 'env(safe-area-inset-bottom)'
-      }}
+      style={{ zIndex: Z.onboarding, paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {/* Header */}
       <header className="h-16 shrink-0 px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-white/5 flex items-center justify-between relative z-20">
@@ -78,28 +74,44 @@ const RoomSession = ({ room, messages, user, onLeave }) => {
               </span>
             </div>
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
-              Sessão de Estudo Ativa
+              {isOwner ? 'Você é o dono · Sessão Ativa' : 'Sessão de Estudo Ativa'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Toggle Chat (desktop) */}
           <button 
             onClick={() => setIsChatOpen(!isChatOpen)}
             className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              isChatOpen ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              isChatOpen 
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             <MessageSquare size={14} />
             <span>Chat</span>
           </button>
 
+          {/* Encerrar sala — apenas para o dono */}
+          {isOwner && onDeleteRoom && (
+            <button
+              onClick={onDeleteRoom}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-500 hover:bg-rose-500 hover:text-white transition-all text-xs font-black uppercase tracking-widest border border-rose-500/20"
+              title="Encerrar e apagar esta sala"
+            >
+              <Trash2 size={14} />
+              <span className="hidden sm:inline">Encerrar Sala</span>
+            </button>
+          )}
+
+          {/* Sair da sala */}
           <button
             onClick={onLeave}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-500 hover:bg-rose-500 hover:text-white transition-all text-xs font-black uppercase tracking-widest border border-rose-500/20"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-xs font-black uppercase tracking-widest"
           >
             <LogOut size={14} />
-            <span className="hidden sm:inline">Sair da Sala</span>
+            <span className="hidden sm:inline">Sair</span>
           </button>
         </div>
       </header>
@@ -115,7 +127,7 @@ const RoomSession = ({ room, messages, user, onLeave }) => {
         {/* Mobile: Horizontal Participants Strip */}
         <div className="md:hidden absolute top-0 left-0 right-0 h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5 z-10 flex items-center px-4 gap-2 overflow-x-auto scrollbar-none">
           {Object.values(room?.participants ?? {}).map(p => (
-            <div key={p.uid} className="shrink-0 relative group">
+            <div key={p.uid} className="shrink-0 relative">
               <img 
                 src={p.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name || 'U')}&background=6366f1&color=fff`}
                 className="w-8 h-8 rounded-lg border border-slate-200 dark:border-white/10"
@@ -138,7 +150,6 @@ const RoomSession = ({ room, messages, user, onLeave }) => {
             onUpdate={handleUpdatePomodoro} 
           />
           
-          {/* Motivation Quote / Info */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

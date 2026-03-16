@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Users, MessageSquare, Search, 
   ChevronRight, Lock, Loader, Zap, 
-  Clock, Globe, Filter, X
+  Clock, Globe, Filter, X, Trash2, AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext-firebase';
@@ -11,7 +11,8 @@ import { useRoom } from '../hooks/useRoom';
 import { 
   subscribeToActiveRooms, 
   createRoom, 
-  updateParticipant 
+  updateParticipant,
+  deleteRoom
 } from '../services/roomService';
 import RoomCard from '../components/rooms/RoomCard';
 import RoomSession from '../components/rooms/RoomSession';
@@ -23,6 +24,9 @@ const StudyRooms = () => {
   const [activeRoomId, setActiveRoomId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState(null);
+  const [isDeletingRoom, setIsDeletingRoom] = useState(false);
   const [search, setSearch] = useState('');
   
   const { room: activeRoom, messages } = useRoom(activeRoomId);
@@ -76,6 +80,39 @@ const StudyRooms = () => {
     }
   }, [activeRoomId, user]);
 
+  // Abre modal de confirmação para encerrar sala
+  const handleOpenDeleteModal = useCallback((room, e) => {
+    e?.stopPropagation();
+    setRoomToDelete(room);
+    setIsDeleteModalOpen(true);
+  }, []);
+
+  // Encerra e apaga a sala (apenas o dono pode fazer isso)
+  const handleDeleteRoom = useCallback(async () => {
+    if (!roomToDelete || !user) return;
+    if (roomToDelete.ownerId !== user.uid) {
+      toast.error('Apenas o criador da sala pode encerrá-la.');
+      return;
+    }
+
+    setIsDeletingRoom(true);
+    try {
+      await deleteRoom(roomToDelete.id);
+      setIsDeleteModalOpen(false);
+      setRoomToDelete(null);
+      // Se o dono estava dentro da sala, sai dela
+      if (activeRoomId === roomToDelete.id) {
+        setActiveRoomId(null);
+      }
+      toast.success('Sala encerrada e removida com sucesso.');
+    } catch (error) {
+      console.error('Erro ao encerrar sala:', error);
+      toast.error('Erro ao encerrar a sala. Tente novamente.');
+    } finally {
+      setIsDeletingRoom(false);
+    }
+  }, [roomToDelete, user, activeRoomId]);
+
   const handleCreateRoom = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -119,7 +156,8 @@ const StudyRooms = () => {
         room={activeRoom} 
         messages={messages} 
         user={user} 
-        onLeave={handleLeaveRoom} 
+        onLeave={handleLeaveRoom}
+        onDeleteRoom={activeRoom.ownerId === user?.uid ? () => handleOpenDeleteModal(activeRoom) : null}
       />
     );
   }
@@ -207,7 +245,22 @@ const StudyRooms = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <AnimatePresence mode="popLayout">
               {filteredRooms.map((room) => (
-                <RoomCard key={room.id} room={room} onJoin={handleJoinRoom} />
+                <div key={room.id} className="relative group">
+                  <RoomCard room={room} onJoin={handleJoinRoom} />
+                  {/* Botão de encerrar — visível apenas para o dono */}
+                  {user?.uid === room.ownerId && (
+                    <button
+                      onClick={(e) => handleOpenDeleteModal(room, e)}
+                      className="absolute top-3 right-3 z-10 w-8 h-8 rounded-xl 
+                                 bg-rose-500/10 border border-rose-500/20 text-rose-500
+                                 flex items-center justify-center opacity-0 group-hover:opacity-100
+                                 hover:bg-rose-500 hover:text-white transition-all duration-200"
+                      title="Encerrar sala"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+                </div>
               ))}
             </AnimatePresence>
           </div>
@@ -309,6 +362,69 @@ const StudyRooms = () => {
                     Lançar Sala Agora
                   </button>
                 </form>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Room Confirmation Modal */}
+      <AnimatePresence>
+        {isDeleteModalOpen && roomToDelete && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { setIsDeleteModalOpen(false); setRoomToDelete(null); }}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100]"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed inset-x-4 bottom-8 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 w-auto sm:w-[400px] bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200 dark:border-white/10 z-[101] shadow-2xl p-8"
+            >
+              {/* Ícone de alerta */}
+              <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-6">
+                <AlertTriangle size={28} className="text-rose-500" />
+              </div>
+
+              <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tighter text-center mb-2">
+                Encerrar Sala?
+              </h2>
+              <p className="text-sm text-slate-500 text-center mb-1">
+                <span className="font-bold text-slate-700 dark:text-slate-300">"{roomToDelete.name}"</span>
+              </p>
+              <p className="text-xs text-slate-400 text-center mb-8">
+                Todos os participantes serão removidos e o histórico de mensagens será apagado permanentemente.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setIsDeleteModalOpen(false); setRoomToDelete(null); }}
+                  disabled={isDeletingRoom}
+                  className="flex-1 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-black uppercase tracking-tighter text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDeleteRoom}
+                  disabled={isDeletingRoom}
+                  className="flex-1 py-3 rounded-2xl bg-rose-500 text-white font-black uppercase tracking-tighter text-sm shadow-xl shadow-rose-500/20 hover:bg-rose-600 active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                >
+                  {isDeletingRoom ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Encerrando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={15} />
+                      Encerrar
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
           </>
